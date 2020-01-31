@@ -1,3 +1,6 @@
 nodejs/*
+django/venv/
 *.json
 *.code-workspace
+django/LEADTriviaApp/db.sqlite3
+django/LEADTriviaApp/LEADTriviaApp/__pycache__/
