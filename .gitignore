@@ -4,3 +4,5 @@ django/venv/
 *.code-workspace
 django/LEADTriviaApp/db.sqlite3
 django/LEADTriviaApp/LEADTriviaApp/__pycache__/
+django/LEADTriviaApp/app/__pycache__/
+django/LEADTriviaApp/app/
