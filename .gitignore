@@ -2,7 +2,8 @@ nodejs/*
 django/venv/
 *.json
 *.code-workspace
+__init__.cpython-37.pyc
 django/LEADTriviaApp/db.sqlite3
 django/LEADTriviaApp/LEADTriviaApp/__pycache__/
 django/LEADTriviaApp/app/__pycache__/
-django/LEADTriviaApp/app/
+django/LEADTriviaApp/app/migrations/
