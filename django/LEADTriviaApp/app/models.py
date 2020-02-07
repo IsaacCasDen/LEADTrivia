@@ -68,15 +68,15 @@ def get_teams(game_id:int):
 def get_game():
     games = TriviaGame.objects.all()
     # return games[len(games)-1]
-    teams = []
-    game = [games[len(games)-1],('Teams:',teams)]
+    game = {}
+    game['Game'] = games[len(games)-1]
+    game['Teams'] = {}
     
     
-    for team in get_teams(game[0].id):
-        _team = (team,[])
-        teams.append(_team)
+    for team in get_teams(game['Game'].id):
+        game['Teams'][team.team_name] = []
         for user in get_users(team.id):
-            _team[1].append(user)
+            game['Teams'][team.team_name].append(user)
     
     return game
 
