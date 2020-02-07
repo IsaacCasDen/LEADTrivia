@@ -1,7 +1,10 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
+from .models import *
 # Create your views here.
 
-def index(request):
-    return HttpResponse("Where's your use case now???")
+
+def lobby(request):
+    return render(request, 'lobby.html')
+
