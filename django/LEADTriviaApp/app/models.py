@@ -68,21 +68,18 @@ def get_teams(game_id:int):
 def get_game():
     games = TriviaGame.objects.all()
     # return games[len(games)-1]
+    _game = games[len(games)-1]
     game = {}
-    game['Game'] = games[len(games)-1]
+    game['Game'] = str(_game)
     game['Teams'] = {}
     
     
-    for team in get_teams(game['Game'].id):
+    for team in get_teams(_game.id):
         game['Teams'][team.team_name] = []
         for user in get_users(team.id):
-            game['Teams'][team.team_name].append(user)
+            game['Teams'][team.team_name].append(str(user))
     
     return game
-
-        
-
-    
 
 def reset_db():
     TriviaGame.objects.all().delete()
