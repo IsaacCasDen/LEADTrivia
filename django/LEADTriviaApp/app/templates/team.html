@@ -1,0 +1,33 @@
+
+<script>
+  var data = {{data|safe}}
+
+  document.onreadystatechange = function() {
+    if (document.readyState=="complete") {
+      init()
+    }
+    
+  }
+
+  function init() {
+    var g = document.getElementById("game");
+    var t = document.getElementById("teams");
+
+    g.innerText = data['Game'];
+    var teams = Object.keys(data['Teams']);
+    teams.forEach(element => {
+      var team = data['Teams'][element];
+      var p = document.createElement('p');
+      p.innerText = team;
+      t.appendChild(p);
+    });
+    
+    
+  }
+</script>
+
+<div>
+  <p>Game Info</p>
+  <p id="game"></p>
+  <div id="teams"></div>
+</div>
