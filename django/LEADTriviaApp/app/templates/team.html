@@ -1,4 +1,6 @@
 
+{% load static %}
+
 <script>
   var data = {{data|safe}}
 
@@ -27,6 +29,7 @@
 
 <div>
 <p>Game Info</p>
+<img src="{% static "app/images/lobbyimage.jpg" %}" alt="Lobby">
 <p id="game"></p>
 <div id="teams"></div>
 </div>
