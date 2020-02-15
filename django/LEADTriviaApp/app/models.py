@@ -89,17 +89,17 @@ def reset_db():
 
     
 def create_model():
-    users = create_users()
-    teams = create_teams()
+    users = create_users(50)
+    teams = create_teams(int(len(users)/4))
     game = create_game()
     assign_users(users,teams)
     assign_teams(teams,game)
 
 
-def create_users():
+def create_users(count:int):
     users = []
     
-    for i in range(6):
+    for i in range(count):
         user = User()
         user.user_name = "User " + str(i)
         user.save()
@@ -107,10 +107,10 @@ def create_users():
     
     return users
 
-def create_teams():
+def create_teams(count:int):
     teams = []
 
-    for i in range(2):
+    for i in range(count):
         team = Team()
         team.team_name = "Team " + str(i)
         team.save()
@@ -126,9 +126,8 @@ def create_game():
 def assign_users(users:list,teams:list):
     _upt = len(users)/len(teams)
     upt=int(_upt)
-    if upt<_upt:
-        upt+=1
-
+    rem=len(users)-(upt*len(teams))
+    
     _teams = []
     for i,team in enumerate(teams):
         _team = (team,[])
@@ -137,6 +136,9 @@ def assign_users(users:list,teams:list):
             _team[1].append(users.pop())
         if len(users)<1:
             break
+        elif rem>0:
+            _team[1].append(users.pop())
+            rem-=1
     
     for team in _teams:
         for user in team[1]:
