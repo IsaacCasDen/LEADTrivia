@@ -14,20 +14,19 @@
     var t = document.getElementById("teams");
 
     g.innerText = data['Game'];
-    var teams = Object.keys(data['Teams']);
-    teams.forEach(element => {
-      var team = data['Teams'][element];
-      var p = document.createElement('p');
-      p.innerText = team;
-      t.appendChild(p);
-    });
+    var teamId = Object.keys(data['Teams'])[0];
+    var team = data['Teams'][teamId];
+    var p = document.createElement('p');
+    p.innerText = team;
+    t.appendChild(p);
+    
     
     
   }
 </script>
 
 <div>
-  <p>Game Info</p>
-  <p id="game"></p>
-  <div id="teams"></div>
+<p>Game Info</p>
+<p id="game"></p>
+<div id="teams"></div>
 </div>
