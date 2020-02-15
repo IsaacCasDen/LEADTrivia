@@ -1,5 +1,9 @@
 
+{% extends 'base.html' %}
+
 {% load static %}
+
+{% block content %}
 
 <script>
   var data = {{data|safe}}
@@ -33,3 +37,5 @@
 <p id="game"></p>
 <div id="teams"></div>
 </div>
+
+{% endblock %}
