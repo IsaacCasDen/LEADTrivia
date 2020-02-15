@@ -5,6 +5,110 @@
 
 {% block content %}
 
+<style>
+  #team {
+    color: darkslategrey; 
+    max-width: 300px; 
+    border-color: darkgoldenrod; 
+    border-style: solid; 
+    border-width: 0.1em;
+  }
+  #team_info {
+    text-align: center;
+    display: inline-block;
+    float:left;
+  }
+  #team_name {
+    display: inline-block;
+  }
+  .user {
+    background-color: aliceblue; 
+    width: 100%;
+    text-align: center;
+    }
+  #btnLeave {
+    background-color: gray;
+    color: whitesmoke;
+    align-self: center;
+    margin: auto;
+    margin-bottom:0.5em;
+    display: block
+  }
+  /* https://cssanimation.rocks/clocks/ */
+  .clock {
+    border-radius: 50%;
+    background: #fff url({% static "app/images/clock.svg" %}) no-repeat center;
+    background-size: 80%;
+    height: 1.5em;
+    width: 1.5em;
+    position:relative;
+    display: inline-block;
+    float:right;
+  }
+  .clock:after {
+    background: #000;
+    border-radius: 50%;
+    content: "";
+    position: absolute;
+    left:50%;
+    top:50%;
+    transform: translate(-50%,-50%);
+    width:5%;
+    height:5%;
+    z-index:10;
+  }
+  .minutes-container, .hours-container, .seconds-container {
+    position:absolute;
+    top:0;
+    right:0;
+    bottom:0;
+    left:0;
+  }
+  .hours-container {
+    animation: rotate 43200s infinite linear;
+  }
+  .hours {
+    background: #000;
+    height:20%;
+    left: 48.75%;
+    position:absolute;
+    top:30%;
+    transform-origin: 50% 100%;
+    width:2.5%;
+  }
+  .minutes-container {
+    animation: rotate 3600s infinite steps(60);
+  }
+  .minutes {
+    background:#000;
+    height:40%;
+    left:49%;
+    position: absolute;
+    top:10%;
+    transform-origin: 50% 100%;
+    width:2%;
+  }
+  .seconds-container {
+    animation: rotate 60s infinite steps(60);
+  }
+  .seconds {
+    background: goldenrod;
+    height:45%; 
+    left: 49.5%;
+    position: absolute;
+    top: 14%;
+    transform-origin: 50% 80%;
+    width:1%;
+    z-index: 8;
+  }
+
+  @keyframes rotate {
+    100% {
+      transform: rotateZ(360deg);
+    }
+  }
+</style>
+
 <script>
   var data = {{data|safe}}
 
@@ -16,26 +120,53 @@
   }
 
   function init() {
-    var g = document.getElementById("game");
-    var t = document.getElementById("teams");
+    var team_name = document.getElementById("team_name");
+    var team_users = document.getElementById("team_users");
 
-    g.innerText = data['Game'];
     var teamId = Object.keys(data['Teams'])[0];
-    var team = data['Teams'][teamId];
-    var p = document.createElement('p');
-    p.innerText = team;
-    t.appendChild(p);
+    team_name.innerText = teamId
     
-    
-    
+    var users = data['Teams'][teamId];
+    for (var i=0; i<users.length; i++) {
+      element = users[i];
+      p = document.createElement('p');
+      p.innerText = element;
+      p.classList.add("user");
+      p.classList.add("list-group-item");
+      p.classList.add("btn");
+      if (i!=0) p.classList.add("disabled");
+      team_users.appendChild(p);
+    }
+  
   }
+  
 </script>
 
 <div>
-<p>Game Info</p>
-<img src="{% static "app/images/lobbyimage.jpg" %}" alt="Lobby">
-<p id="game"></p>
-<div id="teams"></div>
+<!-- <img src="{% static "app/images/lobbyimage.jpg" %}" alt="Lobby"> -->
+<div id="team" class="container">
+  <div id="team_header" class="h3">
+    <span>
+      <div id="team_info">
+        <p id="team_name" class="title"></p>
+        <input type="image" id="team_name_edit" src="{% static "app/images/edit.png" %}" width="20em" height="20em" alt="Suggest new name">
+      </div>
+      <article class="clock">
+        <div class="hours-container">
+          <div class="hours"></div>
+        </div>
+        <div class="minutes-container">
+          <div class="minutes"></div>
+        </div>
+        <div class="seconds-container">
+          <div class="seconds"></div>
+        </div>
+      </article>
+    </span>
+  </div>
+  <div id="team_users" class="list-group col-lg-auto"></div>
+  <input type="button" id="btnLeave" class="btn" value="Leave" />
+</div>
 </div>
 
 {% endblock %}
