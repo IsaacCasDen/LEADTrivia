@@ -15,7 +15,7 @@
   }
   #team_info {
     text-align: center;
-    display: inline-block;
+    display: block;
     float:left;
   }
   #team_name {
@@ -34,6 +34,35 @@
     margin-bottom:0.5em;
     display: block
   }
+  
+  .modal {
+    width:auto;
+    height:auto;
+    overflow:auto;
+    align-self: center;
+    position:fixed;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+  }
+  .modal-content {
+    background-color: #fefefe;
+    padding: 1em;
+    border: 1em solid #888;
+    width:auto;
+  }
+  .close {
+    color:#aaa;
+    float:right;
+    font-size: 18em;
+    font-weight: bold;
+  }
+
+  .close:hover, close:focus {
+    color:black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
   /* https://cssanimation.rocks/clocks/ */
   .clock {
     border-radius: 50%;
@@ -120,54 +149,109 @@
   }
 
   function init() {
-    var team_name=document.getElementById("team_name");
-    var team_users=document.getElementById("team_users");
 
     var teamId=Object.keys(data['Teams'])[0];
-    team_name.innerText=teamId
-    
     var users=data['Teams'][teamId];
-    for (var i=0; i<users.length; i++) {
-      element=users[i];
-      p=document.createElement('p');
-      p.innerText=element;
-      p.classList.add("user");
-      p.classList.add("list-group-item");
-      p.classList.add("btn");
-      if (i!=0) p.classList.add("disabled");
-      team_users.appendChild(p);
-    }
+
+    initTeam(teamId);
+    initUsers(users[2],users);
+    
+    // window.onclick = function(event) {
+    //   if (event.target==edit_team_name) {
+    //     edit_team_name.style.display="none";
+    //   }
+    // }
+
     initLocalClocks()
     setUpMinuteHands()
     setUpSecondHands()
   }
 
-function initLocalClocks() {
-  // Get the local time using JS
-  var date=new Date();
-  var seconds=date.getSeconds();
-  var minutes=date.getMinutes();
-  var hours=date.getHours();
+  function initTeam(name) {
+    var team_name=document.getElementById("team_name");
+    var btnEditTeamName = document.getElementById("btnEditTeamName");
+    var modalChangeTeamName = document.getElementById("modalChangeTeamName");
+    var btnEditNameSubmit = document.getElementById("btnTeamSubmit");
+    var btnEditNameCancel = document.getElementById("btnTeamCancel");
 
-  // Create an object with each hand and it's angle in degrees
-  var hands=[
-    {
-      hand: 'hours',
-      angle: (hours*30)+(minutes/2)
-    },
-    {
-      hand: 'minutes',
-      angle: (minutes*6)
-    },
-    {
-      hand: 'seconds',
-      angle: (seconds*6)
+    team_name.innerText=name
+
+    btnEditTeamName.onclick = function() {
+      modalChangeTeamName.style.display="block";
     }
-  ];
-  // Loop through each of these hands to set their angle
-  for (var j=0; j < hands.length; j++) {
-    var elements=document.querySelectorAll('.'+hands[j].hand);
-    for (var k=0; k < elements.length; k++) {
+    btnEditNameSubmit.onclick=function() {
+      modalChangeTeamName.style.display="none";
+    }
+    btnEditNameCancel.onclick=function() {
+      modalChangeTeamName.style.display="none";
+    }
+  }
+
+  function initUsers(user,users) {
+    var team_users=document.getElementById("team_users");
+  
+    for (var i=0; i<users.length; i++) {
+      element=users[i];
+      p=document.createElement('input');
+      p.value=element;
+      p.type="button";
+      p.classList.add("user");
+      p.classList.add("list-group-item");
+      p.classList.add("btn");
+      if (element===user) {
+        p.id="btnUser";
+        p.onclick = function() {
+          modalChangeUserName.style.display="block";
+        }
+      } else {
+        p.classList.add("disabled") 
+      };
+      team_users.appendChild(p);
+    }
+
+    var btnEditUserName = document.getElementById("btnUser");
+    var modalChangeUserName = document.getElementById("modalChangeUserName");
+    var btnEditNameSubmit = document.getElementById("btnUserSubmit");
+    var btnEditNameCancel = document.getElementById("btnUserCancel");
+
+    btnEditUserName.onclick = function() {
+      modalChangeUserName.style.display="block";
+    }
+    btnEditNameSubmit.onclick=function() {
+      modalChangeUserName.style.display="none";
+    }
+    btnEditNameCancel.onclick=function() {
+      modalChangeUserName.style.display="none";
+    }
+  }
+
+
+  function initLocalClocks() {
+    // Get the local time using JS
+    var date=new Date();
+    var seconds=date.getSeconds();
+    var minutes=date.getMinutes();
+    var hours=date.getHours();
+
+    // Create an object with each hand and it's angle in degrees
+    var hands=[
+      {
+        hand: 'hours',
+        angle: (hours*30)+(minutes/2)
+      },
+      {
+        hand: 'minutes',
+        angle: (minutes*6)
+      },
+      {
+        hand: 'seconds',
+        angle: (seconds*6)
+      }
+    ];
+    // Loop through each of these hands to set their angle
+    for (var j=0; j < hands.length; j++) {
+      var elements=document.querySelectorAll('.'+hands[j].hand);
+      for (var k=0; k < elements.length; k++) {
         elements[k].style.webkitTransform='rotateZ('+hands[j].angle+'deg)';
         elements[k].style.transform='rotateZ('+hands[j].angle+'deg)';
         // If this is a minute hand, note the seconds position (to calculate minute position later)
@@ -233,30 +317,52 @@ function initLocalClocks() {
 </script>
 
 <div>
-<!-- <img src="{% static "app/images/lobbyimage.jpg" %}" alt="Lobby"> -->
-<div id="team" class="container">
-  <div id="team_header" class="h3">
-    <span>
-      <div id="team_info">
-        <p id="team_name" class="title"></p>
-        <input type="image" id="team_name_edit" src="{% static "app/images/edit.png" %}" width="20em" height="20em" alt="Suggest new name">
+  <div>
+    <form id="modalChangeTeamName" class="modal container">
+      <div class="modal-content form-group">
+        <label for="txtTeamName">New Team Name:</label>
+        <input type="text" id="txtTeamName" class="form-control" />
       </div>
-      <article class="clock">
-        <div class="hours-container">
-          <div class="hours"></div>
-        </div>
-        <div class="minutes-container">
-          <div class="minutes"></div>
-        </div>
-        <div class="seconds-container">
-          <div class="seconds"></div>
-        </div>
-      </article>
-    </span>
+      <div>
+        <input type="button" id="btnTeamSubmit" class="btn btn-primary" value="Submit" />
+        <input type="button" id="btnTeamCancel" class="btn btn-secondary" value="Cancel" />
+      </div>
+    </form>
+    <form id="modalChangeUserName" class="modal container">
+      <div class="modal-content form-group">
+        <label for="txtUserName">New User Name:</label>
+        <input type="text" id="txtTeamName" class="form-control" />
+      </div>
+      <div>
+        <input type="button" id="btnUserSubmit" class="btn btn-primary" value="Submit" />
+        <input type="button" id="btnUserCancel" class="btn btn-secondary" value="Cancel" />
+      </div>
+    </form>
   </div>
-  <div id="team_users" class="list-group col-lg-auto"></div>
-  <input type="button" id="btnLeave" class="btn" value="Leave" />
-</div>
+  <!-- <img src="{% static "app/images/lobbyimage.jpg" %}" alt="Lobby"> -->
+  <div id="team" class="container">
+    <div id="team_header" class="h3">
+      <span>
+        <div id="team_info">
+          <p id="team_name" class="title"></p>
+          <input type="image" id="btnEditTeamName" src="{% static "app/images/edit.png" %}" width="20em" height="20em" alt="Suggest new name">
+        </div>
+        <article class="clock">
+          <div class="hours-container">
+            <div class="hours"></div>
+          </div>
+          <div class="minutes-container">
+            <div class="minutes"></div>
+          </div>
+          <div class="seconds-container">
+            <div class="seconds"></div>
+          </div>
+        </article>
+      </span>
+    </div>
+    <div id="team_users" class="list-group col-lg-auto"></div>
+    <input type="button" id="btnLeave" class="btn" value="Leave" />
+  </div>
 </div>
 
 {% endblock %}
