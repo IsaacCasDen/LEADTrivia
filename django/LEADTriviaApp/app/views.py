@@ -17,5 +17,7 @@ def team(request):
     return render(request,'team.html',context)
 
 def lobby(request):
-    return render(request, 'lobby.html')
+    context = {}
+    context['data'] = json.dumps(get_game())
+    return render(request, 'lobby.html',context)
 
