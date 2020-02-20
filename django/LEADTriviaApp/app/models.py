@@ -37,6 +37,15 @@ class TriviaGame(models.Model):
     def __str__(self):
         return "Trivia Game: {}".format(self.name)
 
+class OrphanUser(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "User:{}".format(user.user_name)
+    def __repr__(self):
+        return self.__str__()
+
 class TriviaQuestion(models.Model):
     question = models.CharField(max_length=512)
     answer = models.CharField(max_length=512)
@@ -58,6 +67,13 @@ def get_users(team_id:int):
         users.append(item.user)
     return users
 
+def get_orphans(game_id:int):
+    ou = OrphanUser.objects.filter(game__id=game_id)
+    users = []
+    for item in ou:
+        users.append(str(item.user))
+    return users
+
 def get_teams(game_id:int):
     tgt = TriviaGameTeams.objects.filter(game__id=game_id)
     teams = []
@@ -72,7 +88,7 @@ def get_game():
     game = {}
     game['Game'] = str(_game)
     game['Teams'] = {}
-    
+    game['Orphans'] = get_orphans(_game.id)
     
     for team in get_teams(_game.id):
         game['Teams'][team.team_name] = []
