@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.shortcuts  import redirect
 import json
@@ -39,6 +39,7 @@ def team(request):
         context['data']['team_name'] = id
         context['data']['users'] = data['Teams'][id]
     return render(request,'team.html',context)
+    
 
 def lobby(request):
     context = {}
