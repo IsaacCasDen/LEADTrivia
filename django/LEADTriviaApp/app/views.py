@@ -8,8 +8,9 @@ from .models import *
 # Create your views here.
 
 def index(request):
-    return render(request,'index.html')
-
+    context = {}
+    context['data'] = json.dumps(get_game())
+    return render(request,'index.html', context)
 
 def team(request):
     context = {}
@@ -20,4 +21,5 @@ def lobby(request):
     context = {}
     context['data'] = json.dumps(get_game())
     return render(request, 'lobby.html',context)
+
 
