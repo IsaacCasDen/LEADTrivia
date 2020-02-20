@@ -1,11 +1,49 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
+<script>
+    var data={{data|safe}};
 
-<div>
-    <p>Welcome to LEAD Trivia Night!</p>
-    <p>Please select a user name:</p>
-    <input type="text" placeholder="Username" />
-</div>
+    document.onreadystatechange=function() {
+        if (document.readyState=="complete") {
+            init()
+        }
+    }
 
+    function init() {
+        var teamIds = Object.keys(data['Teams']);
+
+        generateUserName(teamIds);
+
+    }
+    
+    function generateUserName(teamIds){
+        var user = document.getElementById("username");
+
+        var count = data ['Orphans'].length
+        teamIds.forEach(element => {
+            count += data ['Teams'][element].length
+        });
+        user.value = "User " + count;
+
+    }
+
+    function validateForm() {
+        var user = document.getElementById('username');
+
+    }
+</script>
+<body>
+    <div>
+        <p>Welcome to LEAD Trivia Night!</p>
+        
+        <form method="POST" onsubmit="return validateForm()" action="/app/lobby/">
+            {% csrf_token %}
+            <div id="userInfo">
+                <p>Please select a user name:</p>
+                <input type="text" id="username" class="infoitem" name ="userid" value = "User"></input>
+            </div>
+        </form>
+    </div>
+</body>
 {% endblock %}
