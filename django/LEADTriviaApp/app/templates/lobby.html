@@ -64,15 +64,14 @@
     }
 
     function init() {
-        var btnEditName = document.getElementById("btnEditUsername");
         var btnNewTeam = document.getElementById("btnNewTeam");
         var formTeams = document.getElementById("formTeams");
         var divTeams = document.getElementById("divTeams");
         var teamIds = Object.keys(data['Teams']);
 
-        btnEditName.onclick = function() {
-            alert('clicked');
-        }
+        generateUserName(teamIds);
+
+    
 
         btnNewTeam.onclick = function() {
             const hiddenField = document.createElement('input');
@@ -116,18 +115,30 @@
 
         return divTeam;
     }
+
+    function generateUserName(teamIds){
+        var user = document.getElementById("username");
+
+        var count = data ['Orphans'].length
+        teamIds.forEach(element => {
+            count += data ['Teams'][element].length
+        });
+        user.value = "User " + count;
+
+    }
+
 </script>
 <body>
-    <div id="header">
-        <p align="center" class="h1"> LEAD TRIVIA NIGHT</p>
-        <div id="userInfo">
-            <div class="infoitem">Your Name:</div>
-            <div id="username" class="infoitem">User</div>
-            <input id="btnEditUsername" type="image" src="{% static "app/images/edit.png" %}" width=12em height=12em alt="Change name" />
-        </div>
-    </div>
+    
     <form id="formTeams" method="POST" action="/app/team/">
         {% csrf_token %}
+        <div id="header">
+            <p align="center" class="h1"> LEAD TRIVIA NIGHT</p>
+            <div id="userInfo">
+                <div class="infoitem">Your Name:</div>
+                <input type="text" id="username" class="infoitem" name ="userid" value = "User"></input>
+            </div>
+        </div>
         <div id="body">
             <div id="divTeams"></div>
         </div>
