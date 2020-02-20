@@ -86,7 +86,7 @@ def get_game():
     # return games[len(games)-1]
     _game = games[len(games)-1]
     game = {}
-    game['Game'] = str(_game)
+    game['Game'] = (_game.id, str(_game))
     game['Teams'] = {}
     game['Orphans'] = get_orphans(_game.id)
     
