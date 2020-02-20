@@ -36,6 +36,7 @@
 
     #userInfo {
         background-color: whitesmoke;
+        margin: 1em;
     }
     .infoitem {
         display: inline;
@@ -56,6 +57,8 @@
 </style>
 <script>
     var data={{data|safe}};
+    var userId = "{{userId|safe}}";
+    var gameId = {{gameId|safe}};
 
     document.onreadystatechange=function() {
         if (document.readyState=="complete") {
@@ -67,7 +70,10 @@
         var btnNewTeam = document.getElementById("btnNewTeam");
         var formTeams = document.getElementById("formTeams");
         var divTeams = document.getElementById("divTeams");
+        var divUser = document.getElementById("divUser");
         var teamIds = Object.keys(data['Teams']);
+
+        divUser.innerText = userId;
 
         btnNewTeam.onclick = function() {
             const hiddenField = document.createElement('input');
@@ -120,8 +126,10 @@
     <form id="formTeams" method="POST" action="/app/team/">
         {% csrf_token %}
         <div id="header">
-            <p align="center" class="h1"> LEAD TRIVIA NIGHT</p>
-            
+            <p style="align-self: center;" class="h1">LEAD TRIVIA NIGHT</p>
+            <div id="userInfo">
+                <div class="infoitem">Welcome </div><div id="divUser" class="infoitem"></div><div class="infoitem">! Please select a team below to join, or create a new team!</div>
+            </div>
         </div>
         <div id="body">
             <div id="divTeams"></div>
