@@ -26,21 +26,6 @@ def index(request):
 
     return render(request,'index.html', context)
 
-def team(request):
-    context = {}
-    context['data'] = {}
-    data = get_game()
-
-    id = request.POST.get('teamId','')
-    if id == '':
-        context['data']['team_name'] = "Team {}".format(len(data['Teams'].keys()))
-        context['data']['users'] = ["New User"]
-    else:
-        context['data']['team_name'] = id
-        context['data']['users'] = data['Teams'][id]
-    return render(request,'team.html',context)
-    
-
 def lobby(request):
     context = {}
 
@@ -68,9 +53,22 @@ def lobby(request):
         context['gameId'] = request.session['gameId']
         return render(request, 'lobby.html',context)
             
+def team(request):
+    context = {}
+    context['data'] = {}
+    data = get_game()
+
+    id = request.POST.get('teamId','')
+    if id == '':
+        context['data']['team_name'] = "Team {}".format(len(data['Teams'].keys()))
+        context['data']['users'] = ["New User"]
+    else:
+        context['data']['team_name'] = id
+        context['data']['users'] = data['Teams'][id]
+    return render(request,'team.html',context)
+
 def leave_team(request):
     userId = request.POST['userId']
     #remove user from team and return to lobby
 
     return redirect('/app/')
-
