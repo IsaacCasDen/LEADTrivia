@@ -9,3 +9,5 @@ django/LEADTriviaApp/app/__pycache__/
 django/LEADTriviaApp/app/migrations/
 venv/
 #sup
+ScopeOfWork.docx
+.~lock*
