@@ -38,6 +38,8 @@
 
     function validateForm() {
         var user = document.getElementById('userId');
+        if (user.value.length > 0) return true;
+        else return false;
 
     }
 </script>
@@ -49,7 +51,7 @@
             {% csrf_token %}
             <div id="userInfo">
                 <p>Please select a user name:</p>
-                <input type="text" id="username" class="infoitem" name ="userid" value = "User"></input>
+                <input type="text" id="username" class="infoitem" name ="userId" value = "User"></input>
             </div>
         </form>
     </div>
