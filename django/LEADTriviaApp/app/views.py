@@ -55,14 +55,18 @@ def lobby(request):
         return redirect(index)
     else:
         request.session['gameId'] = gameId
-        user = new_user(int(gameId), userId)
         request.session['userId'] = userId
         context['data'] = json.dumps(get_game())
-        if user == None: 
-            request.session['errors'] = json.dumps(['username has already been taken'])
-            return redirect (index)
-        else:
-            return render(request, 'lobby.html',context)
+
+        user = get_user(int(gameId), user_name = userId)
+        if user == None:
+            # request.session['errors'] = json.dumps(['username has already been taken'])
+            # return redirect (index)
+            user = new_user(gameId,userId)
+        # else:
+        context['userId'] = request.session['userId']
+        context['gameId'] = request.session['gameId']
+        return render(request, 'lobby.html',context)
             
 def leave_team(request):
     userId = request.POST['userId']
