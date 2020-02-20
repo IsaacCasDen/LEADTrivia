@@ -69,10 +69,6 @@
         var divTeams = document.getElementById("divTeams");
         var teamIds = Object.keys(data['Teams']);
 
-        generateUserName(teamIds);
-
-    
-
         btnNewTeam.onclick = function() {
             const hiddenField = document.createElement('input');
             hiddenField.type = 'hidden';
@@ -116,16 +112,7 @@
         return divTeam;
     }
 
-    function generateUserName(teamIds){
-        var user = document.getElementById("username");
-
-        var count = data ['Orphans'].length
-        teamIds.forEach(element => {
-            count += data ['Teams'][element].length
-        });
-        user.value = "User " + count;
-
-    }
+    
 
 </script>
 <body>
@@ -134,10 +121,7 @@
         {% csrf_token %}
         <div id="header">
             <p align="center" class="h1"> LEAD TRIVIA NIGHT</p>
-            <div id="userInfo">
-                <div class="infoitem">Your Name:</div>
-                <input type="text" id="username" class="infoitem" name ="userid" value = "User"></input>
-            </div>
+            
         </div>
         <div id="body">
             <div id="divTeams"></div>
