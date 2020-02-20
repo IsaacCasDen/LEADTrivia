@@ -12,9 +12,17 @@
 
     function init() {
         var teamIds = Object.keys(data['Teams']);
-
+        attachGameId(data['Game'][0])
         generateUserName(teamIds);
 
+    }
+    function attachGameId(id) {
+        var form = document.getElementById('formUser');
+        const hiddenField = document.createElement('input');
+        hiddenField.type = 'hidden';
+        hiddenField.name = 'gameId';
+        hiddenField.value = id;
+        form.appendChild(hiddenField);
     }
     
     function generateUserName(teamIds){
@@ -37,7 +45,7 @@
     <div>
         <p>Welcome to LEAD Trivia Night!</p>
         
-        <form method="POST" onsubmit="return validateForm()" action="/app/lobby/">
+        <form id="formUser" method="POST" onsubmit="return validateForm()" action="/app/lobby/">
             {% csrf_token %}
             <div id="userInfo">
                 <p>Please select a user name:</p>
