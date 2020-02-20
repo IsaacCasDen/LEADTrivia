@@ -78,15 +78,15 @@ def new_user(game_id:int, username:str):
 
     return user
 
-def get_user(game_id:int, userid_or_name):
+def get_user(game_id:int, user_id = None, user_name = None):
 
-    user_name = None
-    user_id = None
-
-    if isinstance(userid_or_name,int):
-        user_id = int(userid_or_name)
-    else:
-        user_name = str(userid_or_name)
+    
+    if user_id == None and user_name == None:
+        return None
+    elif user_id != None and not isinstance(user_id,int):
+        return None
+    elif user_name !=None and not isinstance(user_name,str):
+        user_name = str(user_name)
         
     teams = get_teams(game_id)
     users = get_orphans(game_id)
