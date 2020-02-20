@@ -37,6 +37,15 @@ class TriviaGame(models.Model):
     def __str__(self):
         return "Trivia Game: {}".format(self.name)
 
+class OrphanUser(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "User:{}".format(user.user_name)
+    def __repr__(self):
+        return self.__str__()
+
 class TriviaQuestion(models.Model):
     question = models.CharField(max_length=512)
     answer = models.CharField(max_length=512)
@@ -51,10 +60,61 @@ class TriviaGameTeams(models.Model):
     team = models.ForeignKey(Team,on_delete=models.CASCADE)
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
 
+def new_user(game_id:int, username:str):
+    game = TriviaGame.objects.filter(id=game_id)[0]
+
+    user = get_user(game_id,username)
+    if user != None:
+        return None
+
+    user = User()
+    user.user_name = username
+    user.save()
+    
+    ou = OrphanUser()
+    ou.user=user
+    ou.game=game
+    ou.save()
+
+    return user
+
+def get_user(game_id:int, user_id = None, user_name = None):
+
+    
+    if user_id == None and user_name == None:
+        return None
+    elif user_id != None and not isinstance(user_id,int):
+        return None
+    elif user_name !=None and not isinstance(user_name,str):
+        user_name = str(user_name)
+        
+    teams = get_teams(game_id)
+    users = get_orphans(game_id)
+
+    for user in users:
+        if user.user_name == user_name or user.id == user_id:
+            return user
+    
+    for team in teams:
+        users = get_users(team.id)
+        for user in users:
+            if user.user_name == user_name or user.id == user_id:
+                return user
+    
+    return None
+
+
 def get_users(team_id:int):
     tm = TeamMember.objects.filter(team__id=team_id)
     users = []
     for item in tm:
+        users.append(item.user)
+    return users
+
+def get_orphans(game_id:int):
+    ou = OrphanUser.objects.filter(game__id=game_id)
+    users = []
+    for item in ou:
         users.append(item.user)
     return users
 
@@ -70,9 +130,12 @@ def get_game():
     # return games[len(games)-1]
     _game = games[len(games)-1]
     game = {}
-    game['Game'] = str(_game)
+    game['Game'] = (_game.id, str(_game))
     game['Teams'] = {}
-    
+    game['Orphans'] = []
+
+    for orphan in get_orphans(_game.id):
+        game['Orphans'].append(str(orphan))
     
     for team in get_teams(_game.id):
         game['Teams'][team.team_name] = []

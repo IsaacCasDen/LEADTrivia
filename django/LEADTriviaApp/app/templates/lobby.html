@@ -1,3 +1,134 @@
-<html lang="en">
-<body background="LobbyImage-Temp.jpg"></body>   
-</html>
+{% extends 'base.html'%}
+{% load static %}
+
+{% block content%}
+<!-- <img src= alt="Lobby"> -->
+<style>
+    body{ 
+    background: #fff url({% static "app/images/lobbyimage.jpg" %}) no-repeat center;
+    background-color: firebrick;
+    }
+    #header {
+        clear:both;
+        position: relative;
+        top: 0em;
+        left:0em;
+        height:auto;
+        overflow: auto;
+    }
+    #body {
+        clear:both;
+        height: auto;
+        overflow: auto;
+        flex-wrap: wrap;
+    }
+    #footer {
+        clear:both;
+        position: relative;
+        bottom: 0em;
+        left:0em;
+        height: auto;
+        overflow: auto;
+    }
+    #divTeams {
+        align-content:flex-start;
+    }
+
+    #userInfo {
+        background-color: whitesmoke;
+    }
+    .infoitem {
+        display: inline;
+    }
+
+    .h1 {
+        background-color: whitesmoke;
+    }
+    .divTeam {
+        float:left;
+        background-color: whitesmoke;
+        padding: 1em;
+        border-radius: 5%;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+    }
+</style>
+<script>
+    var data={{data|safe}};
+
+    document.onreadystatechange=function() {
+        if (document.readyState=="complete") {
+            init()
+        }
+    }
+
+    function init() {
+        var btnNewTeam = document.getElementById("btnNewTeam");
+        var formTeams = document.getElementById("formTeams");
+        var divTeams = document.getElementById("divTeams");
+        var teamIds = Object.keys(data['Teams']);
+
+        btnNewTeam.onclick = function() {
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = 'teamId';
+            hiddenField.value = null;
+            formTeams.appendChild(hiddenField);
+            formTeams.submit();
+        }
+
+        teamIds.forEach(element => {
+            var div = createTeam(formTeams,element,data['Teams'][element]);
+            divTeams.appendChild(div);
+        });
+    }
+    function createTeam(parent, id,team) {
+        var divTeam = document.createElement('div');
+        divTeam.onclick = function() {
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = 'teamId';
+            hiddenField.value = id;
+            parent.appendChild(hiddenField);
+            parent.submit();
+        }
+
+        divTeam.classList.add("divTeam");
+
+        var header = document.createElement('p');
+        header.innerText=id;
+
+        var listUsers = document.createElement('ul');
+        divTeam.appendChild(header);
+        divTeam.appendChild(listUsers);
+
+        team.forEach(element=> {
+            var user = document.createElement('li');
+            user.innerText=element;
+            listUsers.appendChild(user);
+        })
+
+        return divTeam;
+    }
+
+    
+
+</script>
+<body>
+    
+    <form id="formTeams" method="POST" action="/app/team/">
+        {% csrf_token %}
+        <div id="header">
+            <p align="center" class="h1"> LEAD TRIVIA NIGHT</p>
+            
+        </div>
+        <div id="body">
+            <div id="divTeams"></div>
+        </div>
+        <div id="footer">
+            <input id="btnNewTeam" class="btn btn-large btn-primary" type="button" value="New Team" />
+        </div>
+    </form>
+</body>
+{% endblock %}
