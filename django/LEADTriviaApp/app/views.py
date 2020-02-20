@@ -64,5 +64,9 @@ def lobby(request):
         else:
             return render(request, 'lobby.html',context)
             
-    
+def leave_team(request):
+    userId = request.POST['userId']
+    #remove user from team and return to lobby
+
+    return redirect('/app/')
 
