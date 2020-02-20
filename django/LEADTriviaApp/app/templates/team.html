@@ -1,0 +1,368 @@
+
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<style>
+  #team {
+    color: darkslategrey; 
+    max-width: 300px; 
+    border-color: darkgoldenrod; 
+    border-style: solid; 
+    border-width: 0.1em;
+  }
+  #team_info {
+    text-align: center;
+    display: block;
+    float:left;
+  }
+  #team_name {
+    display: inline-block;
+  }
+  .user {
+    background-color: aliceblue; 
+    width: 100%;
+    text-align: center;
+    }
+  #btnLeave {
+    background-color: gray;
+    color: whitesmoke;
+    align-self: center;
+    margin: auto;
+    margin-bottom:0.5em;
+    display: block
+  }
+  
+  .modal {
+    width:auto;
+    height:auto;
+    overflow:auto;
+    align-self: center;
+    position:fixed;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+  }
+  .modal-content {
+    background-color: #fefefe;
+    padding: 1em;
+    border: 1em solid #888;
+    width:auto;
+  }
+  .close {
+    color:#aaa;
+    float:right;
+    font-size: 18em;
+    font-weight: bold;
+  }
+
+  .close:hover, close:focus {
+    color:black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  /* https://cssanimation.rocks/clocks/ */
+  .clock {
+    border-radius: 50%;
+    background: #fff url({% static "app/images/clock.svg" %}) no-repeat center;
+    background-size: 80%;
+    height: 1.5em;
+    width: 1.5em;
+    position:relative;
+    display: inline-block;
+    float:right;
+  }
+  .clock:after {
+    background: #000;
+    border-radius: 50%;
+    content: "";
+    position: absolute;
+    left:50%;
+    top:50%;
+    transform: translate(-50%,-50%);
+    width:5%;
+    height:5%;
+    z-index:10;
+  }
+  .minutes-container, .hours-container, .seconds-container {
+    position:absolute;
+    top:0;
+    right:0;
+    bottom:0;
+    left:0;
+  }
+  .hours-container {
+    animation: rotate 43200s infinite linear;
+  }
+  .hours {
+    background: #000;
+    height:20%;
+    left: 48.75%;
+    position:absolute;
+    top:30%;
+    transform-origin: 50% 100%;
+    width:2.5%;
+  }
+  .minutes-container {
+    transition: transform 0.3s cubic-bezier(0.4,2.08,0.55,0.44);
+  }
+  .minutes {
+    background:#000;
+    height:40%;
+    left:49%;
+    position: absolute;
+    top:10%;
+    transform-origin: 50% 100%;
+    width:2%;
+  }
+  .seconds-container {
+    transition: transform 0.2s cubic-bezier(0.4,2.08,0.55,0.44);
+  }
+  .seconds {
+    background: goldenrod;
+    height:45%; 
+    left: 49.5%;
+    position: absolute;
+    top: 14%;
+    transform-origin: 50% 80%;
+    width:1%;
+    z-index: 8;
+  }
+
+  @keyframes rotate {
+    100% {
+      transform: rotateZ(360deg);
+    }
+  }
+</style>
+
+<script>
+  var data={{data|safe}}
+
+  document.onreadystatechange=function() {
+    if (document.readyState=="complete") {
+      init()
+    }
+    
+  }
+
+  function init() {
+
+    var teamId=Object.keys(data['Teams'])[0];
+    var users=data['Teams'][teamId];
+
+    initTeam(teamId);
+    initUsers(users[2],users);
+    
+    // window.onclick = function(event) {
+    //   if (event.target==edit_team_name) {
+    //     edit_team_name.style.display="none";
+    //   }
+    // }
+
+    initLocalClocks()
+    setUpMinuteHands()
+    setUpSecondHands()
+  }
+
+  function initTeam(name) {
+    var team_name=document.getElementById("team_name");
+    var btnEditTeamName = document.getElementById("btnEditTeamName");
+    var modalChangeTeamName = document.getElementById("modalChangeTeamName");
+    var btnEditNameSubmit = document.getElementById("btnTeamSubmit");
+    var btnEditNameCancel = document.getElementById("btnTeamCancel");
+
+    team_name.innerText=name
+
+    btnEditTeamName.onclick = function() {
+      modalChangeTeamName.style.display="block";
+    }
+    btnEditNameSubmit.onclick=function() {
+      modalChangeTeamName.style.display="none";
+    }
+    btnEditNameCancel.onclick=function() {
+      modalChangeTeamName.style.display="none";
+    }
+  }
+
+  function initUsers(user,users) {
+    var team_users=document.getElementById("team_users");
+  
+    for (var i=0; i<users.length; i++) {
+      element=users[i];
+      p=document.createElement('input');
+      p.value=element;
+      p.type="button";
+      p.classList.add("user");
+      p.classList.add("list-group-item");
+      p.classList.add("btn");
+      if (element===user) {
+        p.id="btnUser";
+        p.onclick = function() {
+          modalChangeUserName.style.display="block";
+        }
+      } else {
+        p.classList.add("disabled") 
+      };
+      team_users.appendChild(p);
+    }
+
+    var btnEditUserName = document.getElementById("btnUser");
+    var modalChangeUserName = document.getElementById("modalChangeUserName");
+    var btnEditNameSubmit = document.getElementById("btnUserSubmit");
+    var btnEditNameCancel = document.getElementById("btnUserCancel");
+
+    btnEditUserName.onclick = function() {
+      modalChangeUserName.style.display="block";
+    }
+    btnEditNameSubmit.onclick=function() {
+      modalChangeUserName.style.display="none";
+    }
+    btnEditNameCancel.onclick=function() {
+      modalChangeUserName.style.display="none";
+    }
+  }
+
+
+  function initLocalClocks() {
+    // Get the local time using JS
+    var date=new Date();
+    var seconds=date.getSeconds();
+    var minutes=date.getMinutes();
+    var hours=date.getHours();
+
+    // Create an object with each hand and it's angle in degrees
+    var hands=[
+      {
+        hand: 'hours',
+        angle: (hours*30)+(minutes/2)
+      },
+      {
+        hand: 'minutes',
+        angle: (minutes*6)
+      },
+      {
+        hand: 'seconds',
+        angle: (seconds*6)
+      }
+    ];
+    // Loop through each of these hands to set their angle
+    for (var j=0; j < hands.length; j++) {
+      var elements=document.querySelectorAll('.'+hands[j].hand);
+      for (var k=0; k < elements.length; k++) {
+        elements[k].style.webkitTransform='rotateZ('+hands[j].angle+'deg)';
+        elements[k].style.transform='rotateZ('+hands[j].angle+'deg)';
+        // If this is a minute hand, note the seconds position (to calculate minute position later)
+        if (hands[j].hand==='minutes') {
+          elements[k].parentNode.setAttribute('data-second-angle', hands[j+1].angle);
+        }
+      }
+    }
+  }
+
+  function setUpMinuteHands() {
+    // Find out how far into the minute we are
+    var containers=document.querySelectorAll('.minutes-container');
+    var secondAngle=containers[0].getAttribute("data-second-angle");
+    if (secondAngle > 0) {
+      // Set a timeout until the end of the current minute, to move the hand
+      var delay=(((360 - secondAngle)/6)+0.1)*1000;
+      setTimeout(function() {
+        moveMinuteHands(containers);
+      }, delay);
+    }
+  }
+
+  function moveMinuteHands(containers) {
+    for (var i=0; i < containers.length; i++) {
+      containers[i].style.webkitTransform='rotateZ(6deg)';
+      containers[i].style.transform='rotateZ(6deg)';
+    }
+    // Then continue with a 60 second interval
+    setInterval(function() {
+      for (var i=0; i < containers.length; i++) {
+        if (containers[i].angle===undefined) {
+          containers[i].angle=12;
+        } else {
+          containers[i].angle+=6;
+        }
+        containers[i].style.webkitTransform='rotateZ('+containers[i].angle+'deg)';
+        containers[i].style.transform='rotateZ('+containers[i].angle+'deg)';
+      }
+    }, 60000);
+  }
+
+  function setUpSecondHands() {
+    var containers=document.querySelectorAll('.seconds-container');
+    moveSecondHands(containers);
+  }
+
+  function moveSecondHands() {
+    var containers=document.querySelectorAll('.seconds-container');
+    setInterval(function() {
+      for (var i=0; i < containers.length; i++) {
+        if (containers[i].angle===undefined) {
+          containers[i].angle=6;
+        } else {
+          containers[i].angle+=6;
+        }
+        containers[i].style.webkitTransform='rotateZ('+containers[i].angle+'deg)';
+        containers[i].style.transform='rotateZ('+containers[i].angle+'deg)';
+      }
+    }, 1000);
+  }
+  
+</script>
+
+<div>
+  <div>
+    <form id="modalChangeTeamName" class="modal container">
+      <div class="modal-content form-group">
+        <label for="txtTeamName">New Team Name:</label>
+        <input type="text" id="txtTeamName" class="form-control" />
+      </div>
+      <div>
+        <input type="button" id="btnTeamSubmit" class="btn btn-primary" value="Submit" />
+        <input type="button" id="btnTeamCancel" class="btn btn-secondary" value="Cancel" />
+      </div>
+    </form>
+    <form id="modalChangeUserName" class="modal container">
+      <div class="modal-content form-group">
+        <label for="txtUserName">New User Name:</label>
+        <input type="text" id="txtTeamName" class="form-control" />
+      </div>
+      <div>
+        <input type="button" id="btnUserSubmit" class="btn btn-primary" value="Submit" />
+        <input type="button" id="btnUserCancel" class="btn btn-secondary" value="Cancel" />
+      </div>
+    </form>
+  </div>
+  <!-- <img src="{% static "app/images/lobbyimage.jpg" %}" alt="Lobby"> -->
+  <div id="team" class="container">
+    <div id="team_header" class="h3">
+      <span>
+        <div id="team_info">
+          <p id="team_name" class="title"></p>
+          <input type="image" id="btnEditTeamName" src="{% static "app/images/edit.png" %}" width="20em" height="20em" alt="Suggest new name">
+        </div>
+        <article class="clock">
+          <div class="hours-container">
+            <div class="hours"></div>
+          </div>
+          <div class="minutes-container">
+            <div class="minutes"></div>
+          </div>
+          <div class="seconds-container">
+            <div class="seconds"></div>
+          </div>
+        </article>
+      </span>
+    </div>
+    <div id="team_users" class="list-group col-lg-auto"></div>
+    <input type="button" id="btnLeave" class="btn" value="Leave" />
+  </div>
+</div>
+
+{% endblock %}
