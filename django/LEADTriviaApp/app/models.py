@@ -60,6 +60,50 @@ class TriviaGameTeams(models.Model):
     team = models.ForeignKey(Team,on_delete=models.CASCADE)
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
 
+def new_user(game_id:int, username:str):
+    game = TriviaGame.objects.filter(id=game_id)[0]
+
+    user = get_user(game_id,username)
+    if user != None:
+        return None
+
+    user = User()
+    user.user_name = username
+    user.save()
+    
+    ou = OrphanUser()
+    ou.user=user
+    ou.game=game
+    ou.save()
+
+    return user
+
+def get_user(game_id:int, userid_or_name):
+
+    user_name = None
+    user_id = None
+
+    if isinstance(userid_or_name,int):
+        user_id = int(userid_or_name)
+    else:
+        user_name = str(userid_or_name)
+        
+    teams = get_teams(game_id)
+    users = get_orphans(game_id)
+
+    for user in users:
+        if user.user_name == user_name or user.id == user_id:
+            return user
+    
+    for team in teams:
+        users = get_users(team.id)
+        for user in users:
+            if user.user_name == user_name or user.id == user_id:
+                return user
+    
+    return None
+
+
 def get_users(team_id:int):
     tm = TeamMember.objects.filter(team__id=team_id)
     users = []
@@ -71,7 +115,7 @@ def get_orphans(game_id:int):
     ou = OrphanUser.objects.filter(game__id=game_id)
     users = []
     for item in ou:
-        users.append(str(item.user))
+        users.append(item.user)
     return users
 
 def get_teams(game_id:int):
@@ -88,7 +132,10 @@ def get_game():
     game = {}
     game['Game'] = (_game.id, str(_game))
     game['Teams'] = {}
-    game['Orphans'] = get_orphans(_game.id)
+    game['Orphans'] = []
+
+    for orphan in get_orphans(_game.id):
+        game['Orphans'].append(str(orphan))
     
     for team in get_teams(_game.id):
         game['Teams'][team.team_name] = []
