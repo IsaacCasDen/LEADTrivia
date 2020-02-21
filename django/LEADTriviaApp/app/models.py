@@ -78,6 +78,46 @@ def new_user(game_id:int, username:str):
 
     return user
 
+def change_username(game_id:int,old_name:str,new_name:str):
+    user = get_user(game_id,user_name=old_name)
+    _user = get_user(game_id,user_name=new_name)
+    if _user != None:
+        return False
+    else:
+        user.user_name = new_name
+        user.save()
+    
+
+
+def change_teamname(game_id:int,old_name:str,new_name:str):
+    team = get_team(game_id,team_name=old_name)
+    _team = get_team(game_id,team_name=new_name)
+    if _team != None:
+        return False
+    else:
+        team.team_name = new_name
+        team.save()
+
+def new_team(game_id:int, teamname:str):
+    game = TriviaGame.objects.filter(id=game_id)[0]
+    team = get_team(game_id,team_name=teamname)
+
+    if team==None:
+        team = Team()
+        team.team_name = teamname
+        team.save()
+
+        tgt = TriviaGameTeams()
+        tgt.team = team
+        tgt.game = game
+        tgt.save()
+    
+        return team
+    else:
+        return None
+    
+    
+
 def get_user(game_id:int, user_id = None, user_name = None):
 
     
@@ -117,6 +157,33 @@ def get_orphans(game_id:int):
     for item in ou:
         users.append(item.user)
     return users
+
+def get_team(game_id:int, team_id = None, team_name = None):
+    
+    if game_id == None:
+        return None
+    elif team_id == None and team_name == None:
+        return None
+    elif team_id != None and not isinstance(team_id,int):
+        return None
+    elif team_name !=None and not isinstance(team_name,str):
+        team_name = str(team_name)
+    
+    teams = None
+
+    if team_id !=None and team_name!=None:
+        teams = TriviaGameTeams.objects.filter(team__id=team_id,team__team_name=team_name,game__id=game_id)
+    elif team_id !=None:
+        teams = TriviaGameTeams.objects.filter(team__id=team_id,game__id=game_id)
+    else:
+        teams = TriviaGameTeams.objects.filter(team__team_name=team_name,game__id=game_id)
+
+    if len(teams)==0:
+        return None
+    elif len(teams)==1:
+        return teams[0].team
+    else:
+        print(teams)
 
 def get_teams(game_id:int):
     tgt = TriviaGameTeams.objects.filter(game__id=game_id)
