@@ -6,6 +6,13 @@ import json
 from .models import *
 # Create your views here.
 
+USERNAME = 'username'
+USERID = 'userId'
+TEAMID = 'teamId'
+TEAMNAME = 'teamname'
+GAMEID = 'gameId'
+GAMENAME = 'gameName'
+
 def index(request):
     game_data = get_game()
 
@@ -58,14 +65,24 @@ def team(request):
     context['data'] = {}
     data = get_game()
 
-    id = request.POST.get('teamId','')
+    gameId = request.session.get(GAMEID,'')
+    teamId = request.POST.get(TEAMID,'')
+    userId = request.session.get(USERID,'')
+    
+    if userId == '' or gameId == '':
+        return redirect(index)
+    
+    if teamId == '':
+        pass
+
     if id == '':
-        context['data']['team_name'] = "Team {}".format(len(data['Teams'].keys()))
+        context['data'][TEAMNAME] = "Team {}".format(len(data['Teams'].keys()))
         context['data']['users'] = ["New User"]
     else:
-        context['data']['team_name'] = id
+        context['data'][TEAMNAME] = id
         context['data']['users'] = data['Teams'][id]
     return render(request,'team.html',context)
+    
 
 def leave_team(request):
     userId = request.POST['userId']
