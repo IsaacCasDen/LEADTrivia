@@ -42,7 +42,7 @@ class OrphanUser(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
 
     def __str__(self):
-        return "User:{}".format(user.user_name)
+        return "User:{}".format(self.user)
     def __repr__(self):
         return self.__str__()
 
@@ -153,9 +153,7 @@ def get_users(team_id:int):
 
 def get_orphans(game_id:int):
     ou = OrphanUser.objects.filter(game__id=game_id)
-    users = []
-    for item in ou:
-        users.append(item.user)
+    users = [user for user in ou]
     return users
 
 def get_team(game_id:int, team_id = None, team_name = None):
@@ -247,6 +245,26 @@ def create_teams(count:int):
         teams.append(team)
     
     return teams
+
+def add_teammember(game_id:int, team_name:str, user_name:str):
+    game = TriviaGame.objects.filter(id=game_id)
+    team = TriviaGameTeams.objects.filter(team__team_name=team_name)
+    user = OrphanUser.objects.filter(user__user_name=user_name,game__id=game_id)
+    tm = TeamMember()
+    tm.team=team
+    tm.user=user.user
+    tm.save()
+    user.delete()
+
+def remove_teammember(game_id:str, team_name:str, user_name:str):
+    game = TriviaGame.objects.filter(id=game_id)
+    user = TeamMember.objects.filter(user__user_name=user_user_name,team__team_name=team_team_name)
+    orphan = OrphanUser()
+    orphan.user = user.user
+    orphan.game=game
+    orphan.save()
+    user.delete()
+
 
 def create_game():
     game = TriviaGame()
