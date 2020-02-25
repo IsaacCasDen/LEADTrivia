@@ -50,6 +50,10 @@ class TriviaQuestion(models.Model):
     question = models.CharField(max_length=512)
     answer = models.CharField(max_length=512)
 
+class TriviaQuestionChoices(models.Model):
+    question = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE)
+    choice = models.CharField(max_length=512)
+
 # class TriviaQuestionMultipleChoice(TriviaQuestion):
 #     pass
 
@@ -59,6 +63,92 @@ class TriviaQuestion(models.Model):
 class TriviaGameTeams(models.Model):
     team = models.ForeignKey(Team,on_delete=models.CASCADE)
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
+
+class TriviaGameQuestions(models.Model):
+    question = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE)
+    game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)    
+
+def getQuestions(game_id):
+    questions = []
+    q = [q.question for q in TriviaGameQuestions.objects.filter(game__id=game_id)]
+    for item in q:
+        value = {}
+        value['question']=item.question
+        value['answer']=item.answer
+        value['choices']=[c.choice for c in TriviaQuestionChoices.objects.filter(question__id=item.id)]
+        questions.append(value)
+
+        
+    
+def createQuestions():
+    game = TriviaGame.objects.all()[0]
+
+    q = TriviaQuestion()
+    q.question = "Bullshit Question1"
+    q.answer = "Bullshit Answer1"
+    q.save()
+    c = TriviaQuestionChoices()
+    c.question = q
+    c.choice = "Bullshit Answer1"
+    c.save()
+    c = TriviaQuestionChoices()
+    c.question = q
+    c.choice = "Bullshit Answer2"
+    c.save()
+    c = TriviaQuestionChoices()
+    c.question = q
+    c.choice = "Bullshit Answer3"
+    c.save()
+
+    tq = TriviaGameQuestions()
+    tq.game = game
+    tq.question = q
+    tq.save()
+
+    q = TriviaQuestion()
+    q.question = "Bullshit Question2"
+    q.answer = "Bullshit Answer1"
+    q.save()
+    c = TriviaQuestionChoices()
+    c.question = q
+    c.choice = "Bullshit Answer1"
+    c.save()
+    c = TriviaQuestionChoices()
+    c.question = q
+    c.choice = "Bullshit Answer2"
+    c.save()
+    c = TriviaQuestionChoices()
+    c.question = q
+    c.choice = "Bullshit Answer3"
+    c.save()
+
+    tq = TriviaGameQuestions()
+    tq.game = game
+    tq.question = q
+    tq.save()
+
+    q = TriviaQuestion()
+    q.question = "Bullshit Question3"
+    q.answer = "Bullshit Answer1"
+    q.save()
+    c = TriviaQuestionChoices()
+    c.question = q
+    c.choice = "Bullshit Answer1"
+    c.save()
+    c = TriviaQuestionChoices()
+    c.question = q
+    c.choice = "Bullshit Answer2"
+    c.save()
+    c = TriviaQuestionChoices()
+    c.question = q
+    c.choice = "Bullshit Answer3"
+    c.save()
+
+    tq = TriviaGameQuestions()
+    tq.game = game
+    tq.question = q
+    tq.save()
+
 
 def new_user(game_id:int, username:str):
     game = TriviaGame.objects.filter(id=game_id)[0]
