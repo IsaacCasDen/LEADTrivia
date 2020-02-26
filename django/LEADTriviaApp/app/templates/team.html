@@ -139,7 +139,9 @@
 </style>
 
 <script>
-  var data={{data|safe}};
+  var teamname = "{{teamname|safe}}";
+  var users = {{users|safe}};
+  var username = "{{username|safe}}";
 
   document.onreadystatechange=function() {
     if (document.readyState=="complete") {
@@ -149,11 +151,8 @@
 
   function init() {
 
-    var teamId=data['team_name']
-    var users=data['users']
-
-    initTeam(teamId);
-    initUsers(users[2],users);
+    initTeam(teamname);
+    initUsers(username,users);
     
     // window.onclick = function(event) {
     //   if (event.target==edit_team_name) {
@@ -176,11 +175,6 @@
     var btnLeaveTeam = document.getElementById("btnLeave");
 
     btnLeaveTeam.onclick = function() {
-      const hiddenField = document.createElement('input');
-      hiddenField.type = 'hidden';
-      hiddenField.name = 'userId';
-      hiddenField.value = null;
-      formTeam.appendChild(hiddenField);
       formTeam.submit();
     }
 
@@ -328,53 +322,57 @@
 
 <div>
   <div>
-    <form id="modalChangeTeamName" class="modal container">
+    <form id="modalChangeTeamName" class="modal container" method="POST" action="update_teamname/">
+      {% csrf_token %}
       <div class="modal-content form-group">
         <label for="txtTeamName">New Team Name:</label>
-        <input type="text" id="txtTeamName" class="form-control" />
+        <input type="text" id="txtTeamName" name="new_teamname" class="form-control" />
       </div>
       <div>
-        <input type="button" id="btnTeamSubmit" class="btn btn-primary" value="Submit" />
+        <input type="submit" id="btnTeamSubmit" class="btn btn-primary" value="Submit" />
         <input type="button" id="btnTeamCancel" class="btn btn-secondary" value="Cancel" />
       </div>
     </form>
-    <form id="modalChangeUserName" class="modal container">
+    <form id="modalChangeUserName" class="modal container" method="POST" action="update_username/">
+      {% csrf_token %}
       <div class="modal-content form-group">
         <label for="txtUserName">New User Name:</label>
-        <input type="text" id="txtTeamName" class="form-control" />
+        <input type="text" id="txtTeamName" name="new_username" class="form-control" />
       </div>
       <div>
-        <input type="button" id="btnUserSubmit" class="btn btn-primary" value="Submit" />
+        <input type="submit" id="btnUserSubmit" class="btn btn-primary" value="Submit" />
         <input type="button" id="btnUserCancel" class="btn btn-secondary" value="Cancel" />
       </div>
     </form>
   </div>
-  <form id="formTeam" method="POST" action="app/leave_team">
-    {% csrf_token %}
-    <div id="team" class="container">
-      <div id="team_header" class="h3">
-        <span>
-          <div id="team_info">
-            <p id="team_name" class="title"></p>
-            <input type="image" id="btnEditTeamName" src="{% static "app/images/edit.png" %}" width="20em" height="20em" alt="Suggest new name">
+  <div id="team" class="container">
+    <div id="team_header" class="h3">
+      <span>
+        <div id="team_info">
+          <p id="team_name" class="title"></p>
+          <input type="image" id="btnEditTeamName" src="{% static "app/images/edit.png" %}" width="20em" height="20em" alt="Suggest new name">
+        </div>
+        <article class="clock">
+          <div class="hours-container">
+            <div class="hours"></div>
           </div>
-          <article class="clock">
-            <div class="hours-container">
-              <div class="hours"></div>
-            </div>
-            <div class="minutes-container">
-              <div class="minutes"></div>
-            </div>
-            <div class="seconds-container">
-              <div class="seconds"></div>
-            </div>
-          </article>
-        </span>
-      </div>
-      <div id="team_users" class="list-group col-lg-auto"></div>
-      <input type="button" id="btnLeave" class="btn" value="Leave" />
+          <div class="minutes-container">
+            <div class="minutes"></div>
+          </div>
+          <div class="seconds-container">
+            <div class="seconds"></div>
+          </div>
+        </article>
+      </span>
     </div>
-  </form>
+    <div id="team_users" class="list-group col-lg-auto"></div>
+    <form id="formLeave" method="POST" action="leave_team/">
+      {% csrf_token %}
+      <div>
+        <input type="submit" id="btnLeave" class="btn" value="Leave" />
+      </div>
+    </form>
+</div>
 </div>
 
 {% endblock %}
