@@ -3,7 +3,7 @@
 {% block content %}
 <script>
     var data={{data|safe}};
-    var userId = "{{userId|safe}}";
+    var username = "{{username|safe}}";
     var errors = {{errors|safe}};
 
     document.onreadystatechange=function() {
@@ -16,14 +16,13 @@
         var teamIds = Object.keys(data['Teams']);
         attachGameId(data['Game'][0]);
         showErrors(errors);
-        
 
-        if (userId === null) {
+        if (username === null || username == "None" || username == "null") {
             generateUserName(teamIds);
         } else {
-            var user = document.getElementsByName("userId");
+            var user = document.getElementsByName("username");
             if (user.length>0) user = user[0];
-            user.value = userId;
+            user.value = username;
         }
 
         
@@ -45,7 +44,7 @@
 
         var count = data ['Orphans'].length;
         teamIds.forEach(element => {
-            count += data ['Teams'][element].length;
+            count += data ['Teams'][element]["members"].length;
         });
         user.value = "User " + count;
 
@@ -76,7 +75,7 @@
             {% csrf_token %}
             <div id="userInfo">
                 <p>Please select a user name:</p>
-                <input type="text" id="username" class="infoitem" name ="userId" value = "User"></input>
+                <input type="text" id="username" class="infoitem" name ="username" value = "User"></input>
                 <ul id="ulErrors"></ul>
             </div>
         </form>
