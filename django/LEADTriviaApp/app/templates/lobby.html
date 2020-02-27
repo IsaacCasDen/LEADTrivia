@@ -57,7 +57,7 @@
 </style>
 <script>
     var data={{data|safe}};
-    var userId = "{{userId|safe}}";
+    var username = "{{username|safe}}";
     var gameId = {{gameId|safe}};
 
     document.onreadystatechange=function() {
@@ -73,7 +73,7 @@
         var divUser = document.getElementById("divUser");
         var teamIds = Object.keys(data['Teams']);
 
-        divUser.innerText = userId;
+        divUser.innerText = username;
 
         btnNewTeam.onclick = function() {
             const hiddenField = document.createElement('input');
@@ -85,17 +85,17 @@
         }
 
         teamIds.forEach(element => {
-            var div = createTeam(formTeams,element,data['Teams'][element]);
+            var div = createTeam(formTeams,data['Teams'][element]);
             divTeams.appendChild(div);
         });
     }
-    function createTeam(parent, id,team) {
+    function createTeam(parent, team) {
         var divTeam = document.createElement('div');
         divTeam.onclick = function() {
             const hiddenField = document.createElement('input');
             hiddenField.type = 'hidden';
             hiddenField.name = 'teamId';
-            hiddenField.value = id;
+            hiddenField.value = team['id'];
             parent.appendChild(hiddenField);
             parent.submit();
         }
@@ -103,13 +103,13 @@
         divTeam.classList.add("divTeam");
 
         var header = document.createElement('p');
-        header.innerText=id;
+        header.innerText=team['name'];
 
         var listUsers = document.createElement('ul');
         divTeam.appendChild(header);
         divTeam.appendChild(listUsers);
 
-        team.forEach(element=> {
+        team['members'].forEach(element=> {
             var user = document.createElement('li');
             user.innerText=element;
             listUsers.appendChild(user);
