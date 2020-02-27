@@ -1,21 +1,32 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.shortcuts  import redirect
-import json
 
 from .models import *
 # Create your views here.
 
-def index(request):
-    game_data = get_game()
+USERNAME = 'username'
+USERID = 'userId'
+TEAMID = 'teamId'
+TEAMNAME = 'teamname'
+GAMEID = 'gameId'
+GAMENAME = 'gameName'
 
+def set_session_vars(request):
     if 'gameId' not in request.session.keys():
-        request.session['gameId'] = game_data['Game'][0]
-
-    if 'userId' not in request.session.keys():
-        request.session['userId'] = None
-
+        request.session['gameId'] = ''
     if 'errors' not in request.session.keys():
+        request.session['errors'] = []
+    if 'userId' not in request.session.keys():
+        request.session['userId'] = ''
+    if 'username' not in request.session.keys():
+        request.session['username'] = ''
+    if 'teamId' not in request.session.keys():
+        request.session['teamId'] = ''
+
+    should_set = True
+    if should_set:
+        request.session['userId'] = 160
         request.session['errors'] = []
 
     should_set = False
@@ -60,8 +71,9 @@ def index(request):
     context = {}
     context['gameId'] = request.session['gameId']
     context['userId'] = request.session['userId']
+    context['username'] = request.session['username']
     context['errors'] = request.session['errors']
-    context['data'] = json.dumps(game_data)
+    context['data'] = game_data
 
     return render(request,'index.html', context)
 
@@ -128,17 +140,56 @@ def lobby(request):
             
 def team(request):
     context = {}
-    context['data'] = {}
-    data = get_game()
 
-    id = request.POST.get('teamId','')
-    if id == '':
-        context['data']['team_name'] = "Team {}".format(len(data['Teams'].keys()))
-        context['data']['users'] = ["New User"]
+    username = request.POST.get('username', request.session.get('username', ''))
+    userId = request.POST.get('userId', request.session.get('userId', ''))
+    gameId = request.POST.get('gameId', request.session.get('gameId', ''))
+    teamId = request.POST.get('teamId', request.session.get('teamId', ''))
+    request.session['gameId'] = gameId
+    request.session['errors'] = []
+
+    if gameId == '':
+        return redirect(index)
+    elif userId == '' and username == '':
+        request.session['errors'] = json.dumps(['Please enter a username'])
+        return redirect(index)
+    elif userId == '':
+        request.session['username'] = username
+        user = create_user(int(gameId),username)
+        if user == None:
+            request.session['errors'] = json.dumps(['Username already taken'])
+            return redirect(index)
+        else:
+            request.session['userId']=user.id
     else:
-        context['data']['team_name'] = id
-        context['data']['users'] = data['Teams'][id]
+        user = get_user(int(gameId), int(userId))
+        if user != None:
+            request.session['userId']=user['user'].id
+            request.session['username']=user['user'].user_name
+            request.session['teamId']=user['team'].id
+            return redirect(team)
+        else:
+            user = get_orphan(int(gameId),int(userId))
+            if user == None:
+                request.session['userId'] = ''
+                request.session['teamId'] = ''
+                return redirect(index)
+            else:
+                request.session['username'] = user.user.user_name
         
+        context['data'] = get_gamestate(gameId)
+
+        
+        # else:
+        context['username'] = request.session['username']
+        context['gameId'] = request.session['gameId']
+        context['errors'] = request.session['errors'] 
+        return render(request, 'lobby.html',context)
+            
+def team(request):
+    set_session_vars(request)
+    context = {}
+
     gameId = request.session.get('gameId','')
     teamId = request.POST.get('teamId',request.session.get('teamId',''))
     userId = request.session.get('userId','')
@@ -150,27 +201,21 @@ def team(request):
     if teamId!='':
         teamId = int(teamId)
 
-    data = get_gamestate(gameId)    
+    data = get_gamestate(gameId)
+    users = data['Teams'][teamId]['members']
 
     team=None
 
     if teamId == '':
         team = create_team(gameId,"Team {}".format(len(data['Teams'].keys())))
-        data = get_gamestate(gameId)
-
-        teamId = team.id
         if team==None:
             request.session['errors']=json.dumps(['Error creating team'])
             return redirect(index)
         else:
             add_teammember(gameId,teamId,userId)
-            data = get_gamestate(gameId)
             request.session['teamId'] = teamId
-            context[TEAMNAME]=team.team_name
-            users = data['Teams'][teamId]['members']
-            
+            context['data'][TEAMNAME]=team.team_name
     else:
-        users = data['Teams'][teamId]['members']
         team = get_team(gameId,teamId)
         if username not in users:
             if add_teammember(gameId,teamId,userId):
@@ -178,41 +223,51 @@ def team(request):
             else:
                 redirect(lobby)
 
-    request.session['teamId'] = teamId
-    context[TEAMNAME] = team.team_name
-    context['users'] = users
-    context['username']= username
-    context['errors'] = request.session['errors']
+        request.session['teamId'] = teamId
+        context[TEAMNAME] = team.team_name
+        context['users'] = users
+        context['username']= username
+        context['errors'] = request.session['errors']
     
     return render(request,'team.html',context)
     
 
-def lobby(request):
-    context = {}
-
-    userId = request.POST.get('userId', '')
-    gameId = request.POST.get('gameId', '')
-    if userId == '' and gameId == '':
-        return redirect (index)
-    elif gameId == '':
-        context = {}
-        request.session['userId'] = userId
-        request.session['errors'] = json.dumps(['Please enter username'])
-        return redirect(index)
-    else:
-        request.session['gameId'] = gameId
-        user = new_user(int(gameId), userId)
-        request.session['userId'] = userId
-        context['data'] = json.dumps(get_game())
-        if user == None: 
-            request.session['errors'] = json.dumps(['username has already been taken'])
-            return redirect (index)
-        else:
-            return render(request, 'lobby.html',context)
-            
 def leave_team(request):
-    userId = request.POST['userId']
-    #remove user from team and return to lobby
+    set_session_vars(request)
+    gameId = request.session.get(GAMEID,'')
+    userId = request.session.get(USERID,'')
+    teamId = request.session.get(TEAMID,'')
+    
+    if gameId == '' or userId == '' or teamId == '':
+        return redirect(index)
+    
+    if remove_teammember(gameId,teamId,userId):
+        request.session[TEAMID]=''
+        return redirect(lobby)
+    
+    return redirect(team)
 
-    return redirect('/app/')
+def update_teamname(request):
+    gameId = request.session.get(GAMEID,'')
+    teamId = request.session.get(TEAMID,'')
+    new_teamname = request.POST.get('new_teamname','')
+
+    if new_teamname != '':
+        if not change_teamname(gameId,teamId,new_teamname):
+            request.session['errors'].append('Teamname already taken')
+    
+    return redirect(team)
+
+def update_username(request):
+    gameId = request.session.get(GAMEID,'')
+    userId = request.session.get(USERID,'')
+    new_username = request.POST.get('new_username','')
+    
+    if new_username != '':
+        if not change_username(gameId,userId,new_username):
+            request.session['errors'].append('Username already taken')
+        else:
+            request.session['username']=new_username
+
+    return redirect(team)
 
