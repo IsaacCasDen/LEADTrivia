@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.shortcuts  import redirect
+import json
 
 from .models import *
 # Create your views here.
@@ -130,8 +131,6 @@ def lobby(request):
         
     context['data'] = get_gamestate(gameId)
 
-    
-    # else:
     context['username'] = request.session['username']
     context['gameId'] = request.session['gameId']
     context['errors'] = request.session['errors'] 
@@ -154,7 +153,6 @@ def team(request):
 
     data = None
     users = None
-
     team=None
 
     if teamId == '':
@@ -231,20 +229,35 @@ def update_username(request):
 
 def mcq (request):
     set_session_vars(request)
-    gameId = request.session.get(GAMEID,'')
+    game = get_games()[0]
+    gameId = game.id
+   # gameId = request.session.get(GAMEID,'')
     if gameId == '':
         return redirect(index)
-    context = {}
-    context['data'] = getQuestions(1)
+    
+    state = get_gamestate(gameId)
+    ind = state["Game"]["QuestionIndex"]
+    question = get_question(gameId, ind)
+    context= {}
+
+    context["Question"] = question["Question"]
+   # context["Answer"] = question["Answer"]
+    context["Choices"] = question["Choices"]
+    context["QuestionId"] = question["QuestionId"]
     return render(request, 'mcquestion.html',context)
-
-
-
+    
 
 def submitAns(request):
     set_session_vars(request)
-    gameId = request.session.get(GAMEID,'')
-    userId = request.session.get(USERID,'')
-    teamId = request.session.get(TEAMID,'')
-    if gameId == '' or userId == '' or teamId == '':
-        return redirect(index)
+    # gameId = request.session.get(GAMEID,'')
+    # userId = request.session.get(USERID,'')
+    # teamId = request.session.get(TEAMID,'')
+    # if gameId == '' or userId == '' or teamId == '':
+    #     return redirect(index)
+    
+    answerId = request.POST.get('answer', '')
+    if answerId == '':
+        redirect(mcq)
+    else: 
+        answerId = int(answerId)
+    
