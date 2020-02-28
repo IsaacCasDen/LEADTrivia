@@ -76,9 +76,8 @@ def leave_team(request):
 
 def mcq (request):
     context = {}
-    context['data'] = {}
+    context['data'] = getQuestions(1)
 # def next_question(request):
-    #gameId = request.POST.get('gameId', '')
-    questions = getQuestions(1)
-    return render(request, 'mcquestion.html')
+#     gameId = request.POST.get('gameId', '')
+    return render(request, 'mcquestion.html',context)
 
