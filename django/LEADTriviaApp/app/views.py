@@ -230,9 +230,21 @@ def update_username(request):
     return redirect(team)
 
 def mcq (request):
+    set_session_vars(request)
+    gameId = request.session.get(GAMEID,'')
+    if gameId == '':
+        return redirect(index)
     context = {}
     context['data'] = getQuestions(1)
-# def next_question(request):
-#     gameId = request.POST.get('gameId', '')
     return render(request, 'mcquestion.html',context)
 
+
+
+
+def submitAns(request):
+    set_session_vars(request)
+    gameId = request.session.get(GAMEID,'')
+    userId = request.session.get(USERID,'')
+    teamId = request.session.get(TEAMID,'')
+    if gameId == '' or userId == '' or teamId == '':
+        return redirect(index)
