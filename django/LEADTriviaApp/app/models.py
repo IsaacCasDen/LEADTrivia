@@ -49,6 +49,7 @@ class OrphanUser(models.Model):
 class TriviaQuestion(models.Model):
     question = models.CharField(max_length=512)
     answer = models.CharField(max_length=512)
+    #working here
 
 class TriviaQuestionChoices(models.Model):
     question = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE)
@@ -66,7 +67,21 @@ class TriviaGameTeams(models.Model):
 
 class TriviaGameQuestions(models.Model):
     question = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE)
-    game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)    
+    game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)  
+    time = models.IntegerField(default=60)
+    index = models.IntegerField()
+
+def __init__(self, question, game, time, index):
+    self.question = question
+    self.game = game
+    self.time = time
+    ind = [q.index for q in TriviaGameQuestions.objects.filter(game__id=game.id)]
+    while index in ind:
+        index += 1
+    
+    self.index = index
+    self.save()
+
 
 def getQuestions(game_id):
     questions = []
@@ -77,6 +92,7 @@ def getQuestions(game_id):
         value['answer']=item.answer
         value['choices']=[c.choice for c in TriviaQuestionChoices.objects.filter(question__id=item.id)]
         questions.append(value)
+    return questions
 
         
     
