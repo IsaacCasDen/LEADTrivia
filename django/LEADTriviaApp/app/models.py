@@ -1,6 +1,7 @@
 import datetime
 
 from django.db import models, transaction
+from django.db.models import CASCADE, SET_NULL
 from django.utils import timezone
 from threading import Lock
 import random
@@ -66,13 +67,12 @@ class TriviaQuestion(models.Model):
 
 class TriviaQuestionChoices(models.Model):
     question = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE)
+    index = models.IntegerField(default=0)
     choice = models.CharField(max_length=512)
+    visible = models.BooleanField(default=True)
 
-# class TriviaQuestionMultipleChoice(TriviaQuestion):
-#     pass
-
-# class TriviaQuestionFillInTheBlanks(TriviaQuestion):
-#     pass
+# Another one bites the %1, ..., %2, ... %3
+# Another one bites the {dust,dirt,ground, wind}, ... {} ... {}
 
 class TriviaGameTeams(models.Model):
     team = models.ForeignKey(Team,on_delete=models.CASCADE)
@@ -94,14 +94,32 @@ class TriviaGameQuestions(models.Model):
         return item
 
 class TriviaGameUserAnswer(models.Model):
-    user = models.ForeignKey(User)
-    question = models.ForeignKey(TriviaGameQuestions)
-    answer = models.ForeignKey(TriviaQuestionChoices)
+    user = models.ForeignKey(User,on_delete=SET_NULL, null=True)
+    question = models.ForeignKey(TriviaGameQuestions, on_delete=CASCADE)
+    answer = models.ForeignKey(TriviaQuestionChoices, on_delete=CASCADE)
 
 class TriviaGameTeamAnswer(models.Model):
-    team = models.ForeignKey(Team)
-    question = models.ForeignKey(TriviaGameQuestions)
-    answer = models.ForeignKey(TriviaQuestionChoices)
+    team = models.ForeignKey(Team,on_delete=SET_NULL, null=True)
+    question = models.ForeignKey(TriviaGameQuestions, on_delete=CASCADE)
+    answer = models.ForeignKey(TriviaQuestionChoices, on_delete=CASCADE)
+
+def submit_user_answer(game_id:int,question_id:int,user_id:int,answer_id:int):
+    
+    answer = TriviaGameUserAnswer.objects.filter(user__id=user_id, question__id=question_id)
+    if len(answer)>0:
+        answer = answer[0]
+        answer.answer = TriviaQuestionChoices.objects.get(id=answer_id)
+    elif len(answer)==0:
+        answer = TriviaGameUserAnswer()
+        answer.user = User.objects.get(id=user_id)
+        answer.question=TriviaGameQuestions.objects.get(id=question_id)
+        answer.answer = TriviaQuestionChoices.objects.get(id=answer_id)
+
+    answer.save()
+    return submit_team_answer()
+
+def submit_team_answer() -> bool:
+    pass
 
 def getQuestions(game_id):
     questions = []
@@ -113,8 +131,6 @@ def getQuestions(game_id):
         value['choices']=[c.choice for c in TriviaQuestionChoices.objects.filter(question__id=item.id)]
         questions.append(value)
     return questions
-
-        
     
 def createQuestions():
     game = TriviaGame.objects.all()[0]
@@ -334,6 +350,12 @@ def get_teams(game_id:int):
     teams = [team for team in TriviaGameTeams.objects.filter(game__id=game_id)]
     return teams
 
+def get_question(game_id:int, index:int):
+    questions = TriviaGameQuestions.objects.filter(game__id=game_id,index=index)
+    if len(questions)>0:
+        return questions[0]
+    
+    return None
 
 def get_gamestate(game_id:int):
     game = get_game(game_id)
@@ -345,6 +367,7 @@ def get_gamestate(game_id:int):
     result['Game']['Id']=game.id
     result['Game']['Name']=game.name
     result['Game']['State']=game.state
+    result['Game']['QuestionIndex']=game.current_question_index
     
     for team in get_teams(game_id):
         result['Teams'][team.id]={}
@@ -355,11 +378,11 @@ def get_gamestate(game_id:int):
 
     return result
 
-def get_game(game_id:int):
+def get_game(game_id:int) -> TriviaGame:
     game = TriviaGame.objects.get(id=game_id,state=0)
     return game
 
-def get_games(only_open:bool=True):
+def get_games(only_open:bool=True) -> list:
 
     if only_open:
         games = [game for game in TriviaGame.objects.all() if game.state != 2]
