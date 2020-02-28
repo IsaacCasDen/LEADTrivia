@@ -148,38 +148,53 @@
 </style>
   
 <script>
-var data = {{data|safe}};
+// context["Question"] = question["Question"]
+// context["Answer"] = question["Answer"]
+// context["Choices"] = question["Choices"]
+// context["QuestionId"] = question["QuestionId"]
+var question = "{{Question | safe}}";
+var choices = {{Choices | safe}};
+var questionId = {{QuestionId | safe}};
+
 document.onreadystatechange = function(){
   if (document.readyState == "complete"){
-    initQuestion(0);
+    initQuestion();
   }
 }
 
-function initQuestion(index){
-  var question=document.getElementById("Question");
-  var answer=document.getElementById("Answer");
-  var choices=document.getElementById("Choices");
-  var item = data[index];
-  question.innerText = item["question"];
-  answer.innerText = item["answer"];
-  var c = item["choices"]
-  for (var i=0; i<item["choices"].length; i++){
-    element = item["choices"][i];
+function initQuestion(){
+  if (choices.length > 1){
+    initFillInBlank();
+  }else{
+    initMultipleChoice();
+  }
+ 
+}
+function initMultipleChoice(){
+  var questionDiv=document.getElementById("Question");
+  var answerDiv=document.getElementById("Answer");
+  var choicesDiv=document.getElementById("Choices");
+  var _choices = choices[0];
+  questionDiv.innerText = question;
+  answerDiv.innerText = "";
+  for (var i=0; i<_choices.length; i++){
+    element = _choices[i];
+    keys = Object.keys(element);
     l = document.createElement('label');
-    l.innerText = element;
+    l.innerText = element['value'];
     p=document.createElement('input');
     p.classList.add("list-group-item");
     p.classList.add("choice")
-    p.value = i;
+    p.value = element['id'];
     p.type = "radio";
     p.name = "answer";
     l.appendChild(p)  
-    choices.appendChild(l);
+    choicesDiv.appendChild(l);
   }
 }
 
-function nextQuestion(){
-
+function initFillInBlank(){
+  
 }
 
 </script>
@@ -202,7 +217,7 @@ function nextQuestion(){
       </span>
     </div>
     <div>
-    <form method = "post"> <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
+    <form method = "post" action="submit_answer/"> <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
       {% csrf_token %}
       <div id="Question">PlaceHolder Question<BR></div>
       <div id = "Choices" class ="list-group col-lg-auto"> </div>
