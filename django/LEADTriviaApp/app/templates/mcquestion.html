@@ -4,6 +4,17 @@
 
 
 <style>
+    #Choices{
+      display: block;
+      clear: both;
+      float: left;
+    }
+
+    .choice{
+      display: block;
+      clear: both;
+      float: left;
+    }
     #team {
       color: darkslategrey; 
       max-width: 300px; 
@@ -137,12 +148,41 @@
 </style>
   
 <script>
-/* type script here */
+var data = {{data|safe}};
+document.onreadystatechange = function(){
+  if (document.readyState == "complete"){
+    initQuestion(0);
+  }
+}
 
+function initQuestion(index){
+  var question=document.getElementById("Question");
+  var answer=document.getElementById("Answer");
+  var choices=document.getElementById("Choices");
+  var item = data[index];
+  question.innerText = item["question"];
+  answer.innerText = item["answer"];
+  var c = item["choices"]
+  for (var i=0; i<item["choices"].length; i++){
+    element = item["choices"][i];
+    l = document.createElement('label');
+    l.innerText = element;
+    p=document.createElement('input');
+    p.classList.add("list-group-item");
+    p.classList.add("choice")
+    p.value = i;
+    p.type = "radio";
+    p.name = "answer";
+    l.appendChild(p)  
+    choices.appendChild(l);
+  }
+}
+
+function nextQuestion(){
+
+}
 
 </script>
-
-
 <div>
   {% csrf_token %}
   <div id="team" class="container">
@@ -162,15 +202,14 @@
       </span>
     </div>
     <div>
-      <P id="Question">1. What is an "element" the Avatar cannot bend?:<BR>
-        <BR>
-        <input type="radio" name="Answer Option 1" value="Water">Water<BR>
-        <input type="radio" name="Answer Option 2" value="Earth">Earth<BR>
-        <input type="radio" name="Answer Option 3" value="Fire">Fire<BR>
-        <input type="radio" name="Answer Option 4" value="Pudding">Pudding<BR>
-      </p>
+    <form method = "post"> <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
+      {% csrf_token %}
+      <div id="Question">PlaceHolder Question<BR></div>
+      <div id = "Choices" class ="list-group col-lg-auto"> </div>
+      <input type="submit" value="Submit">
+      <div id = "Answer">PlaceHolder Answer</div>
+    </form>
     </div>
-    <div id="team_users" class="list-group col-lg-auto"></div>
   </div>
 </div>
 
