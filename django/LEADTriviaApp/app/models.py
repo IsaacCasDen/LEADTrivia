@@ -71,9 +71,6 @@ class TriviaQuestionChoices(models.Model):
     choice = models.CharField(max_length=512)
     visible = models.BooleanField(default=True)
 
-# Another one bites the %1, ..., %2, ... %3
-# Another one bites the {dust,dirt,ground, wind}, ... {} ... {}
-
 class TriviaGameTeams(models.Model):
     team = models.ForeignKey(Team,on_delete=models.CASCADE)
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
@@ -353,7 +350,13 @@ def get_teams(game_id:int):
 def get_question(game_id:int, index:int):
     questions = TriviaGameQuestions.objects.filter(game__id=game_id,index=index)
     if len(questions)>0:
-        return questions[0]
+        result = {}
+
+        # Another one bites the {dust,dirt,ground, wind}, ... {} ... {}
+
+        result['Question'] = "" # Another one bites the %1, Another %2 bites the dust
+        result['Answer'] = ""   # Another one bites the dust
+        result['Choices'] = [[]]  # [dust, dirt, ground, wind], [one, guy, girl, moose]
     
     return None
 
