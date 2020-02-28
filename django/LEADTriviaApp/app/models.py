@@ -350,14 +350,26 @@ def get_teams(game_id:int):
 def get_question(game_id:int, index:int):
     questions = TriviaGameQuestions.objects.filter(game__id=game_id,index=index)
     if len(questions)>0:
+        question = questions[0]
         result = {}
 
-        # Another one bites the {dust,dirt,ground, wind}, ... {} ... {}
+        choices = [[]]
+        _choices = TriviaQuestionChoices.objects.filter(question__id=question.question.id)
+        for choice in _choices:
+            if choice.visible:
+                while choice.index>len(choices):
+                    choices.append([])
+                choices[choice.index].append({"id":choice.id,"value":choice.choice})
 
-        result['Question'] = "" # Another one bites the %1, Another %2 bites the dust
-        result['Answer'] = ""   # Another one bites the dust
-        result['Choices'] = [[]]  # [dust, dirt, ground, wind], [one, guy, girl, moose]
+
+        result['QuestionId'] = question.id
+        result['Question'] = question.question # Another one bites the %1, Another %2 bites the dust
+        result['Answer'] = question.answer   # Another one bites the dust
+        result['Choices'] = choices  # [{id:19, value:"dust"}, {id:20,value:"dirt"}, {id:21,value:"ground"}, {id:22,value:"wind"}], [{id:23,value:"one"}, {id:24,value:"guy"}, {id:25,value:"girl"}, {id:26,value:"moose"}]
+
+        return result
     
+
     return None
 
 def get_gamestate(game_id:int):
