@@ -24,10 +24,9 @@ def set_session_vars(request):
     if 'teamId' not in request.session.keys():
         request.session['teamId'] = ''
 
-    should_set = False
+    should_set = True
     if should_set:
-        request.session['userId'] = 160
-        request.session['errors'] = []
+        createQuestions()
 
     should_set = False
     if should_set:
