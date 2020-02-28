@@ -93,7 +93,15 @@ class TriviaGameQuestions(models.Model):
         #item.save()
         return item
 
+class TriviaGameUserAnswer(models.Model):
+    user = models.ForeignKey(User)
+    question = models.ForeignKey(TriviaGameQuestions)
+    answer = models.ForeignKey(TriviaQuestionChoices)
 
+class TriviaGameTeamAnswer(models.Model):
+    team = models.ForeignKey(Team)
+    question = models.ForeignKey(TriviaGameQuestions)
+    answer = models.ForeignKey(TriviaQuestionChoices)
 
 def getQuestions(game_id):
     questions = []
