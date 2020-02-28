@@ -26,7 +26,7 @@ class Team(models.Model):
 class TriviaGame(models.Model):
     name = models.CharField(max_length=256)
     state = models.IntegerField(default=0)
-    current_question_id = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE,default=None)
+    current_question_index = models.IntegerField(default=0)
 
     def start_game(self):
         self.state=1
