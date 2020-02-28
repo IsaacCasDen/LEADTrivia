@@ -84,16 +84,15 @@ class TriviaGameQuestions(models.Model):
     time = models.IntegerField(default=60)
     index = models.IntegerField()
 
-def __init__(self, question, game, time, index):
-    self.question = question
-    self.game = game
-    self.time = time
-    ind = [q.index for q in TriviaGameQuestions.objects.filter(game__id=game.id)]
-    while index in ind:
-        index += 1
-    
-    self.index = index
-    self.save()
+    def __init__(self, question, game, time, index):
+        self.question = question
+        self.game = game
+        self.time = time
+        ind = [q.index for q in TriviaGameQuestions.objects.filter(game__id=game.id)]
+        while index in ind:
+            index += 1
+        self.index = index
+        self.save()
 
 
 def getQuestions(game_id):
@@ -129,10 +128,7 @@ def createQuestions():
     c.choice = "Bullshit Answer3"
     c.save()
 
-    tq = TriviaGameQuestions()
-    tq.game = game
-    tq.question = q
-    tq.save()
+    tq = TriviaGameQuestions(q, game, 60, 0)
 
     q = TriviaQuestion()
     q.question = "Bullshit Question2"
@@ -151,10 +147,7 @@ def createQuestions():
     c.choice = "Bullshit Answer3"
     c.save()
 
-    tq = TriviaGameQuestions()
-    tq.game = game
-    tq.question = q
-    tq.save()
+    tq = TriviaGameQuestions(q, game, 60, 1)
 
     q = TriviaQuestion()
     q.question = "Bullshit Question3"
@@ -173,10 +166,8 @@ def createQuestions():
     c.choice = "Bullshit Answer3"
     c.save()
 
-    tq = TriviaGameQuestions()
-    tq.game = game
-    tq.question = q
-    tq.save()
+    tq = TriviaGameQuestions(q, game, 60, 2)
+
 
 
 createuser_lock = Lock()
