@@ -24,7 +24,7 @@ def set_session_vars(request):
     if 'teamId' not in request.session.keys():
         request.session['teamId'] = ''
 
-    should_set = True
+    should_set = False
     if should_set:
         request.session['userId'] = 160
         request.session['errors'] = []
@@ -103,13 +103,13 @@ def lobby(request):
     if gameId == '':
         return redirect(index)
     elif userId == '' and username == '':
-        request.session['errors'] = json.dumps(['Please enter a username'])
+        request.session['errors'] = ['Please enter a username']
         return redirect(index)
     elif userId == '':
         request.session['username'] = username
         user = create_user(int(gameId),username)
         if user == None:
-            request.session['errors'] = json.dumps(['Username already taken'])
+            request.session['errors'] = ['Username already taken']
             return redirect(index)
         else:
             request.session['userId']=user.id
@@ -139,54 +139,6 @@ def lobby(request):
     return render(request, 'lobby.html',context)
             
 def team(request):
-    context = {}
-
-    username = request.POST.get('username', request.session.get('username', ''))
-    userId = request.POST.get('userId', request.session.get('userId', ''))
-    gameId = request.POST.get('gameId', request.session.get('gameId', ''))
-    teamId = request.POST.get('teamId', request.session.get('teamId', ''))
-    request.session['gameId'] = gameId
-    request.session['errors'] = []
-
-    if gameId == '':
-        return redirect(index)
-    elif userId == '' and username == '':
-        request.session['errors'] = json.dumps(['Please enter a username'])
-        return redirect(index)
-    elif userId == '':
-        request.session['username'] = username
-        user = create_user(int(gameId),username)
-        if user == None:
-            request.session['errors'] = json.dumps(['Username already taken'])
-            return redirect(index)
-        else:
-            request.session['userId']=user.id
-    else:
-        user = get_user(int(gameId), int(userId))
-        if user != None:
-            request.session['userId']=user['user'].id
-            request.session['username']=user['user'].user_name
-            request.session['teamId']=user['team'].id
-            return redirect(team)
-        else:
-            user = get_orphan(int(gameId),int(userId))
-            if user == None:
-                request.session['userId'] = ''
-                request.session['teamId'] = ''
-                return redirect(index)
-            else:
-                request.session['username'] = user.user.user_name
-        
-        context['data'] = get_gamestate(gameId)
-
-        
-        # else:
-        context['username'] = request.session['username']
-        context['gameId'] = request.session['gameId']
-        context['errors'] = request.session['errors'] 
-        return render(request, 'lobby.html',context)
-            
-def team(request):
     set_session_vars(request)
     context = {}
 
@@ -201,33 +153,40 @@ def team(request):
     if teamId!='':
         teamId = int(teamId)
 
-    data = get_gamestate(gameId)
-    users = data['Teams'][teamId]['members']
+    data = None
+    users = None
 
     team=None
 
     if teamId == '':
+        data = get_gamestate(gameId)
         team = create_team(gameId,"Team {}".format(len(data['Teams'].keys())))
         if team==None:
-            request.session['errors']=json.dumps(['Error creating team'])
+            request.session['errors']=['Error creating team']
             return redirect(index)
         else:
+            teamId=team.id
             add_teammember(gameId,teamId,userId)
-            request.session['teamId'] = teamId
-            context['data'][TEAMNAME]=team.team_name
+            data = get_gamestate(gameId)
+            users = data['Teams'][teamId]['members']
     else:
-        team = get_team(gameId,teamId)
+        data = get_gamestate(gameId)
+        users = data['Teams'][teamId]['members']
+        if teamId not in data['Teams'].keys():
+            request.session['teamId'] = ''
+            redirect(lobby)
         if username not in users:
             if add_teammember(gameId,teamId,userId):
-                users = [user.user_name for user in get_users(gameId,teamId)]
+                data = get_gamestate(gameId)
+                users = data['Teams'][teamId]['members']
             else:
-                redirect(lobby)
-
-        request.session['teamId'] = teamId
-        context[TEAMNAME] = team.team_name
-        context['users'] = users
-        context['username']= username
-        context['errors'] = request.session['errors']
+                return redirect(lobby)
+    team = get_team(gameId,teamId)
+    request.session['teamId'] = teamId
+    context[TEAMNAME] = team.team_name
+    context['users'] = users
+    context['username']= username
+    context['errors'] = request.session['errors']
     
     return render(request,'team.html',context)
     
