@@ -355,16 +355,17 @@ def get_question(game_id:int, index:int):
 
         choices = [[]]
         _choices = TriviaQuestionChoices.objects.filter(question__id=question.question.id)
-        for choice in _choices:
+        for i in range(0, len(_choices)):
+            choice = _choices[i]
             if choice.visible:
                 while choice.index>len(choices):
                     choices.append([])
                 choices[choice.index].append({"id":choice.id,"value":choice.choice})
 
-
+        q = question.question
         result['QuestionId'] = question.id
-        result['Question'] = question.question # Another one bites the %1, Another %2 bites the dust
-        result['Answer'] = question.answer   # Another one bites the dust
+        result['Question'] = q.question # Another one bites the %1, Another %2 bites the dust
+        result['Answer'] = q.answer   # Another one bites the dust
         result['Choices'] = choices  # [{id:19, value:"dust"}, {id:20,value:"dirt"}, {id:21,value:"ground"}, {id:22,value:"wind"}], [{id:23,value:"one"}, {id:24,value:"guy"}, {id:25,value:"girl"}, {id:26,value:"moose"}]
 
         return result
