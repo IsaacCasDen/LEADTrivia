@@ -28,6 +28,7 @@ class TriviaGame(models.Model):
     name = models.CharField(max_length=256)
     state = models.IntegerField(default=0)
     current_question_index = models.IntegerField(default=0)
+    open_time = models.DateTimeField(null=True)
 
     def start_game(self):
         self.state=1
