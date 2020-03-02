@@ -28,7 +28,8 @@ class TriviaGame(models.Model):
     name = models.CharField(max_length=256)
     state = models.IntegerField(default=0)
     current_question_index = models.IntegerField(default=0)
-    open_time = models.DateTimeField(null=True)
+    start_time = models.DateTimeField()
+    is_cancelled = models.BooleanField(default=False)
 
     def start_game(self):
         self.state=1
@@ -385,6 +386,7 @@ def get_gamestate(game_id:int):
     result['Game']['Name']=game.name
     result['Game']['State']=game.state
     result['Game']['QuestionIndex']=game.current_question_index
+    result['Game']['']
     
     for team in get_teams(game_id):
         result['Teams'][team.id]={}
