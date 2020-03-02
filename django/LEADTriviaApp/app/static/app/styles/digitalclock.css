@@ -1,0 +1,24 @@
+.clock {
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    height: 1.5em;
+    width: auto;
+    position: relative;
+    display: inline-block; 
+    float: right;
+}
+
+.hours {
+    float: left;
+}
+
+.minutes {
+    float: left;
+}
+
+.seconds {
+    float: left;
+}
+
+.timesep {
+    float: left;
+}

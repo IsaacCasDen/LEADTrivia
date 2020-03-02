@@ -5,6 +5,8 @@
 
 {% block content %}
 
+<link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
+
 <style>
   #team {
     color: darkslategrey; 
@@ -62,86 +64,15 @@
     text-decoration: none;
     cursor: pointer;
   }
+</style>  
 
-  /* https://cssanimation.rocks/clocks/ */
-  .clock {
-    border-radius: 50%;
-    background: #fff url({% static "app/images/clock.svg" %}) no-repeat center;
-    background-size: 80%;
-    height: 1.5em;
-    width: 1.5em;
-    position:relative;
-    display: inline-block;
-    float:right;
-  }
-  .clock:after {
-    background: #000;
-    border-radius: 50%;
-    content: "";
-    position: absolute;
-    left:50%;
-    top:50%;
-    transform: translate(-50%,-50%);
-    width:5%;
-    height:5%;
-    z-index:10;
-  }
-  .minutes-container, .hours-container, .seconds-container {
-    position:absolute;
-    top:0;
-    right:0;
-    bottom:0;
-    left:0;
-  }
-  .hours-container {
-    animation: rotate 43200s infinite linear;
-  }
-  .hours {
-    background: #000;
-    height:20%;
-    left: 48.75%;
-    position:absolute;
-    top:30%;
-    transform-origin: 50% 100%;
-    width:2.5%;
-  }
-  .minutes-container {
-    transition: transform 0.3s cubic-bezier(0.4,2.08,0.55,0.44);
-  }
-  .minutes {
-    background:#000;
-    height:40%;
-    left:49%;
-    position: absolute;
-    top:10%;
-    transform-origin: 50% 100%;
-    width:2%;
-  }
-  .seconds-container {
-    transition: transform 0.2s cubic-bezier(0.4,2.08,0.55,0.44);
-  }
-  .seconds {
-    background: goldenrod;
-    height:45%; 
-    left: 49.5%;
-    position: absolute;
-    top: 14%;
-    transform-origin: 50% 80%;
-    width:1%;
-    z-index: 8;
-  }
-
-  @keyframes rotate {
-    100% {
-      transform: rotateZ(360deg);
-    }
-  }
-</style>
+<script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
 
 <script>
   var teamname = "{{teamname|safe}}";
   var users = {{users|safe}};
   var username = "{{username|safe}}";
+  var timeremaining = {{timeremaining}};
 
   document.onreadystatechange=function() {
     if (document.readyState=="complete") {
@@ -149,20 +80,23 @@
     }
   }
 
-  function init() {
 
+  function init() {
+    initClock(timeremaining)
     initTeam(teamname);
     initUsers(username,users);
-    
-    // window.onclick = function(event) {
-    //   if (event.target==edit_team_name) {
-    //     edit_team_name.style.display="none";
-    //   }
-    // }
+  }
 
-    initLocalClocks()
-    setUpMinuteHands()
-    setUpSecondHands()
+  function timeup() {
+    alert('Time expired');
+  }
+
+  function initClock(time) {
+    var divHours = document.getElementsByClassName("hours")[0];
+    var divMinutes = document.getElementsByClassName("minutes")[0];
+    var divSeconds = document.getElementsByClassName("seconds")[0];
+    initLocalClock(time,divHours,divMinutes,divSeconds);
+    setAction(timeup);
   }
 
   function initTeam(name) {
@@ -227,97 +161,7 @@
     btnEditNameCancel.onclick=function() {
       modalChangeUserName.style.display="none";
     }
-  }
-
-
-  function initLocalClocks() {
-    // Get the local time using JS
-    var date=new Date();
-    var seconds=date.getSeconds();
-    var minutes=date.getMinutes();
-    var hours=date.getHours();
-
-    // Create an object with each hand and it's angle in degrees
-    var hands=[
-      {
-        hand: 'hours',
-        angle: (hours*30)+(minutes/2)
-      },
-      {
-        hand: 'minutes',
-        angle: (minutes*6)
-      },
-      {
-        hand: 'seconds',
-        angle: (seconds*6)
-      }
-    ];
-    // Loop through each of these hands to set their angle
-    for (var j=0; j < hands.length; j++) {
-      var elements=document.querySelectorAll('.'+hands[j].hand);
-      for (var k=0; k < elements.length; k++) {
-        elements[k].style.webkitTransform='rotateZ('+hands[j].angle+'deg)';
-        elements[k].style.transform='rotateZ('+hands[j].angle+'deg)';
-        // If this is a minute hand, note the seconds position (to calculate minute position later)
-        if (hands[j].hand==='minutes') {
-          elements[k].parentNode.setAttribute('data-second-angle', hands[j+1].angle);
-        }
-      }
-    }
-  }
-
-  function setUpMinuteHands() {
-    // Find out how far into the minute we are
-    var containers=document.querySelectorAll('.minutes-container');
-    var secondAngle=containers[0].getAttribute("data-second-angle");
-    if (secondAngle > 0) {
-      // Set a timeout until the end of the current minute, to move the hand
-      var delay=(((360 - secondAngle)/6)+0.1)*1000;
-      setTimeout(function() {
-        moveMinuteHands(containers);
-      }, delay);
-    }
-  }
-
-  function moveMinuteHands(containers) {
-    for (var i=0; i < containers.length; i++) {
-      containers[i].style.webkitTransform='rotateZ(6deg)';
-      containers[i].style.transform='rotateZ(6deg)';
-    }
-    // Then continue with a 60 second interval
-    setInterval(function() {
-      for (var i=0; i < containers.length; i++) {
-        if (containers[i].angle===undefined) {
-          containers[i].angle=12;
-        } else {
-          containers[i].angle+=6;
-        }
-        containers[i].style.webkitTransform='rotateZ('+containers[i].angle+'deg)';
-        containers[i].style.transform='rotateZ('+containers[i].angle+'deg)';
-      }
-    }, 60000);
-  }
-
-  function setUpSecondHands() {
-    var containers=document.querySelectorAll('.seconds-container');
-    moveSecondHands(containers);
-  }
-
-  function moveSecondHands() {
-    var containers=document.querySelectorAll('.seconds-container');
-    setInterval(function() {
-      for (var i=0; i < containers.length; i++) {
-        if (containers[i].angle===undefined) {
-          containers[i].angle=6;
-        } else {
-          containers[i].angle+=6;
-        }
-        containers[i].style.webkitTransform='rotateZ('+containers[i].angle+'deg)';
-        containers[i].style.transform='rotateZ('+containers[i].angle+'deg)';
-      }
-    }, 1000);
-  }
-  
+  } 
 </script>
 
 <div>
@@ -353,6 +197,13 @@
           <input type="image" id="btnEditTeamName" src="{% static "app/images/edit.png" %}" width="20em" height="20em" alt="Suggest new name">
         </div>
         <article class="clock">
+          <!-- <div class="hours"></div>
+          <div class="timesep">:</div> -->
+          <div class="minutes"></div>
+          <div class="timesep">:</div>
+          <div class="seconds"></div>
+        </article>
+        <!-- <article class="clock">
           <div class="hours-container">
             <div class="hours"></div>
           </div>
@@ -362,7 +213,7 @@
           <div class="seconds-container">
             <div class="seconds"></div>
           </div>
-        </article>
+        </article> -->
       </span>
     </div>
     <div id="team_users" class="list-group col-lg-auto"></div>
