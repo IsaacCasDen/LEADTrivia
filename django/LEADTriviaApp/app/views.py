@@ -260,4 +260,5 @@ def submitAns(request):
         redirect(mcq)
     else: 
         answerId = int(answerId)
-    
+        return redirect(mcq)
+
