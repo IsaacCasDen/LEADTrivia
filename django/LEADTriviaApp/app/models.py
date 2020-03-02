@@ -130,7 +130,7 @@ def getQuestions(game_id):
     return questions
     
 def createQuestions():
-    game = TriviaGame.objects.all()[0]
+    game = get_games()[0]
 
     q = TriviaQuestion()
     q.question = "Bullshit Question1"
