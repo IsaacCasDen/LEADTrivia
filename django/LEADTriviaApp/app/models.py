@@ -54,6 +54,7 @@ class TriviaGame(models.Model):
                     self.current_round = nums[i+1][0]
                     self.current_question_index = nums[i+1][1]
                     self.save()
+                    break
                     
     
     def prev_question(self):
@@ -66,6 +67,7 @@ class TriviaGame(models.Model):
                     self.current_round = nums[i-1][0]
                     self.current_question_index = nums[i-1][1]
                     self.save()
+                    break
 
 class TeamMember(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
