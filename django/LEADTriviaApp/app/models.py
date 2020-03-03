@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from django.db import models, transaction
 from django.db.models import CASCADE, SET_NULL
@@ -155,7 +155,7 @@ def getQuestions(game_id):
         value['choices']=[c.choice for c in TriviaQuestionChoices.objects.filter(question__id=item.id)]
         questions.append(value)
     return questions
-    
+
 def createQuestions():
     game = get_games()[0]
 
@@ -514,6 +514,7 @@ def create_model():
 def create_game():
     game = TriviaGame()
     game.name="Trivia Game"
+    game.start_time = datetime.strptime("02/25/20 19:30:00","%m/%d/%y %H:%M:%S")
     game.save()
     return game
 
