@@ -129,6 +129,7 @@ function initMultipleChoice(){
   var _choices = choices[0];
   questionDiv.innerText = question;
   answerDiv.innerText = "";
+
   for (var i=0; i<_choices.length; i++){
     element = _choices[i];
     keys = Object.keys(element);
@@ -144,14 +145,41 @@ function initMultipleChoice(){
     choicesDiv.appendChild(l);
   }
 }
+// ----------------------------------------------
 
 function initFillInBlank(){
-  
+ 
+ 
 }
 
-function initAudioVisualQuestion(){
+// function createQuestions() {
+//   var div  =document.getElementById("Questions");
+//   var q = question.split("{}");
+//   if (q.length == choices.length+1) {
+//     for (int; i=0; i<q.length; i++){
+//       div.appendChild(createQuestDiv(q[i]));
+//       if (i<choices.length) {
+//         div.appendChild(createChoiceDiv(choices[i]));
+//       }
+//     }
+//   }
+// }
 
-}
+// function createQuestDiv(text) {
+//   var questionDiv=document.getElementById("Question");
+//   questionDiv.innerText = question;
+//   }
+
+// function createChoiceDiv(index, choices) {
+//   var d = document.createElement('div');
+//   choices.array.forEach(element => {
+//     var c = document.createElement('input');
+//     c.type = 'button'
+//     c.value = element['id']
+//     c.name="choice" + index
+//   });
+// }
+
 
 </script>
 <div>
@@ -160,17 +188,16 @@ function initAudioVisualQuestion(){
     <div>
     <form method = "post" action="next_question/" > <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
       {% csrf_token %}
+      <article class="clock">
+        <div class="minutes"></div>
+        <div class="timesep">:</div>
+        <div class="seconds"></div>
+      </article>
       <div>
         <div id="Question">PlaceHolder Question</div>
-        <article class="clock">
-          <!-- <div class="hours"></div>
-          <div class="timesep">:</div> -->
-          <div class="minutes"></div>
-          <div class="timesep">:</div>
-          <div class="seconds"></div>
-        </article>
         </div>
-      <div id = "Choices" class ="list-group col-lg-auto"> </div>
+      <div id = "Choices" class ="list-group col-lg-auto"> 
+      </div>
       <input type="submit" value="Submit"> 
       <div id = "Answer">PlaceHolder Answer</div>
     </form>
