@@ -27,6 +27,7 @@ class Team(models.Model):
 class TriviaGame(models.Model):
     name = models.CharField(max_length=256)
     state = models.IntegerField(default=0)
+    current_round = models.IntegerField(default=1)
     current_question_index = models.IntegerField(default=0)
     start_time = models.DateTimeField()
     is_cancelled = models.BooleanField(default=False)
@@ -42,6 +43,29 @@ class TriviaGame(models.Model):
     def reset_started(self):
         self.state=0
         self.save()
+
+    def next_question(self):
+        questions = TriviaGameQuestions.objects.filter(game__id=self.id)
+        nums = [(q.round,q.index) for q in questions]
+        nums.sort()
+        for i,value in enumerate(nums):
+            if value[1]==self.current_question_index:
+                if i<len(nums)-1:
+                    self.current_round = nums[i+1][0]
+                    self.current_question_index = nums[i+1][1]
+                    self.save()
+                    
+    
+    def prev_question(self):
+        questions = TriviaGameQuestions.objects.filter(game__id=self.id)
+        nums = [(q.round,q.index) for q in questions]
+        nums.sort()
+        for i,value in enumerate(nums):
+            if value[1]==self.current_question_index:
+                if i>0:
+                    self.current_round = nums[i-1][0]
+                    self.current_question_index = nums[i-1][1]
+                    self.save()
 
 class TeamMember(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
@@ -82,13 +106,14 @@ class TriviaGameQuestions(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)  
     time = models.IntegerField(default=60)
     index = models.IntegerField()
+    round = models.IntegerField(default=1)
 
     @classmethod
-    def create(cls, question, game, time, index):
+    def create(cls, question, game, time, index, round=1):
         ind = [q.index for q in TriviaGameQuestions.objects.filter(game__id=game.id)]
         while index in ind:
             index += 1
-        item = cls(question = question, game = game, time = time, index = index)
+        item = cls(question = question, game = game, time = time, index = index, round = round)
         #item.save()
         return item
 
