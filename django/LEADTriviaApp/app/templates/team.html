@@ -71,8 +71,11 @@
 <script>
   var teamname = "{{teamname|safe}}";
   var users = {{users|safe}};
-  var username = "{{username|safe}}";
-  var timeremaining = {{timeremaining}};
+  var username ="{{username|safe}}";
+  var game = {{game|safe}};
+
+  var startTime = game.StartTime;
+  alert(startTime);
 
   document.onreadystatechange=function() {
     if (document.readyState=="complete") {
@@ -82,7 +85,7 @@
 
 
   function init() {
-    initClock(timeremaining)
+    initClock(30)
     initTeam(teamname);
     initUsers(username,users);
   }
