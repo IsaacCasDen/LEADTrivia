@@ -386,7 +386,8 @@ def get_gamestate(game_id:int):
     result['Game']['Name']=game.name
     result['Game']['State']=game.state
     result['Game']['QuestionIndex']=game.current_question_index
-    result['Game']['']
+    result['Game']['IsCancelled'] = game.is_cancelled
+    result['Game']['StartTime']=game.start_time.strftime("%m/%d/%Y %H:%M:%S")
     
     for team in get_teams(game_id):
         result['Teams'][team.id]={}
