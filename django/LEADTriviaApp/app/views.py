@@ -231,7 +231,12 @@ def update_username(request):
 
     return redirect(team)
 
-def mcq (request):
+def next_round(request):
+    context = {}
+    context['round']=1
+    return render(request,'next_round.html',context)
+
+def mcq(request):
     set_session_vars(request)
     game = get_games()[0]
     gameId = game.id
@@ -249,7 +254,6 @@ def mcq (request):
     context["Choices"] = question["Choices"]
     context["QuestionId"] = question["QuestionId"]
     return render(request, 'mcquestion.html',context)
-    
 
 def submitAns(request):
     set_session_vars(request)
@@ -266,3 +270,97 @@ def submitAns(request):
         answerId = int(answerId)
         return redirect(mcq)
 
+def admin_manager(request):
+    context = {}
+
+    show_activeonly = request.POST.get('show_activeonly','')
+    if show_activeonly == '':
+        show_activeonly = False
+    
+    show_activeonly = bool(show_activeonly)
+
+    games = get_games(show_activeonly)
+    context['Games'] = []
+    for game in games:
+        _game = {}
+        _game['id'] = game.id
+        _game['name'] = game.name   
+        _game['state'] = game.state
+        _game['current_round']=game.current_round
+        _game['current_question_index']=game.current_question_index
+        _game['start_time']=game.get_starttime()
+        _game['is_cancelled']=game.is_cancelled
+        _game = json.dumps(_game)
+        context['Games'].append(_game)
+
+    return render(request,'adminmanager.html',context)
+
+def admin_game(request):
+    context = {}
+
+    gameId = request.POST.get('gameId','')
+    if gameId == '':
+        gameId = request.session.get('gameId','')
+    
+    context['id'] = "undefined"
+    context['name'] = "undefined"
+    context['state'] = "undefined"
+    context['current_round'] = "undefined"
+    context['current_question_index'] = "undefined"
+    context['start_date'] = "undefined"
+    context['start_time'] = "undefined"
+    context['is_cancelled'] = "undefined"
+
+    if gameId != '':
+        gameId = int(gameId)
+        game = get_game(gameId)
+        context['id'] = json.dumps(gameId)
+        context['name'] = json.dumps(game.name)
+        context['state'] = json.dumps(game.state)
+        context['current_round'] = json.dumps(game.current_round)
+        context['current_question_index'] = json.dumps(game.current_question_index)
+
+        date_obj = game.start_time
+        date_date = date_obj.date()
+        date_time = date_obj.time()
+
+        context['start_date'] = json.dumps(date_date.strftime("%Y-%m-%d"))
+        context['start_time'] = json.dumps(date_time.strftime("%H:%M:%S"))
+
+        context['is_cancelled'] = json.dumps(game.is_cancelled)
+
+    
+    return render(request,'admingame.html',context)
+
+def create_game(request):
+    context = {}
+    return render(request,'create_game.html',context)
+
+def save_game(request):
+    
+    name = request.POST.get('name','')
+    state = request.POST.get('state','')
+    currentround = request.POST.get('current_round','')
+    currentquestionindex = request.POST.get('current_question_index','')
+    startdate = request.POST.get('start_date','')
+    starttime = request.POST.get('start_time','')
+    iscancelled = request.POST.get('is_cancelled','')
+    
+    val_fail = False
+    val_fail = name == '' or state == '' or currentround == '' or currentquestionindex == '' or startdate == '' or starttime == '' or iscancelled == ''
+    
+    if not val_fail:
+        state = int(state)
+        currentround = int(currentround)
+        currentquestionindex = int(currentquestionindex)
+
+        datetime_str = "{} {}".format(startdate,starttime)
+        datetime_val  = datetime.strptime(datetime_str,"%Y-%m-%d %H:%M")
+        starttime = datetime_val
+        iscancelled = bool(iscancelled)
+        TriviaGame.create(name,starttime,state,currentround,currentquestionindex,iscancelled)
+    
+    if val_fail:
+        return redirect(create_game)
+    else:
+        return redirect(admin_manager)
