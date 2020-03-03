@@ -293,7 +293,7 @@ def admin_manager(request):
         _game = json.dumps(_game)
         context['Games'].append(_game)
 
-    return render(request,'adminmanager.html',context)
+    return render(request,'admin_manager.html',context)
 
 def admin_game(request):
     context = {}
@@ -330,7 +330,7 @@ def admin_game(request):
         context['is_cancelled'] = json.dumps(game.is_cancelled)
 
     
-    return render(request,'admingame.html',context)
+    return render(request,'admin_game.html',context)
 
 def create_game(request):
     context = {}
