@@ -351,6 +351,8 @@ def save_game(request):
     startdate = request.POST.get('start_date','')
     starttime = request.POST.get('start_time','')
     iscancelled = request.POST.get('is_cancelled','')
+    if iscancelled == '':
+        iscancelled = False
     
     val_fail = False
     val_fail = name == '' or state == '' or currentround == '' or currentquestionindex == '' or startdate == '' or starttime == '' or iscancelled == ''
