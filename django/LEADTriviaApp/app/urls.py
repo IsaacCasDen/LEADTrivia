@@ -15,5 +15,6 @@ urlpatterns = [
     path('team/update_teamname/',views.update_teamname,name="update_teamname"),
     path('team/update_username/',views.update_username,name="update_username"),
     path('mcq/submit_answer/',views.submitAns,name="submitAns"),
-    path('next_round/',views.next_round,name='next_round')
+    path('next_round/',views.next_round,name='next_round'),
+    path('mcq/next_question/',views.nextQuestion, name="nextQuestion"),
 ]

@@ -243,7 +243,6 @@ def mcq(request):
    # gameId = request.session.get(GAMEID,'')
     if gameId == '':
         return redirect(index)
-    
     state = get_gamestate(gameId)
     ind = state["Game"]["QuestionIndex"]
     question = get_question(gameId, ind)
@@ -254,6 +253,13 @@ def mcq(request):
     context["Choices"] = question["Choices"]
     context["QuestionId"] = question["QuestionId"]
     return render(request, 'mcquestion.html',context)
+
+def nextQuestion(request):
+    set_session_vars(request)
+    game = get_game(1)
+    game.next_question()
+    return redirect(mcq)
+
 
 def submitAns(request):
     set_session_vars(request)
