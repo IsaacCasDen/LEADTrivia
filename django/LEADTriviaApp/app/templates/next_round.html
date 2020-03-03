@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<style>
+
+</style>
+
+<script>
+
+    var round = {{round|safe}};
+
+    document.onreadystatechange = function() {
+        var divRound = document.getElementById('divRound');
+        divRound.innerText = "Round " + round + "!";
+        setTimeout(function() {
+            document.location="/app/mcq";
+        },5000)
+    }
+
+</script>
+
+<body>
+
+    <div id="divRound"></div>
+
+</body>
+
+{% endblock %}
