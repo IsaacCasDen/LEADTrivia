@@ -129,8 +129,11 @@ def lobby(request):
             else:
                 request.session['username'] = user.user.user_name
         
-    context['data'] = get_gamestate(gameId)
+    state = get_gamestate(gameId)
 
+    context['teams'] = json.dumps(state['Teams'])
+    context['orphans'] = json.dumps(state['Orphans'])
+    context['game']=json.dumps(state['Game'])
     context['username'] = request.session['username']
     context['gameId'] = request.session['gameId']
     context['errors'] = request.session['errors'] 
@@ -180,8 +183,9 @@ def team(request):
                 return redirect(lobby)
     team = get_team(gameId,teamId)
     request.session['teamId'] = teamId
+    context['game'] = json.dumps(data['Game'])
     context[TEAMNAME] = team.team_name
-    context['users'] = users
+    context['users'] = json.dumps(users)
     context['username']= username
     context['errors'] = request.session['errors']
     
