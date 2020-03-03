@@ -2,6 +2,7 @@
 {% load static %}
 {% block content %}
 
+<link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
 
 <style>
     #Choices{
@@ -29,6 +30,10 @@
     }
     #team_name {
       display: inline-block;
+    }
+    #Question{
+      float: left;
+      
     }
     .user {
       background-color: aliceblue; 
@@ -72,81 +77,11 @@
       cursor: pointer;
     }
   
-    /* https://cssanimation.rocks/clocks/ */
-    .clock {
-      border-radius: 50%;
-      background: #fff url({% static "app/images/clock.svg" %}) no-repeat center;
-      background-size: 80%;
-      height: 1.5em;
-      width: 1.5em;
-      position:relative;
-      display: inline-block;
-      float:right;
-    }
-    .clock:after {
-      background: #000;
-      border-radius: 50%;
-      content: "";
-      position: absolute;
-      left:50%;
-      top:50%;
-      transform: translate(-50%,-50%);
-      width:5%;
-      height:5%;
-      z-index:10;
-    }
-    .minutes-container, .hours-container, .seconds-container {
-      position:absolute;
-      top:0;
-      right:0;
-      bottom:0;
-      left:0;
-    }
-    .hours-container {
-      animation: rotate 43200s infinite linear;
-    }
-    .hours {
-      background: #000;
-      height:20%;
-      left: 48.75%;
-      position:absolute;
-      top:30%;
-      transform-origin: 50% 100%;
-      width:2.5%;
-    }
-    .minutes-container {
-      transition: transform 0.3s cubic-bezier(0.4,2.08,0.55,0.44);
-    }
-    .minutes {
-      background:#000;
-      height:40%;
-      left:49%;
-      position: absolute;
-      top:10%;
-      transform-origin: 50% 100%;
-      width:2%;
-    }
-    .seconds-container {
-      transition: transform 0.2s cubic-bezier(0.4,2.08,0.55,0.44);
-    }
-    .seconds {
-      background: goldenrod;
-      height:45%; 
-      left: 49.5%;
-      position: absolute;
-      top: 14%;
-      transform-origin: 50% 80%;
-      width:1%;
-      z-index: 8;
-    }
-  
-    @keyframes rotate {
-      100% {
-        transform: rotateZ(360deg);
-      }
-    }
+    
 </style>
   
+<script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
+
 <script>
 // context["Question"] = question["Question"]
 // context["Answer"] = question["Answer"]
@@ -158,9 +93,26 @@ var questionId = {{QuestionId | safe}};
 
 document.onreadystatechange = function(){
   if (document.readyState == "complete"){
-    initQuestion();
+    init();
   }
 }
+
+function init() {
+    initClock(30);
+    initQuestion();
+  }
+
+  function timeup() {
+    alert('Time expired');
+  }
+
+  function initClock(time) {
+    var divHours = document.getElementsByClassName("hours")[0];
+    var divMinutes = document.getElementsByClassName("minutes")[0];
+    var divSeconds = document.getElementsByClassName("seconds")[0];
+    initLocalClock(time,divHours,divMinutes,divSeconds);
+    // setAction(timeup);//incriment question action
+  }
 
 function initQuestion(){
   if (choices.length > 1){
@@ -201,27 +153,21 @@ function initFillInBlank(){
 <div>
   {% csrf_token %}
   <div id="team" class="container">
-    <div id="team_header" class="h3">
-      <span>
-        <article class="clock">
-          <div class="hours-container">
-            <div class="hours"></div>
-          </div>
-          <div class="minutes-container">
-            <div class="minutes"></div>
-          </div>
-          <div class="seconds-container">
-            <div class="seconds"></div>
-          </div>
-        </article>
-      </span>
-    </div>
     <div>
     <form method = "post" action="submit_answer/"> <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
       {% csrf_token %}
-      <div id="Question">PlaceHolder Question<BR></div>
+      <div>
+        <div id="Question">PlaceHolder Question</div>
+        <article class="clock">
+          <!-- <div class="hours"></div>
+          <div class="timesep">:</div> -->
+          <div class="minutes"></div>
+          <div class="timesep">:</div>
+          <div class="seconds"></div>
+      </article>
+      </div>
       <div id = "Choices" class ="list-group col-lg-auto"> </div>
-      <input type="submit" value="Submit">
+      <input type="submit" value="Submit" formaction="/app/mcq/"> 
       <div id = "Answer">PlaceHolder Answer</div>
     </form>
     </div>
