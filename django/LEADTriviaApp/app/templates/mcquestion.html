@@ -149,12 +149,16 @@ function initFillInBlank(){
   
 }
 
+function initAudioVisualQuestion(){
+
+}
+
 </script>
 <div>
   {% csrf_token %}
   <div id="team" class="container">
     <div>
-    <form method = "post" action="submit_answer/"> <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
+    <form method = "post" action="next_question/" > <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
       {% csrf_token %}
       <div>
         <div id="Question">PlaceHolder Question</div>
@@ -164,10 +168,10 @@ function initFillInBlank(){
           <div class="minutes"></div>
           <div class="timesep">:</div>
           <div class="seconds"></div>
-      </article>
-      </div>
+        </article>
+        </div>
       <div id = "Choices" class ="list-group col-lg-auto"> </div>
-      <input type="submit" value="Submit" formaction="/app/mcq/"> 
+      <input type="submit" value="Submit"> 
       <div id = "Answer">PlaceHolder Answer</div>
     </form>
     </div>
