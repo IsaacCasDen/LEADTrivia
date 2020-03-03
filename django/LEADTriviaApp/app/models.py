@@ -1,18 +1,68 @@
 from datetime import datetime
 
+from django.contrib import admin
+import django.contrib.auth.models as mod
+from django.core.mail import send_mail
 from django.db import models, transaction
 from django.db.models import CASCADE, SET_NULL
 from django.utils import timezone
 from threading import Lock
 import random
+import secrets
 
-class User(models.Model):
-    user_name = models.CharField(max_length=256)
+class User(mod.User):
+    
+    __SECRET_KEY_LENGTH__ = 6
+
+    user_name = models.CharField(max_length=128)
+    secret_key = models.CharField(max_length=128,null=True)
+
+    @classmethod
+    def create(cls, user_name:str, password:str=None, email:str=None):
+        users = User.objects.filter(user_name=user_name)
+        if len(users)>0:
+            return None
+
+        user = User.objects.create_user(user_name,email,password)
+        if password == None:
+            user.secret_key = User.create_secret_key()
+            user.save()
+
+        return user
+
+    @classmethod
+    def create_secret_key(cls):
+        alphabet = 'abcdefghiklmnopqrstuvwxyz'
+        chars = []
+        for i in range(User.__SECRET_KEY_LENGTH__):
+            chars.append(secrets.choice(alphabet))
+
+        value = ''.join(chars)
+        return value
 
     def __str__(self):
         return "{}".format(self.user_name)
     def __repr__(self):
         return self.__str__()
+
+class Admin(mod.User):
+
+    user_name = models.CharField(max_length=128)
+
+    @classmethod
+    def create(cls, user_name:str, password:str, email:str):
+        users = Admin.objects.filter(user_name==user_name)
+        if len(users)>0:
+            return None
+        
+        admin = Admin.objects.create_superuser(user_name,email,password)
+        
+        return admin
+
+class SecretQuestions(models.Model):
+    user = models.ForeignKey(User,on_delete=CASCADE)
+    question = models.CharField(max_length=512)
+    answer = models.CharField(max_length=512)
 
 class Team(models.Model):
     team_name = models.CharField(max_length=256)
@@ -25,12 +75,28 @@ class Team(models.Model):
         return self.__str__()
 
 class TriviaGame(models.Model):
+
     name = models.CharField(max_length=256)
     state = models.IntegerField(default=0)
     current_round = models.IntegerField(default=1)
     current_question_index = models.IntegerField(default=0)
     start_time = models.DateTimeField()
     is_cancelled = models.BooleanField(default=False)
+
+    @classmethod
+    def create(cls, name:str, start_time:datetime, state:int=0, current_round:int=1, current_question_index:int=1, is_cancelled:bool=False):
+        game = TriviaGame()
+        game.name = name
+        game.start_time = start_time
+        game.state = state
+        game.current_round = current_round
+        game.current_question_index = current_question_index
+        game.is_cancelled = is_cancelled
+        game.save()
+        return game
+
+    def get_starttime(self):
+        return self.start_time.strftime("%m/%d/%Y %H:%M:%S")
 
     def start_game(self):
         self.state=1
@@ -221,6 +287,34 @@ def createQuestions():
     tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 2)
     tq.save()
 
+    q= TriviaQuestion()
+    q.question = "Row, row, {}, your {}"
+    q.answer = "Row, row, row, your boat"
+    q.save()
+
+    c = TriviaQuestionChoices()
+    c.question=q
+    c.index=0
+    c.choice = "row"
+    c.save()
+
+    c = TriviaQuestionChoices()
+    c.question=q
+    c.index=0
+    c.choice = "plow"
+    c.save()
+
+    c = TriviaQuestionChoices()
+    c.question=q
+    c.index=1
+    c.choice = "boat"
+    c.save()
+
+    c = TriviaQuestionChoices()
+    c.question=q
+    c.index=1
+    c.choice = "donkey"
+    c.save()
 
 createuser_lock = Lock()
 def create_user(game_id:int, username:str):
