@@ -288,7 +288,7 @@ def createQuestions():
     tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 2)
     tq.save()
 
-    q= TriviaQuestion()
+    q = TriviaQuestion()
     q.question = "Row, row, {}, your {}"
     q.answer = "Row, row, row, your boat"
     q.save()
@@ -316,6 +316,9 @@ def createQuestions():
     c.index=1
     c.choice = "donkey"
     c.save()
+
+    tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 3)
+    tq.save()
 
 createuser_lock = Lock()
 def create_user(game_id:int, username:str):
