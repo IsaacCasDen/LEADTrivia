@@ -6,6 +6,21 @@
 <style>
     form {
         padding:0.25em;
+        width:auto;
+        float:left;
+    }
+    input {
+        width: auto;
+        float: right;
+    }
+    #divGames {
+        float: left;
+        display: block;
+        clear:both;
+        width: 100%;
+    }
+    .btn {
+        margin:0.25em;
     }
 </style>
 
@@ -44,7 +59,8 @@
         var question = createField("Current Question Index:&nbsp;", "currentQuestionIndex", game.current_question_index);
         var start = createField("Start Time:&nbsp;", "startTime", game.start_time);
         var cancelled = createField("Is Cancelled:&nbsp;", "isCancelled", game.is_cancelled);
-        var submit = createSubmit();
+        var edit = createEdit();
+        var manage = createManage();
 
         form.appendChild(crf);
         form.appendChild(id);
@@ -54,9 +70,9 @@
         form.appendChild(question);
         form.appendChild(start);
         form.appendChild(cancelled);
-        form.appendChild(submit);
+        form.appendChild(manage);
+        form.appendChild(edit);
         form.method = "POST";
-        form.action = "/app/admin_game/";
         return form;
     }
     function createCrfToken() {
@@ -83,25 +99,36 @@
         div.appendChild(_value);
         return div
     }
-    function createSubmit() {
+    function createEdit() {
+        var submit = document.createElement('input');
+        submit.type = 'submit';
+        submit.value = "Edit"
+        submit.classList.add("btn");
+        submit.classList.add("btn-secondary");
+        submit.formAction = "/app/edit_game/";
+        return submit;
+    }
+
+    function createManage() {
         var submit = document.createElement('input');
         submit.type = 'submit';
         submit.value = "Manage"
         submit.classList.add("btn");
         submit.classList.add("btn-secondary");
+        submit.formAction = "/app/admin_game/";
         return submit;
     }
 
 </script>
 
 <body>
-    <div id="divGames">
+    <div id="divGames"></div>
+    <div style="display: block;">
+        <form id="formNewGame" method="POST" action="/app/edit_game/">
+            {% csrf_token %}
+            <input type="submit" class="btn btn-primary" value="New Game" />
+        </form>
     </div>
-    <form id="formNewGame" method="POST" action="/app/create_game/">
-        {% csrf_token %}
-        <input type="submit" value="New Game" />
-    </form>
-
 </body>
 
 {% endblock %}
