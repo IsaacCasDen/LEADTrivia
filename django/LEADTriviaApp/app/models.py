@@ -513,8 +513,11 @@ def get_question(game_id:int, index:int):
         question = questions[0]
         result = {}
 
-        choices = [[]]
         _choices = TriviaQuestionChoices.objects.filter(question__id=question.question.id)
+        choices = []
+        for choice in _choices:
+            while choice.index > (len(choices)-1):
+                choices.append([])
         for i in range(0, len(_choices)):
             choice = _choices[i]
             if choice.visible:
