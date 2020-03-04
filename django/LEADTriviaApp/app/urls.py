@@ -6,6 +6,7 @@ urlpatterns = [
     path('',views.index, name='index'),
     path('admin_manager/', views.admin_manager, name='admin_manager'),
     path('admin_game/', views.admin_game,name='admin_game'),
+    path('edit_game/', views.edit_game,name='edit_game'),
     path('create_game/', views.create_game,name='create_game'),
     path('save_game/', views.save_game,name='save_game'),
     path('lobby/',views.lobby,name='lobby'),
