@@ -36,13 +36,13 @@
         if (state!=undefined) {
             switch (state) {
                 case 0:
-                    setValue("inputClosed","value",true);
+                    setValue("inputClosed","checked",true);
                     break;
                 case 1:
-                    setValue("inputOpen","value",true);
+                    setValue("inputOpen","checked",true);
                     break;
                 case 2:
-                    setValue("inputFinished","value",true);
+                    setValue("inputFinished","checked",true);
                     break;
             }
         }
@@ -70,7 +70,7 @@
         return isValid;
     }
 
-    function onCancel(event) {
+    function onClose(event) {
         document.location="/app/admin_manager";
     }
 </script>
@@ -79,7 +79,8 @@
     <form id="formEditGame" method="POST" action="/app/save_game/" onsubmit="return validateForm()">
         {% csrf_token %}
         <div>
-            <input id="inputId" type="hidden" value="" readonly />
+            
+            <input id="inputId" type="hidden" name="gameId" value="" readonly />
             <div class="form-group row">
                 <label for="inputName" class="col-form-label">Trivia Game Name:&nbsp;</label>
                 <input id="inputName" class="form-control col-sm-5" type="text" name="name" placeholder="Name" required/>
@@ -87,14 +88,11 @@
             <div class="form-group row">
                 <label for="divState" class="col-form-label">Game State:&nbsp;</label>
                 <div id="divState" class="form-control col-sm-5">
-                    <label for="inputClosed" class="col-form-label">Closed&nbsp;</label>
-                    <input id="inputClosed" type="radio" required name="state" value="0" checked=true />
-                    
-                    <label for="inputOpen" class="col-form-label">Open&nbsp;</label>
-                    <input id="inputOpen" type="radio" required name="state" value="1" />
-
-                    <label for="inputFinished" class="col-form-label">Finished&nbsp;</label>
-                    <input id="inputFinished" type="radio" required name="state" value="2" />
+                    <fieldset>
+                        <input id="inputClosed" type="radio" required name="state" value=0 />Closed
+                        <input id="inputOpen" type="radio" required name="state" value=1 />Open
+                        <input id="inputFinished" type="radio" required name="state" value=2 />Finished
+                    </fieldset>
                 </div>
             </div>
             <div class="form-group row">
@@ -123,7 +121,7 @@
 
             <div class="form-group row">
                 <input type="submit" class="btn btn-primary" value="Save" />
-                <button id="btnCancel" type="button" class="btn btn-danger" onclick="onCancel()">Cancel</button>
+                <button id="btnClose" type="button" class="btn btn-danger" onclick="onClose()">Close</button>
             </div>
         </div>
     </form>
