@@ -119,9 +119,30 @@
         return submit;
     }
 
+    function onchangeShowOpenOnly() {
+        var showOpenOnly = document.getElementsByName('showOpenOnly');
+        if (showOpenOnly.length>0) showOpenOnly = showOpenOnly[0];
+        else return;
+        var value = showOpenOnly.checked
+        var games = document.getElementById('divGames');
+        games.childNodes.forEach(game => {
+            var skip = false;
+            var inputIsCancelled = game.elements['isCancelled'];
+            var isCancelled = inputIsCancelled.value;
+            var inputState = game.elements['state'];
+            var state = inputState.value;
+            if (value && (isCancelled.value == true || isCancelled == "true" || inputState.value == 2 || inputState.value == "2")) {
+                game.style.display_default = game.style.display;
+                game.style.display = "none"
+            } else {
+                game.style.display = game.style.display_default
+            }
+        });
+    }
 </script>
 
 <body>
+    <input type="checkbox" name="showOpenOnly" value="Show Open Games Only" onchange="onchangeShowOpenOnly()" />
     <div id="divGames"></div>
     <div style="display: block;">
         <form id="formNewGame" method="POST" action="/app/edit_game/">
