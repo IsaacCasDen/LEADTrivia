@@ -279,6 +279,7 @@ def submitAns(request):
 def admin_manager(request):
     context = {}
 
+    request.session[GAMEID] = ''
     show_activeonly = request.POST.get('show_activeonly','')
     if show_activeonly == '':
         show_activeonly = False
@@ -303,6 +304,10 @@ def admin_manager(request):
 
 def admin_game(request):
     context = {}
+    return render(request,admin_game.html,context)
+
+def edit_game(request):
+    context = {}
 
     gameId = request.POST.get('gameId','')
     if gameId == '':
@@ -320,23 +325,26 @@ def admin_game(request):
     if gameId != '':
         gameId = int(gameId)
         game = get_game(gameId)
-        context['id'] = json.dumps(gameId)
-        context['name'] = json.dumps(game.name)
-        context['state'] = json.dumps(game.state)
-        context['current_round'] = json.dumps(game.current_round)
-        context['current_question_index'] = json.dumps(game.current_question_index)
+        if game!=None:
+            request.session[GAMEID] = gameId
+            context['id'] = json.dumps(gameId)
+            context['name'] = json.dumps(game.name)
+            context['state'] = json.dumps(game.state)
+            context['current_round'] = json.dumps(game.current_round)
+            context['current_question_index'] = json.dumps(game.current_question_index)
 
-        date_obj = game.start_time
-        date_date = date_obj.date()
-        date_time = date_obj.time()
+            date_obj = game.start_time
+            date_date = date_obj.date()
+            date_time = date_obj.time()
 
-        context['start_date'] = json.dumps(date_date.strftime("%Y-%m-%d"))
-        context['start_time'] = json.dumps(date_time.strftime("%H:%M:%S"))
+            context['start_date'] = json.dumps(date_date.strftime("%Y-%m-%d"))
+            context['start_time'] = json.dumps(date_time.strftime("%H:%M:%S"))
 
-        context['is_cancelled'] = json.dumps(game.is_cancelled)
+            context['is_cancelled'] = json.dumps(game.is_cancelled)
+
 
     
-    return render(request,'admin_game.html',context)
+    return render(request,'edit_game.html',context)
 
 def create_game(request):
     context = {}
@@ -344,6 +352,7 @@ def create_game(request):
 
 def save_game(request):
     
+    game_id = request.POST.get('gameId','')
     name = request.POST.get('name','')
     state = request.POST.get('state','')
     currentround = request.POST.get('current_round','')
@@ -363,12 +372,34 @@ def save_game(request):
         currentquestionindex = int(currentquestionindex)
 
         datetime_str = "{} {}".format(startdate,starttime)
-        datetime_val  = datetime.strptime(datetime_str,"%Y-%m-%d %H:%M")
+        datetime_val = None
+        try:
+            datetime_val  = datetime.strptime(datetime_str,"%Y-%m-%d %H:%M")
+        except ValueError:
+            try:
+                datetime_val  = datetime.strptime(datetime_str,"%Y-%m-%d %H:%M:%S")
+            except:
+                return redirect(edit_game)
+
         starttime = datetime_val
         iscancelled = bool(iscancelled)
-        TriviaGame.create(name,starttime,state,currentround,currentquestionindex,iscancelled)
-    
+
+        if game_id == '':
+            game = TriviaGame.create(name,starttime,state,currentround,currentquestionindex,iscancelled)
+            game_id = game.id
+        else:
+            game_id = int(game_id)
+            game = get_game(game_id)
+            game.name=name
+            game.state=state
+            game.current_round=currentround
+            game.current_question_index=currentquestionindex
+            game.start_time=starttime
+            game.is_cancelled=iscancelled
+            game.save()
+        
     if val_fail:
         return redirect(create_game)
     else:
-        return redirect(admin_manager)
+        request.session[GAMEID] = game_id
+        return redirect(edit_game)
