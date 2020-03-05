@@ -96,8 +96,21 @@ class TriviaGame(models.Model):
         game.save()
         return game
 
+    def get_info(self):
+        value = {}
+        value['id'] = self.id
+        value['name'] = self.name
+        value['state'] = self.state
+        value['current_round'] = self.current_round
+        value['current_question_index'] = self.current_question_index
+        value['start_time'] = self.get_starttime()
+        value['is_cancelled'] = self.is_cancelled
+        return value
+
     def get_starttime(self):
-        return self.start_time.strftime("%m/%d/%Y %H:%M:%S")
+        date = self.start_time.strftime("%Y-%m-%d")
+        time = self.start_time.strftime("%H:%M:%S")
+        return {'date':date,'time':time}
 
     def start_game(self):
         self.state=1
@@ -219,9 +232,10 @@ def getQuestions(game_id):
     q = [q.question for q in TriviaGameQuestions.objects.filter(game__id=game_id)]
     for item in q:
         value = {}
+        value['id']=item.id
         value['question']=item.question
         value['answer']=item.answer
-        value['choices']=[c.choice for c in TriviaQuestionChoices.objects.filter(question__id=item.id)]
+        value['choices']=[{'id':c.id,'value':c.choice} for c in TriviaQuestionChoices.objects.filter(question__id=item.id)]
         questions.append(value)
     return questions
 
@@ -328,27 +342,27 @@ def createQuestions(game_id:int):
     # tq.save()
 
 def createQuestion(game_id:int, index:int, question:str, answer:str, choices:list, round:int=1):
-    game = TriviaGame.objects.get(game_id)
+    game = TriviaGame.objects.get(id=game_id)
     if game == None:
         return False
 
-    question = TriviaQuestion()
-    question.question = question
-    question.answer = answer
-    question.save()
+    q = TriviaQuestion()
+    q.question = question
+    q.answer = answer
+    q.save()
     
     for i,choice_list in enumerate(choices):
         for _choice in choice_list:
             choice = TriviaQuestionChoices()
             choice.index=i
             choice.choice=_choice
-            choice.question = question
+            choice.question = q
             choice.save()
 
     tq = TriviaGameQuestions()
     tq.game=game
     tq.index = index
-    tq.question = question
+    tq.question = q
     tq.save()
 
     return True    
