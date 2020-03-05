@@ -22,4 +22,5 @@ urlpatterns = [
     path('next_round/',views.next_round,name='next_round'),
     path('mcq/next_question/',views.nextQuestion, name="nextQuestion"),
     path('edit_game/edit_questions/',views.edit_questions,name="edit_questions"),
+    path('round_results/', views.round_results, name = "round_results"),
 ]

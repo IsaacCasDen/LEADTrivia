@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
+
+<style>
+
+    #TopDiv{
+        display: block;
+        width: 100%;
+        clear: both;
+    }
+
+    #BottomDiv{
+        display: block;
+        width: 100%;
+        clear: both;
+    }
+
+    #LeftDiv{
+        float: left;
+        padding: .5em;
+        border-right: grey solid 0.1em;
+        height: 60%;
+   
+    }
+
+    #RightDiv{
+        float: left;
+        padding: .5em;
+    }
+
+    #Accuracy{
+        float: left;
+    }
+
+    #RoundResult{
+        float: left;
+    }
+
+
+    #team {
+      color: darkslategrey; 
+      max-width: 400px; 
+      border-color: darkgoldenrod; 
+      border-style: solid; 
+      border-width: 0.1em;
+    }
+    #team_info {
+      text-align: center;
+      display: block;
+      float:left;
+    }
+    #team_name {
+      display: inline-block;
+    }
+   
+    .user {
+      background-color: aliceblue; 
+      width: 100%;
+      text-align: center;
+      }
+    #btnLeave {
+      background-color: gray;
+      color: whitesmoke;
+      align-self: center;
+      margin: auto;
+      margin-bottom:0.5em;
+      display: block
+    }
+    
+    .modal {
+      width:auto;
+      height:auto;
+      overflow:auto;
+      align-self: center;
+      position:fixed;
+      background-color: rgb(0,0,0);
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      padding: 1em;
+      border: 1em solid #888;
+      width:auto;
+    }
+    .close {
+      color:#aaa;
+      float:right;
+      font-size: 18em;
+      font-weight: bold;
+    }
+  
+    .close:hover, close:focus {
+      color:black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  
+    
+</style>
+  
+<script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
+
+<script>
+
+document.onreadystatechange = function(){
+  if (document.readyState == "complete"){
+    init();
+  }
+}
+function init() {
+    initClock(300);
+  }
+
+  function timeup() {
+    alert('Time expired');
+  }
+
+  function initClock(time) {
+    var divHours = document.getElementsByClassName("hours")[0];
+    var divMinutes = document.getElementsByClassName("minutes")[0];
+    var divSeconds = document.getElementsByClassName("seconds")[0];
+    initLocalClock(time,divHours,divMinutes,divSeconds);
+  }
+</script>
+<body >
+    <div class="container">
+        <div id = "TopDiv">
+            {% csrf_token %}
+            <article class="clock">
+                <div class="minutes"></div>
+                <div class="timesep">:</div>
+                <div class="seconds"></div>
+            </article>
+            <div id=teamDiv>
+                <div id="team_info">
+                    <p id="team_name" class="title">{ Team Name Here }</p>
+                </div>
+            </div>
+        </div>
+        <div id = "BottomDiv">
+            <div id = "LeftDiv">
+                <p id = "RoundResult"> <u>Round Results</u></p> 
+                <div id = "QuestionDiv"> Q1 {Right/Wrong} </div> 
+                <div id = "QuestionDiv"> Q2 {Right/Wrong} </div> 
+                <div id = "QuestionDiv"> Q3 {Right/Wrong} </div> 
+
+            </div>
+            <div id = "RightDiv">
+                <p id = TeamResults> <u>Team Results</u></p>
+
+                <div id = "Rank">
+                <p id = "PlayerRank"> Rank: {} of {} </p>
+
+                </div>
+                <div id = "MostAccurate">
+                <p id = "Accuracy"> Most Accurate:</p>
+                <p id = "PlayerName"> {name}:</p>
+ 
+
+                </div>
+                <div id = "LeastAccurate">
+                <p id = "Accuracy"> Least Accurate:</p>
+                <p id = "PlayerName"> {name}:</p>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+{% endblock %}

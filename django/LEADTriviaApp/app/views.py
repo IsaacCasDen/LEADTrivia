@@ -465,3 +465,9 @@ def edit_questions(request):
     context['questions'] = json.dumps(questions)
 
     return render(request,'edit_questions.html',context)
+
+def round_results(request):
+    context = {}
+    return render(request,'round_results.html',context)
+
+
