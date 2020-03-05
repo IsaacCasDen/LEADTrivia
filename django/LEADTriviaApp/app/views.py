@@ -254,12 +254,41 @@ def mcq(request):
     context["QuestionId"] = question["QuestionId"]
     return render(request, 'mcquestion.html',context)
 
+def admin_prev_question(request):
+    
+    gameId = request.session.get('gameId','')
+    if gameId == '':
+        redirect(admin_manager)
+
+    gameId = int(gameId)
+
+    game = get_game(gameId)
+    game.prev_question()
+    return redirect(admin_game)
+
+def admin_next_question(request):
+    
+    gameId = request.session.get('gameId','')
+    if gameId == '':
+        return redirect(admin_manager)
+
+    gameId = int(gameId)
+
+    game = get_game(gameId)
+    game.next_question()
+    return redirect(admin_game)
+
+def prevQuestion(request):
+    set_session_vars(request)
+    game = get_game(1)
+    game.prev_question()
+    return redirect(mcq)
+
 def nextQuestion(request):
     set_session_vars(request)
     game = get_game(1)
     game.next_question()
     return redirect(mcq)
-
 
 def submitAns(request):
     set_session_vars(request)
@@ -289,22 +318,29 @@ def admin_manager(request):
     games = get_games(show_activeonly)
     context['Games'] = []
     for game in games:
-        _game = {}
-        _game['id'] = game.id
-        _game['name'] = game.name   
-        _game['state'] = game.state
-        _game['current_round']=game.current_round
-        _game['current_question_index']=game.current_question_index
-        _game['start_time']=game.get_starttime()
-        _game['is_cancelled']=game.is_cancelled
-        _game = json.dumps(_game)
-        context['Games'].append(_game)
+        context['Games'].append(json.dumps(game.get_info()))
 
     return render(request,'admin_manager.html',context)
 
 def admin_game(request):
+
+    game_id = request.POST.get(GAMEID,'')
+    if game_id == '':
+        game_id = request.session.get(GAMEID,'')
+    
+    if game_id == '':
+        redirect(admin_game)
+    
+    game_id = int(game_id)
+    request.session[GAMEID] = game_id
+
+    game = get_game(game_id)
+    question = get_question(game_id,game.current_question_index)
+
+
+
     context = {}
-    return render(request,admin_game.html,context)
+    return render(request,'admin_game.html',context)
 
 def edit_game(request):
     context = {}
@@ -403,3 +439,29 @@ def save_game(request):
     else:
         request.session[GAMEID] = game_id
         return redirect(edit_game)
+    
+def edit_questions(request):
+
+    game_id = request.POST.get('gameId','')
+    if game_id == '':
+        game_id == request.session.get('gameId','')
+    
+    if game_id == '':
+        return redirect(admin_manager)
+    
+    game_id = int(game_id)
+
+    game = get_game(game_id)
+    if game == None:
+        return redirect(admin_game)
+    
+    questions = getQuestions(game_id)
+    if len(questions)==0:
+        createQuestions(game_id)
+        questions = getQuestions(game_id)
+
+    context = {}
+    context['game'] = json.dumps(game.get_info())
+    context['questions'] = json.dumps(questions)
+
+    return render(request,'edit_questions.html',context)
