@@ -152,7 +152,7 @@
     <div style="display: block;">
         <form id="formNewGame" method="POST" action="/app/edit_game/">
             {% csrf_token %}
-            <input type="submit" class="btn btn-primary" value="New Game" />
+            <input type="submit" class="btn btn-primary" value="New Game" formaction="/app/create_game/" />
         </form>
     </div>
 </body>
