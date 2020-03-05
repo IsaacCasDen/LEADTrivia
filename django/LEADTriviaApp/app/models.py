@@ -1,7 +1,5 @@
 from datetime import datetime
 
-from django.contrib import admin
-import django.contrib.auth.models as mod
 from django.core.mail import send_mail
 from django.db import models, transaction
 from django.db.models import CASCADE, SET_NULL
@@ -11,12 +9,17 @@ import random
 import secrets
 
 #test
-class User(mod.User):
+class User(models.Model):
     
     __SECRET_KEY_LENGTH__ = 6
+    __SALT_LENGTH__ = 6
 
     user_name = models.CharField(max_length=128)
     secret_key = models.CharField(max_length=128,null=True)
+    password = models.CharField(max_length=128)
+    email = models.CharField(max_length=128)
+    is_admin = models.BooleanField(default=False)
+    salt = models.CharField(max_length=__SALT_LENGTH__)
 
     @classmethod
     def create(cls, user_name:str, password:str=None, email:str=None):
@@ -45,20 +48,6 @@ class User(mod.User):
         return "{}".format(self.user_name)
     def __repr__(self):
         return self.__str__()
-
-class Admin(mod.User):
-
-    user_name = models.CharField(max_length=128)
-
-    @classmethod
-    def create(cls, user_name:str, password:str, email:str):
-        users = Admin.objects.filter(user_name==user_name)
-        if len(users)>0:
-            return None
-        
-        admin = Admin.objects.create_superuser(user_name,email,password)
-        
-        return admin
 
 class SecretQuestions(models.Model):
     user = models.ForeignKey(User,on_delete=CASCADE)
@@ -235,7 +224,16 @@ def getQuestions(game_id):
         value['id']=item.id
         value['question']=item.question
         value['answer']=item.answer
-        value['choices']=[{'id':c.id,'value':c.choice} for c in TriviaQuestionChoices.objects.filter(question__id=item.id)]
+        _choices = [{'id':c.id, 'index':c.index, 'value':c.choice} for c in TriviaQuestionChoices.objects.filter(question__id=item.id)]
+        choices = []
+        for c in _choices:
+            while len(choices)-1<c['index']:
+                choices.append([])
+            if choices[c['index']] == None:
+                choices[c['index']] = []
+            choices[c['index']].append(c)
+        # value['choices']=
+        value['choices'] = choices
         questions.append(value)
     return questions
 
