@@ -535,7 +535,7 @@ def get_question(game_id:int, index:int):
             if choice.visible:
                 while choice.index>len(choices):
                     choices.append([])
-                choices[choice.index].append({"id":choice.id,"value":choice.choice})
+                choices[choice.index].append({"id":choice.id, 'index':choice.index, "value":choice.choice})
 
         q = question.question
         result['QuestionId'] = question.id
