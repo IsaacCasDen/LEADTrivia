@@ -27,7 +27,7 @@ def set_session_vars(request):
 
     should_set = False
     if should_set:
-        createQuestions()
+        create_questions()
 
     should_set = False
     if should_set:
@@ -53,7 +53,17 @@ def index(request):
     set_session_vars(request)
     init_db()
 
+    context = {}
+
     games = get_games()
+    _games = []
+    for game in games:
+        _games.append(game.get_info())
+
+    context['games'] = json.dumps(_games)
+
+    if len(games)==0:
+        return HttpResponse("No Games Available")
     game_data = get_gamestate(games[len(games)-1].id)
 
     if request.session['gameId'] == '':
@@ -68,12 +78,11 @@ def index(request):
     if isinstance(userId,int) and isinstance(gameId,int) and  len(request.session['errors'])==0:
         return redirect(lobby)
 
-    context = {}
     context['gameId'] = request.session['gameId']
     context['userId'] = request.session['userId']
     context['username'] = request.session['username']
     context['errors'] = request.session['errors']
-    context['data'] = game_data
+    context['data'] = json.dumps(game_data)
 
     return render(request,'index.html', context)
 
@@ -236,7 +245,7 @@ def next_round(request):
     context['round']=1
     return render(request,'next_round.html',context)
 
-def mcq(request):
+def show_question(request):
     set_session_vars(request)
     game = get_games()[0]
     gameId = game.id
@@ -245,14 +254,14 @@ def mcq(request):
         return redirect(index)
     state = get_gamestate(gameId)
     ind = state["Game"]["QuestionIndex"]
-    question = get_question(gameId, ind)
+    question = get_question(game_id=gameId, ind=ind)
     context= {}
 
-    context["Question"] = question["Question"]
+    context["Question"] = question["question"]
    # context["Answer"] = question["Answer"]
-    context["Choices"] = question["Choices"]
-    context["QuestionId"] = question["QuestionId"]
-    return render(request, 'mcquestion.html',context)
+    context["groups"] = question["groups"]
+    context["questionId"] = question["id"]
+    return render(request, 'show_question.html',context)
 
 def admin_prev_question(request):
     
@@ -278,32 +287,69 @@ def admin_next_question(request):
     game.next_question()
     return redirect(admin_game)
 
-def prevQuestion(request):
+def prev_question(request):
     set_session_vars(request)
-    game = get_game(1)
+
+    game_id = request.POST.get(GAMEID,'')
+    if game_id == '':
+        game_id = request.session.get(GAMEID,'')
+    if game_id == '':
+        games = get_games()
+        game_id = games[len(get_games)-1].id
+
+    game = get_game(game_id)
     game.prev_question()
-    return redirect(mcq)
+    return redirect(show_question)
 
-def nextQuestion(request):
+def next_question(request):
     set_session_vars(request)
-    game = get_game(1)
-    game.next_question()
-    return redirect(mcq)
-
-def submitAns(request):
-    set_session_vars(request)
-    # gameId = request.session.get(GAMEID,'')
-    # userId = request.session.get(USERID,'')
-    # teamId = request.session.get(TEAMID,'')
-    # if gameId == '' or userId == '' or teamId == '':
-    #     return redirect(index)
     
-    answerId = request.POST.get('answer', '')
-    if answerId == '':
-        redirect(mcq)
-    else: 
-        answerId = int(answerId)
-        return redirect(mcq)
+    game_id = request.POST.get(GAMEID,'')
+    if game_id == '':
+        game_id = request.session.get(GAMEID,'')
+    if game_id == '':
+        games = get_games()
+        game_id = games[len(get_games)-1].id
+
+    game = get_game(game_id)
+
+    game.next_question()
+    return redirect(show_question)
+
+def submit_answer(request):
+    set_session_vars(request)
+    gameId = request.session.get(GAMEID,'')
+    userId = request.session.get(USERID,'')
+    teamId = request.session.get(TEAMID,'')
+    
+    questionId = request.POST.get('questionId','')
+    if questionId == '':
+        questionId = request.session.get('questionId','')
+
+    if gameId == '' or userId == '' or teamId == '' or questionId == '':
+        return redirect(index)
+    
+    questionId = int(questionId)
+
+    options = []
+    for key in request.POST.keys():
+        if 'option_' in key:
+            options.append(key)
+        
+    choices = []
+    for opt in options:
+        _,index = opt.split("_")
+        choices.append((int(index),int(request.POST[opt])))
+
+    answers_submitted = True
+
+    for groupId, choiceId in choices:
+        answers_submitted = answers_submitted and submit_user_answer(gameId,questionId,groupId,choiceId,userId)
+
+    if answers_submitted:
+        return redirect(next_question)
+    else:
+        return redirect(show_question)
 
 def admin_manager(request):
     context = {}
@@ -384,7 +430,8 @@ def edit_game(request):
 
 def create_game(request):
     context = {}
-    return render(request,'create_game.html',context)
+    request.session[GAMEID] = ''
+    return redirect(edit_game)
 
 def save_game(request):
     
@@ -455,10 +502,10 @@ def edit_questions(request):
     if game == None:
         return redirect(admin_game)
     
-    questions = getQuestions(game_id)
+    questions = get_questions(game_id)
     if len(questions)==0:
-        createQuestions(game_id)
-        questions = getQuestions(game_id)
+        create_questions(game_id)
+        questions = get_questions(game_id)
 
     context = {}
     context['game'] = json.dumps(game.get_info())
