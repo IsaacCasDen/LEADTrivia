@@ -16,6 +16,12 @@ function initLocalClock(time,divHours,divMinutes,divSeconds) {
     setTimeout(updateTime,0);
 }
 
+// function calcTimeRemaining(datetime) {
+//     var value = new Date(datetime);
+//     var diff = (value - Date.now())/1000; 
+//     return diff;
+// }
+
 function updateTime() {
     if (this.time>=0) {
         setTimeout(updateTime,1000);
