@@ -76,7 +76,7 @@
 </script>
 
 <body>
-    <form id="formEditGame" method="POST" action="/app/save_game/" onsubmit="return validateForm()">
+    <form id="formEditGame" method="POST">
         {% csrf_token %}
         <div>
             
@@ -120,8 +120,9 @@
             </div>
 
             <div class="form-group row">
-                <input type="submit" class="btn btn-primary" value="Save" />
+                <input type="submit" class="btn btn-primary" value="Save" formaction="/app/save_game/" onsubmit="return validateForm()"/>
                 <button id="btnClose" type="button" class="btn btn-danger" onclick="onClose()">Close</button>
+                <input type="submit" class="btn btn-secondary" value="Edit Questions" formaction="edit_questions/" />
             </div>
         </div>
     </form>
