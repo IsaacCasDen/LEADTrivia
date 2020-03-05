@@ -5,10 +5,17 @@
 <link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
 
 <style>
+
     #Choices{
       display: block;
       clear: both;
       float: left;
+    }
+    .text{
+      float: left;
+      display: block;
+      margin-right: .5em;
+
     }
 
     .choice{
@@ -16,9 +23,27 @@
       clear: both;
       float: left;
     }
+
+    #Submit{
+      display: block;
+      clear: both;
+      float: right;
+    }
+
+    #Answer{
+      display: block;
+      clear: both;
+      float: left;
+    }
+    #divFIB {
+      display: inline-block;
+      clear: both;
+    }
+
+
     #team {
       color: darkslategrey; 
-      max-width: 300px; 
+      max-width: 400px; 
       border-color: darkgoldenrod; 
       border-style: solid; 
       border-width: 0.1em;
@@ -32,8 +57,6 @@
       display: inline-block;
     }
     #Question{
-      float: left;
-      
     }
     .user {
       background-color: aliceblue; 
@@ -143,76 +166,78 @@ function initMultipleChoice(){
     p.name = "answer";
     l.appendChild(p)  
     choicesDiv.appendChild(l);
-  }
+ }
 }
-// ----------------------------------------------
 
 function initFillInBlank(){
   createQuestionDiv();
-  var answerDiv=document.getElementById("Answer");
-  var choicesDiv=document.getElementById("Choices");
-  var _choices = choices[0];
-  
 }
 
 function createQuestionDiv(text){
   var questionDiv=document.getElementById("Question");
+  questionDiv.innerText = "Fill in the Blank Question"; // Hard coded for now!
+  var divChoices = document.getElementById('Choices');
+  var parentElement = divChoices.parentElement;
+  parentElement.removeChild(divChoices);
+  divChoices = document.createElement('div');
+  divChoices.id="divFIB";
+
+  parentElement.insertBefore(divChoices, document.getElementById("Submit"));
   var questArray = question.split("{}");
+  
   for (var i = 0; i<questArray.length; i++){
     var newDiv = document.createElement('div');
-    newDiv.id = questArray[i]; newDiv.className="words";
+    // newDiv.id = questArray[i];
+    newDiv.classList.add("text");
     newDiv.innerText = questArray[i];
-    var choiceDiv = document.createElement('div');
-    //choiceDiv.classList.add("dropdown-menu");
-    if (i < choices.length){
-    for (c in choices[i]){
-      var _choices = document.createElement('input');
-      _choices.type = "text";
-      _choices.classList.add("dropdown-item");
-      _choices.value = choices[i][c].value;
-      choiceDiv.appendChild(_choices);
-      break;
-      }
-    }
-    questionDiv.appendChild(newDiv);
-    questionDiv.appendChild(choiceDiv);
+    divChoices.appendChild(newDiv);
+    if (i < choices.length){ divChoices.appendChild(createChoices(choices[i],i)); }
+
   }
-
 }
+function createChoices(choices, i){
+  // var choiceDiv = document.createElement('div');
 
+  var optionSelect = document.createElement("select"); 
+  optionSelect.name = "option_" + i;
+  optionSelect.classList.add("text");
+    for (c in choices){
+      var _choices = document.createElement('option');
+      _choices.innerHTML = choices[c].value;
+      _choices.value = choices[c].id;
+      optionSelect.appendChild(_choices);
 
+      }
+      return optionSelect
+      // choiceDiv.appendChild(optionSelect);
+      // return choiceDiv;
+
+  }
+  
 </script>
-<div>
-  {% csrf_token %}
-  <div id="team" class="container">
+
+<!-- This needs to fix the border to wrap correctly and then move the submit button -->
+<body >
+  <div class="container">
     <div>
-    <form method = "post" action="next_question/" > <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
-      {% csrf_token %}
-      <article class="clock">
-        <div class="minutes"></div>
-        <div class="timesep">:</div>
-        <div class="seconds"></div>
-      </article>
       <div>
-        <div id="Question">PlaceHolder Question</div>
+      <form method = "post" action="next_question/" > <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
+        {% csrf_token %}
+        <article class="clock">
+          <div class="minutes"></div>
+          <div class="timesep">:</div>
+          <div class="seconds"></div>
+        </article>
+        <div>
+          <div id="Question">PlaceHolder Question</div>
         </div>
-      <div id = "Choices" class ="list-group col-lg-auto"> 
+        <div id = "Choices" class ="list-group col-lg-auto"></div>
+        <input type="submit" value="Submit" id="Submit"> 
+        <div id = "Answer">PlaceHolder Answer</div>
+      </form>
       </div>
-      <input type="submit" value="Submit"> 
-      <div id = "Answer
-      ">PlaceHolder Answer</div>
-    </form>
     </div>
   </div>
-</div>
-
-<!--Works!-->
-<!--<select name="test" form="modalChangeTeamName">
-     <option value="Select">Select....</option>
-     <option value="java">Java</option>
-     <option value="html">HTML</option>
-     <option value="C++">C++</option>
-     <option value="sap">SAP</option>
-   </select> -->
+</body>
 
 {% endblock %}
