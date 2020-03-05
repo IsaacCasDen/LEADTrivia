@@ -148,37 +148,37 @@ function initMultipleChoice(){
 // ----------------------------------------------
 
 function initFillInBlank(){
- 
- 
+  createQuestionDiv();
+  var answerDiv=document.getElementById("Answer");
+  var choicesDiv=document.getElementById("Choices");
+  var _choices = choices[0];
+  
 }
 
-// function createQuestions() {
-//   var div  =document.getElementById("Questions");
-//   var q = question.split("{}");
-//   if (q.length == choices.length+1) {
-//     for (int; i=0; i<q.length; i++){
-//       div.appendChild(createQuestDiv(q[i]));
-//       if (i<choices.length) {
-//         div.appendChild(createChoiceDiv(choices[i]));
-//       }
-//     }
-//   }
-// }
+function createQuestionDiv(text){
+  var questionDiv=document.getElementById("Question");
+  var questArray = question.split("{}");
+  for (var i = 0; i<questArray.length; i++){
+    var newDiv = document.createElement('div');
+    newDiv.id = questArray[i]; newDiv.className="words";
+    newDiv.innerText = questArray[i];
+    var choiceDiv = document.createElement('div');
+    //choiceDiv.classList.add("dropdown-menu");
+    if (i < choices.length){
+    for (c in choices[i]){
+      var _choices = document.createElement('input');
+      _choices.type = "text";
+      _choices.classList.add("dropdown-item");
+      _choices.value = choices[i][c].value;
+      choiceDiv.appendChild(_choices);
+      break;
+      }
+    }
+    questionDiv.appendChild(newDiv);
+    questionDiv.appendChild(choiceDiv);
+  }
 
-// function createQuestDiv(text) {
-//   var questionDiv=document.getElementById("Question");
-//   questionDiv.innerText = question;
-//   }
-
-// function createChoiceDiv(index, choices) {
-//   var d = document.createElement('div');
-//   choices.array.forEach(element => {
-//     var c = document.createElement('input');
-//     c.type = 'button'
-//     c.value = element['id']
-//     c.name="choice" + index
-//   });
-// }
+}
 
 
 </script>
@@ -199,7 +199,8 @@ function initFillInBlank(){
       <div id = "Choices" class ="list-group col-lg-auto"> 
       </div>
       <input type="submit" value="Submit"> 
-      <div id = "Answer">PlaceHolder Answer</div>
+      <div id = "Answer
+      ">PlaceHolder Answer</div>
     </form>
     </div>
   </div>
