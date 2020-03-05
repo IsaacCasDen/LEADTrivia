@@ -111,8 +111,8 @@
 // context["Choices"] = question["Choices"]
 // context["QuestionId"] = question["QuestionId"]
 var question = "{{Question | safe}}";
-var choices = {{Choices | safe}};
-var questionId = {{QuestionId | safe}};
+var groups = {{groups | safe}};
+var questionId = {{questionId | safe}};
 
 document.onreadystatechange = function(){
   if (document.readyState == "complete"){
@@ -138,7 +138,10 @@ function init() {
   }
 
 function initQuestion(){
-  if (choices.length > 1){
+  var inputId = document.getElementById("inputQuestionId");
+  if (inputId.length>0) inputId = inputId[0];
+  inputId.value = questionId;
+  if (question.includes("{}")){
     initFillInBlank();
   }else{
     initMultipleChoice();
@@ -149,12 +152,13 @@ function initMultipleChoice(){
   var questionDiv=document.getElementById("Question");
   var answerDiv=document.getElementById("Answer");
   var choicesDiv=document.getElementById("Choices");
-  var _choices = choices[0];
+  var group = groups[0]
+  var choices = group.choices;
   questionDiv.innerText = question;
   answerDiv.innerText = "";
 
-  for (var i=0; i<_choices.length; i++){
-    element = _choices[i];
+  for (var i=0; i<choices.length; i++){
+    element = choices[i];
     keys = Object.keys(element);
     l = document.createElement('label');
     l.innerText = element['value'];
@@ -191,20 +195,20 @@ function createQuestionDiv(text){
     newDiv.classList.add("text");
     newDiv.innerText = questArray[i];
     divChoices.appendChild(newDiv);
-    if (i < choices.length){ divChoices.appendChild(createChoices(choices[i],i)); }
+    if (i < groups.length){ divChoices.appendChild(createChoices(groups[i])); }
 
   }
 }
-function createChoices(choices, i){
+function createChoices(group){
   // var choiceDiv = document.createElement('div');
 
   var optionSelect = document.createElement("select"); 
-  optionSelect.name = "option_" + i;
+  optionSelect.name = "option_" + group.id;
   optionSelect.classList.add("text");
-    for (c in choices){
+    for (c in group.choices){
       var _choices = document.createElement('option');
-      _choices.innerHTML = choices[c].value;
-      _choices.value = choices[c].id;
+      _choices.innerText = group.choices[c].value;
+      _choices.value = group.choices[c].id;
       optionSelect.appendChild(_choices);
 
       }
@@ -221,7 +225,7 @@ function createChoices(choices, i){
   <div class="container">
     <div>
       <div>
-      <form method = "post" action="next_question/" > <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
+      <form method = "post" action="submit_answer/" > <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
         {% csrf_token %}
         <article class="clock">
           <div class="minutes"></div>
@@ -230,6 +234,7 @@ function createChoices(choices, i){
         </article>
         <div>
           <div id="Question">PlaceHolder Question</div>
+          <input type="hidden" id = "inputQuestionId" name="questionId" />
         </div>
         <div id = "Choices" class ="list-group col-lg-auto"></div>
         <input type="submit" value="Submit" id="Submit"> 
