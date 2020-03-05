@@ -225,100 +225,133 @@ def getQuestions(game_id):
         questions.append(value)
     return questions
 
-def createQuestions():
-    game = get_games()[0]
+def createQuestions(game_id:int):
+    game = get_game(game_id)
 
-    q = TriviaQuestion()
-    q.question = "Bullshit Question1"
-    q.answer = "Bullshit Answer1"
-    q.save()
-    c = TriviaQuestionChoices()
-    c.question = q
-    c.choice = "Bullshit Answer1"
-    c.save()
-    c = TriviaQuestionChoices()
-    c.question = q
-    c.choice = "Bullshit Answer2"
-    c.save()
-    c = TriviaQuestionChoices()
-    c.question = q
-    c.choice = "Bullshit Answer3"
-    c.save()
+    createQuestion(game.id,0,"My mama always said life was like {}. You never know what you're gonna get.","My mama always said life was like {}. You never know what you're gonna get.",[["a box of chocolates","peanut brittle","confused elves"]])
+    createQuestion(game.id,1,"If you got rid of every {} with {}, then you'd have three {} left.","If you got rid of every cop with some sort of drink problem, then you'd have three cops left.",[['cop','moose','priest'],['some sort of drink problem','a pineapple on their head','a car in their garage'],['cop','moose','priest']])
+    createQuestion(game.id,2,"Which of these is a type of computer?","Apple",[['Apple', 'Nectarine','Orange']])
+    createQuestion(game.id,3,"What was the name of the first satellite sent to space?","Sputnik 1",[["Sputnik 1","Gallileo 1","Neo 3"]])
+    createQuestion(game.id,4,"In which U.S. state was Tenessee Williams born?","Mississippi",[["Mississippi","Tenessee", "Alabama"]])
 
-    tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 0)
+
+    # q = TriviaQuestion()
+    # q.question = "Bullshit Question1"
+    # q.answer = "Bullshit Answer1"
+    # q.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer1"
+    # c.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer2"
+    # c.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer3"
+    # c.save()
+
+    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 0)
+    # tq.save()
+
+    # q = TriviaQuestion()
+    # q.question = "Bullshit Question2"
+    # q.answer = "Bullshit Answer1"
+    # q.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer1"
+    # c.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer2"
+    # c.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer3"
+    # c.save()
+
+    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 1)
+    # tq.save()
+
+    # q = TriviaQuestion()
+    # q.question = "Bullshit Question3"
+    # q.answer = "Bullshit Answer1"
+    # q.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer1"
+    # c.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer2"
+    # c.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer3"
+    # c.save()
+
+    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 2)
+    # tq.save()
+
+    # q = TriviaQuestion()
+    # q.question = "Row, row, {}, your {}"
+    # q.answer = "Row, row, row, your boat"
+    # q.save()
+
+    # c = TriviaQuestionChoices()
+    # c.question=q
+    # c.index=0
+    # c.choice = "row"
+    # c.save()
+
+    # c = TriviaQuestionChoices()
+    # c.question=q
+    # c.index=0
+    # c.choice = "plow"
+    # c.save()
+
+    # c = TriviaQuestionChoices()
+    # c.question=q
+    # c.index=1
+    # c.choice = "boat"
+    # c.save()
+
+    # c = TriviaQuestionChoices()
+    # c.question=q
+    # c.index=1
+    # c.choice = "donkey"
+    # c.save()
+
+    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 3)
+    # tq.save()
+
+def createQuestion(game_id:int, index:int, question:str, answer:str, choices:list, round:int=1):
+    game = TriviaGame.objects.get(game_id)
+    if game == None:
+        return False
+
+    question = TriviaQuestion()
+    question.question = question
+    question.answer = answer
+    question.save()
+    
+    for i,choice_list in enumerate(choices):
+        for _choice in choice_list:
+            choice = TriviaQuestionChoices()
+            choice.index=i
+            choice.choice=_choice
+            choice.question = question
+            choice.save()
+
+    tq = TriviaGameQuestions()
+    tq.game=game
+    tq.index = index
+    tq.question = question
     tq.save()
 
-    q = TriviaQuestion()
-    q.question = "Bullshit Question2"
-    q.answer = "Bullshit Answer1"
-    q.save()
-    c = TriviaQuestionChoices()
-    c.question = q
-    c.choice = "Bullshit Answer1"
-    c.save()
-    c = TriviaQuestionChoices()
-    c.question = q
-    c.choice = "Bullshit Answer2"
-    c.save()
-    c = TriviaQuestionChoices()
-    c.question = q
-    c.choice = "Bullshit Answer3"
-    c.save()
-
-    tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 1)
-    tq.save()
-
-    q = TriviaQuestion()
-    q.question = "Bullshit Question3"
-    q.answer = "Bullshit Answer1"
-    q.save()
-    c = TriviaQuestionChoices()
-    c.question = q
-    c.choice = "Bullshit Answer1"
-    c.save()
-    c = TriviaQuestionChoices()
-    c.question = q
-    c.choice = "Bullshit Answer2"
-    c.save()
-    c = TriviaQuestionChoices()
-    c.question = q
-    c.choice = "Bullshit Answer3"
-    c.save()
-
-    tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 2)
-    tq.save()
-
-    q = TriviaQuestion()
-    q.question = "Row, row, {}, your {}"
-    q.answer = "Row, row, row, your boat"
-    q.save()
-
-    c = TriviaQuestionChoices()
-    c.question=q
-    c.index=0
-    c.choice = "row"
-    c.save()
-
-    c = TriviaQuestionChoices()
-    c.question=q
-    c.index=0
-    c.choice = "plow"
-    c.save()
-
-    c = TriviaQuestionChoices()
-    c.question=q
-    c.index=1
-    c.choice = "boat"
-    c.save()
-
-    c = TriviaQuestionChoices()
-    c.question=q
-    c.index=1
-    c.choice = "donkey"
-    c.save()
-
-    tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 3)
-    tq.save()
+    return True    
 
 createuser_lock = Lock()
 def create_user(game_id:int, username:str):
@@ -527,7 +560,7 @@ def get_gamestate(game_id:int):
     return result
 
 def get_game(game_id:int) -> TriviaGame:
-    game = TriviaGame.objects.get(id=game_id,state=0)
+    game = TriviaGame.objects.get(id=game_id)
     return game
 
 def get_games(only_open:bool=True) -> list:
