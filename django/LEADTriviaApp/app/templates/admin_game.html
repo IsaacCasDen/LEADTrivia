@@ -1,0 +1,49 @@
+{% extends 'base.html'%}
+{% load static %}
+
+{% block content%}
+
+<style>
+
+</style>
+
+<script>
+
+</script>
+
+<body>
+    <form id="formAdminGame" method="POST">
+        {% csrf_token %}
+        <div id="divInfo">
+            <div id="divName">Placeholder Name</div>
+            <div id="divQuestionsRemaining">
+                <div style="float: left;">Questions Remaining:&nbsp;</div>
+                <div id="divQuestionsRemaining">10</div>
+            </div>
+            <div id="divCurrentRound">
+                <div style="float: left;">Current Round:&nbsp;</div>
+                <div id="divQuestionsRemaining">1</div>
+            </div>
+            <div id="divCurrentQuestion">
+                <div style="float: left;">Current Question:&nbsp;</div>
+                <div id="divQuestionsRemaining">1</div>
+            </div>
+            <div id="divCurrentQuestionText">
+                <div style="float: left;">Current Question:&nbsp;</div>
+                <div id="divQuestion">What is the airspeed of a swallow?</div>
+            </div>
+            <div id="divCurrentAnswerText">
+                <div style="float: left;">Current Answer:&nbsp;</div>
+                <div id="divAnswer">African or European?</div>
+            </div>
+        </div>
+        <div id="divControls">
+            <div id="divCurrentQuestion">
+                <input type="submit" type="button" value="Previous Question" formaction="admin_prev_question/" class="btn btn-secondary">
+                <input type="submit" type="button" value="Next Question" formaction="admin_next_question/" class="btn btn-primary">
+            </div>
+        </div>
+    </form>
+</body>
+
+{% endblock %}
