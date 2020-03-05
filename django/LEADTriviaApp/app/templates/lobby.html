@@ -3,6 +3,9 @@
 
 {% block content%}
 <!-- <img src= alt="Lobby"> -->
+
+<link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
+
 <style>
     body{ 
     background: #fff url({% static "app/images/lobbyimage.jpg" %}) no-repeat center;
@@ -33,7 +36,10 @@
     #divTeams {
         align-content:flex-start;
     }
-
+    #divTitle {
+        align-self: center;
+        float:left;
+    }
     #userInfo {
         background-color: whitesmoke;
         margin: 1em;
@@ -44,6 +50,8 @@
 
     .h1 {
         background-color: whitesmoke;
+        display: inline-block;
+        align-content: center;
     }
     .divTeam {
         float:left;
@@ -55,10 +63,16 @@
         border-style: solid;
     }
 </style>
+
+<script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
+
 <script>
-    var data={{data|safe}};
+    var game={{game|safe}};
+    var teams={{teams|safe}};
+    var orphans={{orphans|safe}};
     var username = "{{username|safe}}";
     var gameId = {{gameId|safe}};
+    var timeremaining = 0;
 
     document.onreadystatechange=function() {
         if (document.readyState=="complete") {
@@ -67,11 +81,34 @@
     }
 
     function init() {
+        timeremaining = calcTimeRemaining(game['StartTime']['date'], game['StartTime']['time']);
+        initClock(timeremaining);
+        initTeams();
+    }
+
+    function calcTimeRemaining(date,time) {
+        var value = new Date(date + ' ' + time);
+        var diff = (value - Date.now())/1000; 
+        return diff;
+    }
+
+    function timeup() {
+        // alert('Time expired');
+    }
+
+    function initClock(time) {
+        var divHours = document.getElementsByClassName("hours")[0];
+        var divMinutes = document.getElementsByClassName("minutes")[0];
+        var divSeconds = document.getElementsByClassName("seconds")[0];
+        initLocalClock(time,divHours,divMinutes,divSeconds);
+        setAction(timeup);
+    }
+    function initTeams() {
         var btnNewTeam = document.getElementById("btnNewTeam");
         var formTeams = document.getElementById("formTeams");
         var divTeams = document.getElementById("divTeams");
         var divUser = document.getElementById("divUser");
-        var teamIds = Object.keys(data['Teams']);
+        var teamIds = Object.keys(teams);
 
         divUser.innerText = username;
 
@@ -85,10 +122,11 @@
         }
 
         teamIds.forEach(element => {
-            var div = createTeam(formTeams,data['Teams'][element]);
+            var div = createTeam(formTeams,teams[element]);
             divTeams.appendChild(div);
         });
     }
+
     function createTeam(parent, team) {
         var divTeam = document.createElement('div');
         divTeam.onclick = function() {
@@ -122,11 +160,19 @@
 
 </script>
 <body>
-    
     <form id="formTeams" method="POST" action="/app/team/">
         {% csrf_token %}
         <div id="header">
-            <p style="align-self: center;" class="h1">LEAD TRIVIA NIGHT</p>
+            <div class="h1 col-lg-auto">
+                <div id="divTitle">LEAD TRIVIA NIGHT</div>
+                <article class="clock">
+                    <!-- <div class="hours"></div>
+                    <div class="timesep">:</div> -->
+                    <div class="minutes"></div>
+                    <div class="timesep">:</div>
+                    <div class="seconds"></div>
+                </article>
+            </div>
             <div id="userInfo">
                 <div class="infoitem">Welcome </div><div id="divUser" class="infoitem"></div><div class="infoitem">! Please select a team below to join, or create a new team!</div>
             </div>

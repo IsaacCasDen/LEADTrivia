@@ -1,0 +1,66 @@
+{% extends 'base.html'%}
+{% load static %}
+
+{% block content%}
+
+<style>
+    #divData {
+        height: 80%;
+    }
+</style>
+
+<script>
+    var game = {{game|safe}};
+    var questions = {{questions|safe}};
+    var divData;
+
+    document.onreadystatechange = function() {
+        if (document.readyState=="complete") {
+            init();
+        }
+    }
+    function init() {
+        divData = document.getElementById('divData');
+
+        populateData()
+    }
+    function populateData() {
+        for (var i=0; i<questions.length; i++) {
+            divData.appendChild(createQuestion(i,questions[i]));
+        }
+    }
+    function createQuestion(index,data) {
+        var child = document.createElement('div');
+        var inputQ = createInput('textarea');
+        inputQ.name = 'question_id_' + data['id'];
+        inputQ.value = data.question;
+        child.appendChild(inputQ);
+
+        return child;
+    }
+
+    function createInput(type) {
+        var input;
+        switch(type) {
+            case 'text':
+                input = document.createElement('input');
+                input.type = type
+                break;
+            case 'textarea':
+                input = document.createElement('textarea');
+                break;
+        }        
+        
+        return input;
+    }
+
+</script>
+
+<body>
+    <form id="formData">
+        <div id="divData"></div>
+        <div id="divControls"></div>
+    </form>
+</body>
+
+{% endblock %}

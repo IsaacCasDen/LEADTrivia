@@ -1,17 +1,58 @@
-import datetime
+from datetime import datetime
 
+from django.core.mail import send_mail
 from django.db import models, transaction
+from django.db.models import CASCADE, SET_NULL
 from django.utils import timezone
 from threading import Lock
 import random
+import secrets
 
+#test
 class User(models.Model):
-    user_name = models.CharField(max_length=256)
+    
+    __SECRET_KEY_LENGTH__ = 6
+    __SALT_LENGTH__ = 6
+
+    user_name = models.CharField(max_length=128)
+    secret_key = models.CharField(max_length=128,null=True)
+    password = models.CharField(max_length=128)
+    email = models.CharField(max_length=128)
+    is_admin = models.BooleanField(default=False)
+    salt = models.CharField(max_length=__SALT_LENGTH__)
+
+    @classmethod
+    def create(cls, user_name:str, password:str=None, email:str=None):
+        users = User.objects.filter(user_name=user_name)
+        if len(users)>0:
+            return None
+
+        user = User.objects.create_user(user_name,email,password)
+        if password == None:
+            user.secret_key = User.create_secret_key()
+            user.save()
+
+        return user
+
+    @classmethod
+    def create_secret_key(cls):
+        alphabet = 'abcdefghiklmnopqrstuvwxyz'
+        chars = []
+        for i in range(User.__SECRET_KEY_LENGTH__):
+            chars.append(secrets.choice(alphabet))
+
+        value = ''.join(chars)
+        return value
 
     def __str__(self):
         return "{}".format(self.user_name)
     def __repr__(self):
         return self.__str__()
+
+class SecretQuestions(models.Model):
+    user = models.ForeignKey(User,on_delete=CASCADE)
+    question = models.CharField(max_length=512)
+    answer = models.CharField(max_length=512)
 
 class Team(models.Model):
     team_name = models.CharField(max_length=256)
@@ -24,9 +65,41 @@ class Team(models.Model):
         return self.__str__()
 
 class TriviaGame(models.Model):
+
     name = models.CharField(max_length=256)
     state = models.IntegerField(default=0)
+    current_round = models.IntegerField(default=1)
     current_question_index = models.IntegerField(default=0)
+    start_time = models.DateTimeField()
+    is_cancelled = models.BooleanField(default=False)
+
+    @classmethod
+    def create(cls, name:str, start_time:datetime, state:int=0, current_round:int=1, current_question_index:int=1, is_cancelled:bool=False):
+        game = TriviaGame()
+        game.name = name
+        game.start_time = start_time
+        game.state = state
+        game.current_round = current_round
+        game.current_question_index = current_question_index
+        game.is_cancelled = is_cancelled
+        game.save()
+        return game
+
+    def get_info(self):
+        value = {}
+        value['id'] = self.id
+        value['name'] = self.name
+        value['state'] = self.state
+        value['current_round'] = self.current_round
+        value['current_question_index'] = self.current_question_index
+        value['start_time'] = self.get_starttime()
+        value['is_cancelled'] = self.is_cancelled
+        return value
+
+    def get_starttime(self):
+        date = self.start_time.strftime("%Y-%m-%d")
+        time = self.start_time.strftime("%H:%M:%S")
+        return {'date':date,'time':time}
 
     def start_game(self):
         self.state=1
@@ -39,6 +112,31 @@ class TriviaGame(models.Model):
     def reset_started(self):
         self.state=0
         self.save()
+
+    def next_question(self):
+        questions = TriviaGameQuestions.objects.filter(game__id=self.id)
+        nums = [(q.round,q.index) for q in questions]
+        nums.sort()
+        for i,value in enumerate(nums):
+            if value[1]==self.current_question_index:
+                if i<len(nums)-1:
+                    self.current_round = nums[i+1][0]
+                    self.current_question_index = nums[i+1][1]
+                    self.save()
+                    break
+                    
+    
+    def prev_question(self):
+        questions = TriviaGameQuestions.objects.filter(game__id=self.id)
+        nums = [(q.round,q.index) for q in questions]
+        nums.sort()
+        for i,value in enumerate(nums):
+            if value[1]==self.current_question_index:
+                if i>0:
+                    self.current_round = nums[i-1][0]
+                    self.current_question_index = nums[i-1][1]
+                    self.save()
+                    break
 
 class TeamMember(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
@@ -62,16 +160,243 @@ class OrphanUser(models.Model):
 class TriviaQuestion(models.Model):
     question = models.CharField(max_length=512)
     answer = models.CharField(max_length=512)
+    #working here
 
-# class TriviaQuestionMultipleChoice(TriviaQuestion):
-#     pass
+class TriviaQuestionChoiceGroup(models.Model):
+    question = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE)
+    index = models.IntegerField(default=0)
 
-# class TriviaQuestionFillInTheBlanks(TriviaQuestion):
-#     pass
+class TriviaQuestionChoices(models.Model):
+    group = models.ForeignKey(TriviaQuestionChoiceGroup, on_delete=models.CASCADE)
+    choice = models.CharField(max_length=512)
+    # visible = models.BooleanField(default=True)
 
 class TriviaGameTeams(models.Model):
     team = models.ForeignKey(Team,on_delete=models.CASCADE)
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
+
+class TriviaGameQuestions(models.Model):
+    question = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE)
+    game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)  
+    time = models.IntegerField(default=60)
+    index = models.IntegerField()
+    round = models.IntegerField(default=1)
+
+    @classmethod
+    def create(cls, question, game, time, index, round=1):
+        ind = [q.index for q in TriviaGameQuestions.objects.filter(game__id=game.id)]
+        while index in ind:
+            index += 1
+        item = cls(question = question, game = game, time = time, index = index, round = round)
+        #item.save()
+        return item
+
+class TriviaGameUserAnswer(models.Model):
+    user = models.ForeignKey(User,on_delete=SET_NULL, null=True)
+    question = models.ForeignKey(TriviaGameQuestions, on_delete=CASCADE)
+    group = models.ForeignKey(TriviaQuestionChoiceGroup, on_delete=CASCADE)
+    answer = models.ForeignKey(TriviaQuestionChoices, on_delete=CASCADE)
+
+class TriviaGameTeamAnswer(models.Model):
+    team = models.ForeignKey(Team,on_delete=SET_NULL, null=True)
+    question = models.ForeignKey(TriviaGameQuestions, on_delete=CASCADE)
+    group = models.ForeignKey(TriviaQuestionChoiceGroup, on_delete=CASCADE)
+    answer = models.ForeignKey(TriviaQuestionChoices, on_delete=CASCADE)
+
+def submit_user_answer(game_id:int,question_id:int,group_id:int,choice_id:int,user_id:int):
+    
+    answer = TriviaGameUserAnswer.objects.filter(user__id=user_id, question__id=question_id,group__id=group_id)
+    if len(answer)==1:
+        answer = answer[0]
+        answer.answer = TriviaQuestionChoices.objects.get(id=choice_id)
+    elif len(answer)==0:
+        group = TriviaQuestionChoiceGroup.objects.get(id=group_id)
+        if group == None:
+            return False
+        answer = TriviaGameUserAnswer()
+        answer.user = User.objects.get(id=user_id)
+        answer.group = group
+        answer.question=TriviaGameQuestions.objects.get(id=question_id)
+        answer.answer = TriviaQuestionChoices.objects.get(id=choice_id)
+
+    answer.save()
+    return submit_team_answer()
+
+def submit_team_answer() -> bool:
+    return True
+
+def get_questions(game_id):
+    questions = []
+    q = [q for q in TriviaGameQuestions.objects.filter(game__id=game_id)]
+    for item in q:
+        value = get_question(question_id=item.id)
+        questions.append(value)
+    return questions
+
+def get_question(game_id:int=None, ind:int= None, question_id:int=None):
+    if game_id==None and ind==None and question_id == None:
+        return None
+    
+    question = None
+
+    if game_id!=None and ind!=None:
+        question = TriviaGameQuestions.objects.filter(game__id=game_id, index=ind)
+        if len(question)==1:
+            question=question[0]
+        else:
+            return None
+    elif question_id!=None:
+        question = TriviaGameQuestions.objects.get(id=question_id)
+    
+    if question == None:
+        return None
+
+    value = {}
+    value['id']=question.id
+    value['question']=question.question.question
+    value['answer']=question.question.answer
+    value['groups'] = []
+    groups = TriviaQuestionChoiceGroup.objects.filter(question__id=question.id)
+    for i,group in enumerate(groups):
+        _group = {}
+        _group['id']=group.id
+        _group['index'] = group.index
+        _group['choices'] = [{'id':c.id, 'value':c.choice} for c in TriviaQuestionChoices.objects.filter(group__id=group.id)]
+        value['groups'].append(_group)
+    
+
+    return value
+
+def create_questions(game_id:int):
+    game = get_game(game_id)
+
+    create_question(game.id,0,"My mama always said life was like {}. You never know what you're gonna get.","My mama always said life was like {}. You never know what you're gonna get.",[["a box of chocolates","peanut brittle","confused elves"]])
+    create_question(game.id,1,"If you got rid of every {} with {}, then you'd have three {} left.","If you got rid of every cop with some sort of drink problem, then you'd have three cops left.",[['cop','moose','priest'],['some sort of drink problem','a pineapple on their head','a car in their garage'],['cop','moose','priest']])
+    create_question(game.id,2,"Which of these is a type of computer?","Apple",[['Apple', 'Nectarine','Orange']])
+    create_question(game.id,3,"What was the name of the first satellite sent to space?","Sputnik 1",[["Sputnik 1","Gallileo 1","Neo 3"]])
+    create_question(game.id,4,"In which U.S. state was Tenessee Williams born?","Mississippi",[["Mississippi","Tenessee", "Alabama"]])
+
+
+    # q = TriviaQuestion()
+    # q.question = "Bullshit Question1"
+    # q.answer = "Bullshit Answer1"
+    # q.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer1"
+    # c.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer2"
+    # c.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer3"
+    # c.save()
+
+    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 0)
+    # tq.save()
+
+    # q = TriviaQuestion()
+    # q.question = "Bullshit Question2"
+    # q.answer = "Bullshit Answer1"
+    # q.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer1"
+    # c.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer2"
+    # c.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer3"
+    # c.save()
+
+    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 1)
+    # tq.save()
+
+    # q = TriviaQuestion()
+    # q.question = "Bullshit Question3"
+    # q.answer = "Bullshit Answer1"
+    # q.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer1"
+    # c.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer2"
+    # c.save()
+    # c = TriviaQuestionChoices()
+    # c.question = q
+    # c.choice = "Bullshit Answer3"
+    # c.save()
+
+    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 2)
+    # tq.save()
+
+    # q = TriviaQuestion()
+    # q.question = "Row, row, {}, your {}"
+    # q.answer = "Row, row, row, your boat"
+    # q.save()
+
+    # c = TriviaQuestionChoices()
+    # c.question=q
+    # c.index=0
+    # c.choice = "row"
+    # c.save()
+
+    # c = TriviaQuestionChoices()
+    # c.question=q
+    # c.index=0
+    # c.choice = "plow"
+    # c.save()
+
+    # c = TriviaQuestionChoices()
+    # c.question=q
+    # c.index=1
+    # c.choice = "boat"
+    # c.save()
+
+    # c = TriviaQuestionChoices()
+    # c.question=q
+    # c.index=1
+    # c.choice = "donkey"
+    # c.save()
+
+    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 3)
+    # tq.save()
+
+def create_question(game_id:int, index:int, question:str, answer:str, choices:list, round:int=1):
+    game = TriviaGame.objects.get(id=game_id)
+    if game == None:
+        return False
+
+    q = TriviaQuestion()
+    q.question = question
+    q.answer = answer
+    q.save()
+    
+    for i,choice_list in enumerate(choices):
+        group = TriviaQuestionChoiceGroup()
+        group.index=i
+        group.question = q
+        group.save()
+        for _choice in choice_list:
+            choice = TriviaQuestionChoices()
+            choice.choice=_choice
+            choice.group = group
+            choice.save()
+
+    tq = TriviaGameQuestions()
+    tq.game=game
+    tq.index = index
+    tq.question = q
+    tq.save()
+
+    return True    
 
 createuser_lock = Lock()
 def create_user(game_id:int, username:str):
@@ -228,6 +553,7 @@ def get_teams(game_id:int):
     return teams
 
 
+
 def get_gamestate(game_id:int):
     game = get_game(game_id)
 
@@ -238,6 +564,9 @@ def get_gamestate(game_id:int):
     result['Game']['Id']=game.id
     result['Game']['Name']=game.name
     result['Game']['State']=game.state
+    result['Game']['QuestionIndex']=game.current_question_index
+    result['Game']['IsCancelled'] = game.is_cancelled
+    result['Game']['StartTime']= game.get_starttime()
     
     for team in get_teams(game_id):
         result['Teams'][team.id]={}
@@ -248,11 +577,11 @@ def get_gamestate(game_id:int):
 
     return result
 
-def get_game(game_id:int):
-    game = TriviaGame.objects.get(id=game_id,state=0)
+def get_game(game_id:int) -> TriviaGame:
+    game = TriviaGame.objects.get(id=game_id)
     return game
 
-def get_games(only_open:bool=True):
+def get_games(only_open:bool=True) -> list:
 
     if only_open:
         games = [game for game in TriviaGame.objects.all() if game.state != 2]
@@ -339,6 +668,7 @@ def create_model():
 def create_game():
     game = TriviaGame()
     game.name="Trivia Game"
+    game.start_time = datetime.strptime("02/25/20 19:30:00","%m/%d/%y %H:%M:%S")
     game.save()
     return game
 

@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.shortcuts  import redirect
+import json
 
 from .models import *
 # Create your views here.
@@ -26,8 +27,7 @@ def set_session_vars(request):
 
     should_set = False
     if should_set:
-        request.session['userId'] = 160
-        request.session['errors'] = []
+        create_questions()
 
     should_set = False
     if should_set:
@@ -53,7 +53,17 @@ def index(request):
     set_session_vars(request)
     init_db()
 
+    context = {}
+
     games = get_games()
+    _games = []
+    for game in games:
+        _games.append(game.get_info())
+
+    context['games'] = json.dumps(_games)
+
+    if len(games)==0:
+        return HttpResponse("No Games Available")
     game_data = get_gamestate(games[len(games)-1].id)
 
     if request.session['gameId'] == '':
@@ -68,12 +78,11 @@ def index(request):
     if isinstance(userId,int) and isinstance(gameId,int) and  len(request.session['errors'])==0:
         return redirect(lobby)
 
-    context = {}
     context['gameId'] = request.session['gameId']
     context['userId'] = request.session['userId']
     context['username'] = request.session['username']
     context['errors'] = request.session['errors']
-    context['data'] = game_data
+    context['data'] = json.dumps(game_data)
 
     return render(request,'index.html', context)
 
@@ -129,10 +138,11 @@ def lobby(request):
             else:
                 request.session['username'] = user.user.user_name
         
-    context['data'] = get_gamestate(gameId)
+    state = get_gamestate(gameId)
 
-    
-    # else:
+    context['teams'] = json.dumps(state['Teams'])
+    context['orphans'] = json.dumps(state['Orphans'])
+    context['game']=json.dumps(state['Game'])
     context['username'] = request.session['username']
     context['gameId'] = request.session['gameId']
     context['errors'] = request.session['errors'] 
@@ -155,7 +165,6 @@ def team(request):
 
     data = None
     users = None
-
     team=None
 
     if teamId == '':
@@ -183,8 +192,9 @@ def team(request):
                 return redirect(lobby)
     team = get_team(gameId,teamId)
     request.session['teamId'] = teamId
+    context['game'] = json.dumps(data['Game'])
     context[TEAMNAME] = team.team_name
-    context['users'] = users
+    context['users'] = json.dumps(users)
     context['username']= username
     context['errors'] = request.session['errors']
     
@@ -230,3 +240,275 @@ def update_username(request):
 
     return redirect(team)
 
+def next_round(request):
+    context = {}
+    context['round']=1
+    return render(request,'next_round.html',context)
+
+def show_question(request):
+    set_session_vars(request)
+    game = get_games()[0]
+    gameId = game.id
+   # gameId = request.session.get(GAMEID,'')
+    if gameId == '':
+        return redirect(index)
+    state = get_gamestate(gameId)
+    ind = state["Game"]["QuestionIndex"]
+    question = get_question(game_id=gameId, ind=ind)
+    context= {}
+
+    context["Question"] = question["question"]
+   # context["Answer"] = question["Answer"]
+    context["groups"] = question["groups"]
+    context["questionId"] = question["id"]
+    return render(request, 'show_question.html',context)
+
+def admin_prev_question(request):
+    
+    gameId = request.session.get('gameId','')
+    if gameId == '':
+        redirect(admin_manager)
+
+    gameId = int(gameId)
+
+    game = get_game(gameId)
+    game.prev_question()
+    return redirect(admin_game)
+
+def admin_next_question(request):
+    
+    gameId = request.session.get('gameId','')
+    if gameId == '':
+        return redirect(admin_manager)
+
+    gameId = int(gameId)
+
+    game = get_game(gameId)
+    game.next_question()
+    return redirect(admin_game)
+
+def prev_question(request):
+    set_session_vars(request)
+
+    game_id = request.POST.get(GAMEID,'')
+    if game_id == '':
+        game_id = request.session.get(GAMEID,'')
+    if game_id == '':
+        games = get_games()
+        game_id = games[len(get_games)-1].id
+
+    game = get_game(game_id)
+    game.prev_question()
+    return redirect(show_question)
+
+def next_question(request):
+    set_session_vars(request)
+    
+    game_id = request.POST.get(GAMEID,'')
+    if game_id == '':
+        game_id = request.session.get(GAMEID,'')
+    if game_id == '':
+        games = get_games()
+        game_id = games[len(get_games)-1].id
+
+    game = get_game(game_id)
+
+    game.next_question()
+    return redirect(show_question)
+
+def submit_answer(request):
+    set_session_vars(request)
+    gameId = request.session.get(GAMEID,'')
+    userId = request.session.get(USERID,'')
+    teamId = request.session.get(TEAMID,'')
+    
+    questionId = request.POST.get('questionId','')
+    if questionId == '':
+        questionId = request.session.get('questionId','')
+
+    if gameId == '' or userId == '' or teamId == '' or questionId == '':
+        return redirect(index)
+    
+    questionId = int(questionId)
+
+    options = []
+    for key in request.POST.keys():
+        if 'option_' in key:
+            options.append(key)
+        
+    choices = []
+    for opt in options:
+        _,index = opt.split("_")
+        choices.append((int(index),int(request.POST[opt])))
+
+    answers_submitted = True
+
+    for groupId, choiceId in choices:
+        answers_submitted = answers_submitted and submit_user_answer(gameId,questionId,groupId,choiceId,userId)
+
+    if answers_submitted:
+        return redirect(next_question)
+    else:
+        return redirect(show_question)
+
+def admin_manager(request):
+    context = {}
+
+    request.session[GAMEID] = ''
+    show_activeonly = request.POST.get('show_activeonly','')
+    if show_activeonly == '':
+        show_activeonly = False
+    
+    show_activeonly = bool(show_activeonly)
+
+    games = get_games(show_activeonly)
+    context['Games'] = []
+    for game in games:
+        context['Games'].append(json.dumps(game.get_info()))
+
+    return render(request,'admin_manager.html',context)
+
+def admin_game(request):
+
+    game_id = request.POST.get(GAMEID,'')
+    if game_id == '':
+        game_id = request.session.get(GAMEID,'')
+    
+    if game_id == '':
+        redirect(admin_game)
+    
+    game_id = int(game_id)
+    request.session[GAMEID] = game_id
+
+    game = get_game(game_id)
+    question = get_question(game_id,game.current_question_index)
+
+
+
+    context = {}
+    return render(request,'admin_game.html',context)
+
+def edit_game(request):
+    context = {}
+
+    gameId = request.POST.get('gameId','')
+    if gameId == '':
+        gameId = request.session.get('gameId','')
+    
+    context['id'] = "undefined"
+    context['name'] = "undefined"
+    context['state'] = "undefined"
+    context['current_round'] = "undefined"
+    context['current_question_index'] = "undefined"
+    context['start_date'] = "undefined"
+    context['start_time'] = "undefined"
+    context['is_cancelled'] = "undefined"
+
+    if gameId != '':
+        gameId = int(gameId)
+        game = get_game(gameId)
+        if game!=None:
+            request.session[GAMEID] = gameId
+            context['id'] = json.dumps(gameId)
+            context['name'] = json.dumps(game.name)
+            context['state'] = json.dumps(game.state)
+            context['current_round'] = json.dumps(game.current_round)
+            context['current_question_index'] = json.dumps(game.current_question_index)
+
+            date_obj = game.start_time
+            date_date = date_obj.date()
+            date_time = date_obj.time()
+
+            context['start_date'] = json.dumps(date_date.strftime("%Y-%m-%d"))
+            context['start_time'] = json.dumps(date_time.strftime("%H:%M:%S"))
+
+            context['is_cancelled'] = json.dumps(game.is_cancelled)
+
+
+    
+    return render(request,'edit_game.html',context)
+
+def create_game(request):
+    context = {}
+    request.session[GAMEID] = ''
+    return redirect(edit_game)
+
+def save_game(request):
+    
+    game_id = request.POST.get('gameId','')
+    name = request.POST.get('name','')
+    state = request.POST.get('state','')
+    currentround = request.POST.get('current_round','')
+    currentquestionindex = request.POST.get('current_question_index','')
+    startdate = request.POST.get('start_date','')
+    starttime = request.POST.get('start_time','')
+    iscancelled = request.POST.get('is_cancelled','')
+    if iscancelled == '':
+        iscancelled = False
+    
+    val_fail = False
+    val_fail = name == '' or state == '' or currentround == '' or currentquestionindex == '' or startdate == '' or starttime == '' or iscancelled == ''
+    
+    if not val_fail:
+        state = int(state)
+        currentround = int(currentround)
+        currentquestionindex = int(currentquestionindex)
+
+        datetime_str = "{} {}".format(startdate,starttime)
+        datetime_val = None
+        try:
+            datetime_val  = datetime.strptime(datetime_str,"%Y-%m-%d %H:%M")
+        except ValueError:
+            try:
+                datetime_val  = datetime.strptime(datetime_str,"%Y-%m-%d %H:%M:%S")
+            except:
+                return redirect(edit_game)
+
+        starttime = datetime_val
+        iscancelled = bool(iscancelled)
+
+        if game_id == '':
+            game = TriviaGame.create(name,starttime,state,currentround,currentquestionindex,iscancelled)
+            game_id = game.id
+        else:
+            game_id = int(game_id)
+            game = get_game(game_id)
+            game.name=name
+            game.state=state
+            game.current_round=currentround
+            game.current_question_index=currentquestionindex
+            game.start_time=starttime
+            game.is_cancelled=iscancelled
+            game.save()
+        
+    if val_fail:
+        return redirect(create_game)
+    else:
+        request.session[GAMEID] = game_id
+        return redirect(edit_game)
+    
+def edit_questions(request):
+
+    game_id = request.POST.get('gameId','')
+    if game_id == '':
+        game_id == request.session.get('gameId','')
+    
+    if game_id == '':
+        return redirect(admin_manager)
+    
+    game_id = int(game_id)
+
+    game = get_game(game_id)
+    if game == None:
+        return redirect(admin_game)
+    
+    questions = get_questions(game_id)
+    if len(questions)==0:
+        create_questions(game_id)
+        questions = get_questions(game_id)
+
+    context = {}
+    context['game'] = json.dumps(game.get_info())
+    context['questions'] = json.dumps(questions)
+
+    return render(request,'edit_questions.html',context)
