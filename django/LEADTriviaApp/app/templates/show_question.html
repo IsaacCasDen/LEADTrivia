@@ -11,72 +11,37 @@
       clear: both;
       float: left;
     }
-    .text{
-      float: left;
-      display: block;
-      margin-right: .5em;
-
-    }
-
-    #Submit{
-      display: block;
-      clear: both;
-      float: right;
-    }
-
-    #Answer{
-      display: block;
-      clear: both;
-      float: left;
-    }
+    
     #divFIB {
       display: inline-block;
       clear: both;
     }
 
-
-    #team {
-      color: darkslategrey; 
-      max-width: 400px; 
-      border-color: darkgoldenrod; 
-      border-style: solid; 
-      border-width: 0.1em;
-    }
-    #team_info {
-      text-align: center;
-      display: block;
+    .text{
       float:left;
+      margin-right: 0.5em;
+      margin-top: 0.5em;
+      padding:0.15em;
     }
-    #team_name {
-      display: inline-block;
+    select {
+      background-color: beige;
     }
-    #Question{
-    }
-    .user {
-      background-color: aliceblue; 
-      width: 100%;
-      text-align: center;
-      }
-    #btnLeave {
-      background-color: gray;
-      color: whitesmoke;
-      align-self: center;
-      margin: auto;
-      margin-bottom:0.5em;
-      display: block
+
+    .consensus {
+      background-color: lightgreen;
     }
 
     .label {
-
+      /* margin-left: 1em; */
     }
 
-    .choice{
-      display: inline-block;
+    .choice {
+      /* margin-left: -0.5em; */
     }
-  
+
     .clockTimeWarning {
         color: red;
-    } 
+    }
 </style>
   
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
@@ -120,7 +85,7 @@ function init() {
         document.location.reload();
       }
       else {
-        setTimeout(checkCurrentQuestionIndex,0.5)
+        // setTimeout(checkCurrentQuestionIndex,0.5)
       }
     });
   }
@@ -159,20 +124,32 @@ function initMultipleChoice(group){
   answerDiv.innerText = "";
 
   for (var i=0; i<choices.length; i++){
-    var div = document.createElement('div');
+    // var div = document.createElement('div');
     element = choices[i];
     keys = Object.keys(element);
-    label = document.createElement('label');
+    container = document.createElement('label');
+    container.classList.add('list-group-item');
+    container.classList.add('container');
+
+    var label = document.createElement('div');
+    label.classList.add('form-check-label');
+    label.classList.add('label');
     label.innerText = element['value'];
+    
     input=document.createElement('input');
     input.classList.add("choice")
     input.classList.add('form-check-input')
     input.value = element['id'];
     input.type = "radio";
     input.name = "option_" + group.id;
-    div.appendChild(input)  
-    div.appendChild(label)
-    choicesDiv.appendChild(div);
+    input.id="idInput" + input.value;
+    
+    container.appendChild(input);
+    container.appendChild(label);
+
+    // div.appendChild(input)  
+    // div.appendChild(label)
+    choicesDiv.appendChild(container);
  }
 }
 
@@ -193,7 +170,7 @@ function createQuestionDiv(text){
   var questArray = question.split("{}");
   
   for (var i = 0; i<questArray.length; i++){
-    var newDiv = document.createElement('div');
+    var newDiv = document.createElement('p');
     // newDiv.id = questArray[i];
     newDiv.classList.add("text");
     newDiv.innerText = questArray[i];
@@ -207,6 +184,7 @@ function createChoices(group){
 
   var optionSelect = document.createElement("select"); 
   optionSelect.name = "option_" + group.id;
+  // optionSelect.classList.add("form-control");
   optionSelect.classList.add("text");
     for (c in group.choices){
       var _choices = document.createElement('option');
@@ -267,8 +245,8 @@ function createChoices(group){
           <input type="hidden" id = "inputQuestionId" name="questionId" />
         </div>
         <div id = "Choices" class ="list-group col-lg-auto"></div>
-        <div id = "Answer">PlaceHolder Answer</div>
       </form>
+      <div id = "Answer">PlaceHolder Answer</div><br>
       <button id="btnSubmit" class="btn btn-primary" onclick="onBtnSubmitClicked()">Submit</button>
       </div>
     </div>
