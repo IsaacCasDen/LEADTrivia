@@ -64,6 +64,10 @@
     text-decoration: none;
     cursor: pointer;
   }
+
+  .clockTimeWarning {
+        color: red;
+    }  
 </style>  
 
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
@@ -103,9 +107,14 @@
     var divHours = document.getElementsByClassName("hours")[0];
     var divMinutes = document.getElementsByClassName("minutes")[0];
     var divSeconds = document.getElementsByClassName("seconds")[0];
-    initLocalClock(time,divHours,divMinutes,divSeconds);
+    initLocalClock(time,[15,showTimeWarning],divHours,divMinutes,divSeconds);
     setAction(timeup);
   }
+
+  function showTimeWarning() {
+        var clock = document.getElementById('clock');
+        if (clock!=undefined) clock.classList.add("clockTimeWarning");
+    }
 
   function initTeam(name) {
     var formTeam = document.getElementById("formTeam");
@@ -204,7 +213,7 @@
           <p id="team_name" class="title"></p>
           <input type="image" id="btnEditTeamName" src="{% static "app/images/edit.png" %}" width="20em" height="20em" alt="Suggest new name">
         </div>
-        <article class="clock">
+        <article id="clock" class="clock">
           <!-- <div class="hours"></div>
           <div class="timesep">:</div> -->
           <div class="minutes"></div>
