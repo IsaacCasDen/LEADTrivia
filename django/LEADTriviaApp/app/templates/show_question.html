@@ -100,7 +100,9 @@
       cursor: pointer;
     }
   
-    
+    .clockTimeWarning {
+        color: red;
+    } 
 </style>
   
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
@@ -113,6 +115,7 @@
 var question = "{{Question | safe}}";
 var groups = {{groups | safe}};
 var questionId = {{questionId | safe}};
+var index = undefined;
 
 document.onreadystatechange = function(){
   if (document.readyState == "complete"){
@@ -121,20 +124,44 @@ document.onreadystatechange = function(){
 }
 
 function init() {
-    initClock(30);
+    updateCurrentQuestionIndex(index)
+    initClock(10);
     initQuestion();
   }
 
-  function timeup() {
-    alert('Time expired');
+  function updateCurrentQuestionIndex() {
+    var query = $.getJSON('current_question_index');
+    query.done(function(data) {
+      index = data.index
+      if (index==undefined) {
+        document.location.href = 'app/';
+      }
+    });
+  }
+
+  function checkCurrentQuestionIndex() {
+    var query = $.getJSON('current_question_index/');
+    query.done(function(data) {
+      if (data.index>index) {
+        document.location.reload();
+      }
+      else {
+        setTimeout(checkCurrentQuestionIndex,0.5)
+      }
+    });
   }
 
   function initClock(time) {
     var divHours = document.getElementsByClassName("hours")[0];
     var divMinutes = document.getElementsByClassName("minutes")[0];
     var divSeconds = document.getElementsByClassName("seconds")[0];
-    initLocalClock(time,divHours,divMinutes,divSeconds);
-    // setAction(timeup);//incriment question action
+    initLocalClock(time,[10,showTimeWarning],divHours,divMinutes,divSeconds);
+    setAction(checkCurrentQuestionIndex);
+  }
+
+  function showTimeWarning() {
+      var clock = document.getElementById('clock');
+      if (clock!=undefined) clock.classList.add("clockTimeWarning");
   }
 
 function initQuestion(){
@@ -144,11 +171,11 @@ function initQuestion(){
   if (question.includes("{}")){
     initFillInBlank();
   }else{
-    initMultipleChoice();
+    initMultipleChoice(groups[0]);
   }
  
 }
-function initMultipleChoice(){
+function initMultipleChoice(group){
   var questionDiv=document.getElementById("Question");
   var answerDiv=document.getElementById("Answer");
   var choicesDiv=document.getElementById("Choices");
@@ -167,7 +194,7 @@ function initMultipleChoice(){
     p.classList.add("choice")
     p.value = element['id'];
     p.type = "radio";
-    p.name = "answer";
+    p.name = "option_" + group.id;
     l.appendChild(p)  
     choicesDiv.appendChild(l);
  }
@@ -217,6 +244,33 @@ function createChoices(group){
       // return choiceDiv;
 
   }
+
+  function submitAnswer() {
+    //action=""
+    var form = $('#formAnswer');
+    var data = form.serializeArray();
+    // var submit = $.getJSON("submit_answer/");
+    $.ajax({
+      type:"POST",
+      url:"submit_answer/",
+      dataType:"json",
+      data:data,
+      success:onSuccess
+    });
+
+  }
+
+  function onSuccess(data, text, object) {
+    parseResult(data);
+  }
+
+  function parseResult(data) {
+
+  }
+
+  function onBtnSubmitClicked() {
+    submitAnswer()
+  }
   
 </script>
 
@@ -225,9 +279,9 @@ function createChoices(group){
   <div class="container">
     <div>
       <div>
-      <form method = "post" action="submit_answer/" > <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
+      <form id="formAnswer"> <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
         {% csrf_token %}
-        <article class="clock">
+        <article id="clock" class="clock">
           <div class="minutes"></div>
           <div class="timesep">:</div>
           <div class="seconds"></div>
@@ -237,9 +291,9 @@ function createChoices(group){
           <input type="hidden" id = "inputQuestionId" name="questionId" />
         </div>
         <div id = "Choices" class ="list-group col-lg-auto"></div>
-        <input type="submit" value="Submit" id="Submit"> 
         <div id = "Answer">PlaceHolder Answer</div>
       </form>
+      <button id="btnSubmit" class="btn btn-primary" onclick="onBtnSubmitClicked()">Submit</button>
       </div>
     </div>
   </div>
