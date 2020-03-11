@@ -97,9 +97,11 @@ class TriviaGame(models.Model):
         return value
 
     def get_starttime(self):
-        date = self.start_time.strftime("%Y-%m-%d")
-        time = self.start_time.strftime("%H:%M:%S")
-        return {'date':date,'time':time}
+        value = self.start_time.isoformat()
+        return value
+        # date = self.start_time.strftime("%Y-%m-%d")
+        # time = self.start_time.strftime("%H:%M:%S")
+        # return {'date':date,'time':time}
 
     def start_game(self):
         self.state=1

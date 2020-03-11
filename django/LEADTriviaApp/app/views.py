@@ -443,6 +443,7 @@ def save_game(request):
     currentquestionindex = request.POST.get('current_question_index','')
     startdate = request.POST.get('start_date','')
     starttime = request.POST.get('start_time','')
+    timezone = request.POST.get('timezone','')
     iscancelled = request.POST.get('is_cancelled','')
     if iscancelled == '':
         iscancelled = False
@@ -465,7 +466,7 @@ def save_game(request):
             except:
                 return redirect(edit_game)
 
-        starttime = datetime_val
+        starttime = datetime_val.utcnow()
         iscancelled = bool(iscancelled)
 
         if game_id == '':
