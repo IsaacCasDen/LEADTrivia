@@ -3,11 +3,13 @@ var time;
 // var divHours;
 var divMinutes;
 var divSeconds;
+var thresholds;
 var action;
 
 
-function initLocalClock(time,divHours,divMinutes,divSeconds) {
-    this.time=time
+function initLocalClock(time,thresholds,divHours,divMinutes,divSeconds) {
+    this.time=time;
+    this.thresholds = thresholds;
     // this.divHours = divHours;
     this.divMinutes = divMinutes;
     this.divSeconds = divSeconds;
@@ -30,6 +32,12 @@ function updateTime() {
             action();
         }
         return;
+    }
+    for (i in thresholds) {
+        if (parseInt(time)==thresholds[0] && thresholds[2] === undefined) {
+            thresholds[2] = true;
+            thresholds[1]();    
+        }
     }
     
     var seconds = parseInt(this.time%60).toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping:false});
