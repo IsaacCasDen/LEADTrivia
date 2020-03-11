@@ -31,12 +31,24 @@
       background-color: lightgreen;
     }
 
+    .container {
+      float:left;
+      clear: both;
+      width:25em;
+    }
+
     .label {
-      /* margin-left: 1em; */
+      position:relative;
+      float:left;
+      margin-left: .5em;
+      width:auto;
     }
 
     .choice {
-      /* margin-left: -0.5em; */
+      position:relative;
+      float:left;
+      margin-left: .1em;
+      width:auto;
     }
 
     .clockTimeWarning {
@@ -245,8 +257,9 @@ function createChoices(group){
           <input type="hidden" id = "inputQuestionId" name="questionId" />
         </div>
         <div id = "Choices" class ="list-group col-lg-auto"></div>
+        <div style="clear: both;" ></div>
       </form>
-      <div id = "Answer">PlaceHolder Answer</div><br>
+      <div id = "Answer">PlaceHolder Answer</div>
       <button id="btnSubmit" class="btn btn-primary" onclick="onBtnSubmitClicked()">Submit</button>
       </div>
     </div>
