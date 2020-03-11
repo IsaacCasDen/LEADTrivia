@@ -274,7 +274,7 @@ def create_questions(game_id:int):
     create_question(game.id,1,"If you got rid of every {} with {}, then you'd have three {} left.","If you got rid of every cop with some sort of drink problem, then you'd have three cops left.",[['cop','moose','priest'],['some sort of drink problem','a pineapple on their head','a car in their garage'],['cop','moose','priest']])
     create_question(game.id,2,"Which of these is a type of computer?","Apple",[['Apple', 'Nectarine','Orange']])
     create_question(game.id,3,"What was the name of the first satellite sent to space?","Sputnik 1",[["Sputnik 1","Gallileo 1","Neo 3"]])
-    create_question(game.id,4,"In which U.S. state was Tenessee Williams born?","Mississippi",[["Mississippi","Tenessee", "Alabama"]])
+    create_question(game.id,4,"In which U.S. state was Tennessee Williams born?","Mississippi",[["Mississippi","Tenessee", "Alabama"]])
 
 
     # q = TriviaQuestion()
