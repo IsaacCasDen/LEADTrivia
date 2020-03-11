@@ -62,6 +62,10 @@
         border-width: 0.5;
         border-style: solid;
     }
+
+    .clockTimeWarning {
+        color: red;
+    }  
 </style>
 
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
@@ -100,9 +104,15 @@
         var divHours = document.getElementsByClassName("hours")[0];
         var divMinutes = document.getElementsByClassName("minutes")[0];
         var divSeconds = document.getElementsByClassName("seconds")[0];
-        initLocalClock(time,divHours,divMinutes,divSeconds);
+        initLocalClock(time,[15,showTimeWarning],divHours,divMinutes,divSeconds);
         setAction(timeup);
     }
+
+    function showTimeWarning() {
+        var clock = document.getElementById('clock');
+        if (clock!=undefined) clock.classList.add("clockTimeWarning");
+    }
+
     function initTeams() {
         var btnNewTeam = document.getElementById("btnNewTeam");
         var formTeams = document.getElementById("formTeams");
@@ -165,7 +175,7 @@
         <div id="header">
             <div class="h1 col-lg-auto">
                 <div id="divTitle">LEAD TRIVIA NIGHT</div>
-                <article class="clock">
+                <article id="clock" class="clock">
                     <!-- <div class="hours"></div>
                     <div class="timesep">:</div> -->
                     <div class="minutes"></div>
