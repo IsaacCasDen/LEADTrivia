@@ -18,12 +18,6 @@
 
     }
 
-    .choice{
-      display: block;
-      clear: both;
-      float: left;
-    }
-
     #Submit{
       display: block;
       clear: both;
@@ -71,33 +65,13 @@
       margin-bottom:0.5em;
       display: block
     }
-    
-    .modal {
-      width:auto;
-      height:auto;
-      overflow:auto;
-      align-self: center;
-      position:fixed;
-      background-color: rgb(0,0,0);
-      background-color: rgba(0,0,0,0.4);
+
+    .label {
+
     }
-    .modal-content {
-      background-color: #fefefe;
-      padding: 1em;
-      border: 1em solid #888;
-      width:auto;
-    }
-    .close {
-      color:#aaa;
-      float:right;
-      font-size: 18em;
-      font-weight: bold;
-    }
-  
-    .close:hover, close:focus {
-      color:black;
-      text-decoration: none;
-      cursor: pointer;
+
+    .choice{
+      display: inline-block;
     }
   
     .clockTimeWarning {
@@ -125,7 +99,7 @@ document.onreadystatechange = function(){
 
 function init() {
     updateCurrentQuestionIndex(index)
-    initClock(10);
+    initClock(60);
     initQuestion();
   }
 
@@ -185,18 +159,20 @@ function initMultipleChoice(group){
   answerDiv.innerText = "";
 
   for (var i=0; i<choices.length; i++){
+    var div = document.createElement('div');
     element = choices[i];
     keys = Object.keys(element);
-    l = document.createElement('label');
-    l.innerText = element['value'];
-    p=document.createElement('input');
-    p.classList.add("list-group-item");
-    p.classList.add("choice")
-    p.value = element['id'];
-    p.type = "radio";
-    p.name = "option_" + group.id;
-    l.appendChild(p)  
-    choicesDiv.appendChild(l);
+    label = document.createElement('label');
+    label.innerText = element['value'];
+    input=document.createElement('input');
+    input.classList.add("choice")
+    input.classList.add('form-check-input')
+    input.value = element['id'];
+    input.type = "radio";
+    input.name = "option_" + group.id;
+    div.appendChild(input)  
+    div.appendChild(label)
+    choicesDiv.appendChild(div);
  }
 }
 
