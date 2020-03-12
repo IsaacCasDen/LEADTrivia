@@ -8,16 +8,23 @@
 
 .hours {
     float: left;
+    min-width: 1.25em;
+    min-height: 1.25em;
 }
 
 .minutes {
     float: left;
+    min-width: 1.25em;
+    min-height: 1.25em;
 }
 
 .seconds {
     float: left;
+    min-width: 1.25em;
+    min-height: 1.25em;
 }
 
 .timesep {
     float: left;
+    width: auto;
 }
