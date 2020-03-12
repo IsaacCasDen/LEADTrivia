@@ -5,25 +5,32 @@
 
 <style>
     form {
+        margin:0.25em;
         padding:0.25em;
         width:auto;
         float:left;
     }
+
     input {
         width: auto;
         float: right;
     }
+
     #divGames {
         float: left;
         display: block;
         clear:both;
         width: 100%;
-        height: 90%;
-        overflow: scroll;
+        max-height: 90%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        border-bottom: slategray solid 0.01em;
     }
+
     .btn {
         margin:0.25em;
     }
+
 </style>
 
 <script>
@@ -59,7 +66,7 @@
         var state = createField("State:&nbsp;", "state", game.state);
         var round = createField("Current Round:&nbsp;", "currentRound", game.current_round);
         var question = createField("Current Question Index:&nbsp;", "currentQuestionIndex", game.current_question_index);
-        var start = createField("Start Time:&nbsp;", "startTime", new Date(game.start_time).toLocaleString());
+        var start = createField("Start Time:&nbsp;", "startTime", game.start_time.date + ' ' + game.start_time.time);
         var cancelled = createField("Is Cancelled:&nbsp;", "isCancelled", game.is_cancelled);
         var edit = createEdit();
         var manage = createManage();
@@ -86,8 +93,13 @@
     }
     function createField(label, valueId, value) {
         var div = document.createElement('div');
+        div.classList.add('form-group');
+        // div.classList.add('row');
         var _label = document.createElement('label');
+        _label.classList.add('col-form-label');
+        
         var _value = document.createElement('input');
+        _value.classList.add('form-control');
 
         _value.type="text";
         _value.id = valueId;
@@ -95,7 +107,7 @@
         _value.value=value;
         _value.setAttribute('readonly',true);
         _label.innerHTML=label;
-        _label.htmlFor=valueId
+        _label.htmlFor=valueId;
         
         div.appendChild(_label);
         div.appendChild(_value);

@@ -8,12 +8,16 @@
 
 <style>
     body{ 
-    background: #fff url({% static "app/images/lobbyimage.jpg" %}) no-repeat center;
-    background-color: firebrick;
+        background-image: url("{% static "app/images/lobbyimage.jpg" %}");
+        background-repeat: no-repeat;
+        background-color: firebrick;
+        background-size: 100%;
     }
     #header {
+        align-content: center;
         clear:both;
         position: relative;
+        width:100%;
         top: 0em;
         left:0em;
         height:auto;
@@ -37,35 +41,136 @@
         align-content:flex-start;
     }
     #divTitle {
-        align-self: center;
+        position: relative;
         float:left;
-    }
-    #userInfo {
-        background-color: whitesmoke;
-        margin: 1em;
-    }
-    .infoitem {
-        display: inline;
-    }
-
-    .h1 {
-        background-color: whitesmoke;
-        display: inline-block;
-        align-content: center;
-    }
-    .divTeam {
-        float:left;
-        background-color: whitesmoke;
-        padding: 1em;
-        border-radius: 5%;
+        padding:0.1em;
+        padding-left: 1em;
+        background-color: firebrick;
+        color: whitesmoke;
+        font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        font-variant: small-caps;
+        font-size: larger;
+        width: 60%;
+        min-height:1.5em;
+        height: fit-content;
+        flex-direction: row;
+        /* margin-left:auto;
+        margin-right:auto; */
+        text-align: center;
+        border-top-left-radius: 5em;
+        border-bottom-left-radius: 5em;
         border-color: black;
         border-width: 0.5;
         border-style: solid;
     }
 
+    #clock {
+        position: relative;
+        float:left;
+        padding:0.02em;
+        padding-top:0.5em;
+        margin-top: 0.01em;
+        background-color: whitesmoke;
+        color: slategray;
+        text-shadow: -.015em 0 black, 0 .015em black, .015em 0 black, 0 -.015em black;
+        font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        /* font-weight: bold; */
+        font-variant: small-caps;
+        font-size: larger;
+
+        text-align: center;
+        width:35%;
+        /* min-height:1.5em; */
+        /* height: auto; */
+        flex-direction: row;
+        flex: 1;
+        /* margin-left:auto;
+        margin-right:auto; */
+        border-top-right-radius: 5em;
+        border-bottom-right-radius: 5em;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+    }
+
+    #clock div {
+        position: relative;
+        margin: auto;
+        padding:0;
+        width:fit-content;
+        /* margin-top:0.2em; */
+        text-align: center;
+        vertical-align: middle;
+        
+        font-size: 1.05em;
+        
+    }
+
+    #userInfo {
+        float:left;
+
+        padding:2em;
+        /* margin-top:.1em; */
+        background-color: whitesmoke;
+        width: fit-content;
+        text-align: center;
+        border-top-left-radius: 5em;
+        border-bottom-left-radius: 5em;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+        
+    }
+
+    #btnNewTeam {
+        float:left;
+
+        /* margin-top:.1em; */
+
+        border-top-right-radius: 5em;
+        border-bottom-right-radius: 5em;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+
+        font-size: 3em;
+    }
+    
+    .infoitem {
+        display: inline;
+        font-size: 3em;
+    }
+
+    .h1 {
+        /* background-color: whitesmoke; */
+        width: 100%;
+        display: inline-block;
+    }
+    .teamHeader {
+        font-size: 1.2em;
+    }
+    .divTeam {
+        
+        float:left;
+        background-color: whitesmoke;
+        padding: 1em;
+        margin: 1em;
+        
+        border-radius: 5%;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+
+        font-size: 2em;
+    }
+
     .clockTimeWarning {
         color: red;
-    }  
+    }
+
+    .clockGameStarted {
+        background-color: blue;
+    }
 </style>
 
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
@@ -77,6 +182,8 @@
     var username = "{{username|safe}}";
     var gameId = {{gameId|safe}};
     var timeremaining = 0;
+    var timerEvents = [[40,showTimeWarning]];
+
 
     document.onreadystatechange=function() {
         if (document.readyState=="complete") {
@@ -88,6 +195,20 @@
         timeremaining = calcTimeRemaining(game['StartTime']['date'], game['StartTime']['time']);
         initClock(timeremaining);
         initTeams();
+        initTitlesAndSizes();
+    }
+
+    function initTitlesAndSizes() {
+        var title = document.getElementById('divTitle');
+        title.innerText = game.Name;
+
+        var clock = document.getElementById('clock');
+        clock.style.height = title.clientHeight;
+
+        var userInfo = document.getElementById('userInfo');
+        var btnNewTeam = document.getElementById('btnNewTeam');
+
+        btnNewTeam.style.height = userInfo.clientHeight;
     }
 
     function calcTimeRemaining(date,time) {
@@ -97,20 +218,31 @@
     }
 
     function timeup() {
-        // alert('Time expired');
+        var clock = document.getElementById('clock');
+        children = clock.childNodes;
+        children.forEach(element => {
+            clock.removeChild(element);
+        })
+        clock.innerText="Game Started!"
+        clock.classList.remove("clockTimeWarning");
+        clock.style.backgroundColor="lightgreen";
     }
 
     function initClock(time) {
-        var divHours = document.getElementsByClassName("hours")[0];
-        var divMinutes = document.getElementsByClassName("minutes")[0];
-        var divSeconds = document.getElementsByClassName("seconds")[0];
-        initLocalClock(time,[15,showTimeWarning],divHours,divMinutes,divSeconds);
-        setAction(timeup);
+        if (time>0) {
+            var divHours = document.getElementsByClassName("hours")[0];
+            var divMinutes = document.getElementsByClassName("minutes")[0];
+            var divSeconds = document.getElementsByClassName("seconds")[0];
+            initLocalClock(time,timerEvents,divHours,divMinutes,divSeconds);
+            setAction(timeup);
+        } else {
+            timeup()
+        }
     }
 
     function showTimeWarning() {
         var clock = document.getElementById('clock');
-        if (clock!=undefined) clock.classList.add("clockTimeWarning");
+        clock.style.backgroundColor="palegoldenrod";
     }
 
     function initTeams() {
@@ -152,6 +284,7 @@
 
         var header = document.createElement('p');
         header.innerText=team['name'];
+        header.classList.add('teamHeader');
 
         var listUsers = document.createElement('ul');
         divTeam.appendChild(header);
@@ -173,25 +306,33 @@
     <form id="formTeams" method="POST" action="/app/team/">
         {% csrf_token %}
         <div id="header">
-            <div class="h1 col-lg-auto">
-                <div id="divTitle">LEAD TRIVIA NIGHT</div>
-                <article id="clock" class="clock">
-                    <!-- <div class="hours"></div>
-                    <div class="timesep">:</div> -->
-                    <div class="minutes"></div>
-                    <div class="timesep">:</div>
-                    <div class="seconds"></div>
-                </article>
+            <div class="h1">
+                <div style="margin-left: auto; margin-right: auto; width: fit-content; display: flex;">
+                    <div id="divTitle">LEAD TRIVIA NIGHT</div>
+                    <div id="clock" class="clock">
+                        <div">
+                            <!-- <div class="hours"></div>
+                            <div class="timesep">:</div> -->
+                            <div class="minutes">00</div>
+                            <div class="timesep">:</div>
+                            <div class="seconds">00</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div id="userInfo">
-                <div class="infoitem">Welcome </div><div id="divUser" class="infoitem"></div><div class="infoitem">! Please select a team below to join, or create a new team!</div>
+            <div style="margin-left: auto; margin-right: auto; margin-top: .5em; width: fit-content; display: flex; font-size: larger;">
+                <div id="userInfo">
+                    <div class="infoitem">Welcome </div><div id="divUser" class="infoitem"></div><div class="infoitem">! Please select a team below to join, or create a new team!</div>
+                </div>
+                <div>
+                    <input id="btnNewTeam" class="btn btn-large btn-primary" type="button" value="New Team" />
+                </div>
             </div>
         </div>
         <div id="body">
             <div id="divTeams"></div>
         </div>
         <div id="footer">
-            <input id="btnNewTeam" class="btn btn-large btn-primary" type="button" value="New Team" />
         </div>
     </form>
 </body>
