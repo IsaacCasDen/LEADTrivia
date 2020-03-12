@@ -466,7 +466,7 @@ def save_game(request):
             except:
                 return redirect(edit_game)
 
-        starttime = datetime_val.utcnow()
+        starttime = datetime_val
         iscancelled = bool(iscancelled)
 
         if game_id == '':
