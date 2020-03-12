@@ -13,9 +13,19 @@ function initLocalClock(time,thresholds,divHours,divMinutes,divSeconds) {
     // this.divHours = divHours;
     this.divMinutes = divMinutes;
     this.divSeconds = divSeconds;
-
+    checkThresholds()
     
     setTimeout(updateTime,0);
+}
+function checkThresholds() {
+    for (i in thresholds) {
+        t = parseInt(time);
+        v = thresholds[i][0];
+        if (parseInt(time)<=thresholds[i][0] && thresholds[i][2] === undefined) {
+            thresholds[2] = true;
+            thresholds[i][1]();
+        }
+    }
 }
 
 // function calcTimeRemaining(datetime) {
@@ -34,9 +44,9 @@ function updateTime() {
         return;
     }
     for (i in thresholds) {
-        if (parseInt(time)==thresholds[0] && thresholds[2] === undefined) {
+        if (parseInt(time)==thresholds[i][0] && thresholds[i][2] === undefined) {
             thresholds[2] = true;
-            thresholds[1]();    
+            thresholds[i][1]();    
         }
     }
     
