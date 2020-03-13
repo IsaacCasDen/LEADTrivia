@@ -50,12 +50,13 @@
         font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
         font-variant: small-caps;
         font-size: larger;
-        width: 60%;
+        width: 80%;
         min-height:1.5em;
         height: fit-content;
-        flex-direction: row;
-        /* margin-left:auto;
-        margin-right:auto; */
+        
+        flex: 1;
+        flex-direction: column;
+
         text-align: center;
         border-top-left-radius: 5em;
         border-bottom-left-radius: 5em;
@@ -65,10 +66,16 @@
     }
 
     #clock {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
         position: relative;
         float:left;
         padding:0.02em;
-        padding-top:0.5em;
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+        /* padding-top:0.5em; */
         margin-top: 0.01em;
         background-color: whitesmoke;
         color: slategray;
@@ -79,13 +86,11 @@
         font-size: larger;
 
         text-align: center;
-        width:35%;
-        /* min-height:1.5em; */
-        /* height: auto; */
-        flex-direction: row;
-        flex: 1;
-        /* margin-left:auto;
-        margin-right:auto; */
+        width: fit-content;
+
+        flex:content;
+        flex-direction: column;
+
         border-top-right-radius: 5em;
         border-bottom-right-radius: 5em;
         border-color: black;
@@ -95,22 +100,18 @@
 
     #clock div {
         position: relative;
-        margin: auto;
-        padding:0;
-        width:fit-content;
-        /* margin-top:0.2em; */
-        text-align: center;
-        vertical-align: middle;
-        
-        font-size: 1.05em;
-        
+        font-size: 1.05em;    
+        width: fit-content;    
     }
 
     #userInfo {
-        float:left;
+        display: flexbox;
+        justify-content: center;
+        align-items: center;
 
-        padding:2em;
-        /* margin-top:.1em; */
+        float:left;
+        flex:1;
+        padding:.25em;
         background-color: whitesmoke;
         width: fit-content;
         text-align: center;
@@ -124,8 +125,7 @@
 
     #btnNewTeam {
         float:left;
-
-        /* margin-top:.1em; */
+        flex:1;
 
         border-top-right-radius: 5em;
         border-bottom-right-radius: 5em;
@@ -133,12 +133,12 @@
         border-width: 0.5;
         border-style: solid;
 
-        font-size: 3em;
+        font-size: 1em;
     }
     
     .infoitem {
         display: inline;
-        font-size: 3em;
+        font-size: 1em;
     }
 
     .h1 {
@@ -147,7 +147,7 @@
         display: inline-block;
     }
     .teamHeader {
-        font-size: 1.2em;
+        font-size: 1.1em;
     }
     .divTeam {
         
@@ -161,7 +161,7 @@
         border-width: 0.5;
         border-style: solid;
 
-        font-size: 2em;
+        font-size: 1em;
     }
 
     .clockTimeWarning {
@@ -219,13 +219,28 @@
 
     function timeup() {
         var clock = document.getElementById('clock');
-        children = clock.childNodes;
-        children.forEach(element => {
-            clock.removeChild(element);
-        })
-        clock.innerText="Game Started!"
-        clock.classList.remove("clockTimeWarning");
-        clock.style.backgroundColor="lightgreen";
+        children = clock.children;
+        if (children.length !== undefined && children.length>0){
+            for (var i=1; i<children.length; i++) {
+                clock.removeChild(children[i]);
+            }
+
+            clock = children[0];
+            
+            children=clock.children;
+            if (children.length !== undefined && children.length>0) {
+                for (var i=0; i<children.length; i++) {
+                    clock.removeChild(children[i]);
+                }
+            }
+            
+
+            clock.innerText="Game Started!"
+            // clock.classList.remove("clockTimeWarning");
+            clock.parentElement.style.backgroundColor="lightgreen";
+        }
+        
+        
     }
 
     function initClock(time) {
@@ -307,10 +322,10 @@
         {% csrf_token %}
         <div id="header">
             <div class="h1">
-                <div style="margin-left: auto; margin-right: auto; width: fit-content; display: flex;">
+                <div style="margin-left: auto; margin-right: auto; width: 90%; display: flex;">
                     <div id="divTitle">LEAD TRIVIA NIGHT</div>
                     <div id="clock" class="clock">
-                        <div">
+                        <div>
                             <!-- <div class="hours"></div>
                             <div class="timesep">:</div> -->
                             <div class="minutes">00</div>
