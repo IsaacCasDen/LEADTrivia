@@ -123,7 +123,8 @@ class TriviaGame(models.Model):
                     self.current_round = nums[i+1][0]
                     self.current_question_index = nums[i+1][1]
                     self.save()
-                    break
+                    return True
+        return False
                     
     
     def prev_question(self):
@@ -176,6 +177,7 @@ class TriviaGameTeams(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
 
 class TriviaGameQuestions(models.Model):
+    #Check for correct or wrong
     question = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE)
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)  
     time = models.IntegerField(default=60)
@@ -276,98 +278,6 @@ def create_questions(game_id:int):
     create_question(game.id,3,"What was the name of the first satellite sent to space?","Sputnik 1",[["Sputnik 1","Gallileo 1","Neo 3"]])
     create_question(game.id,4,"In which U.S. state was Tenessee Williams born?","Mississippi",[["Mississippi","Tenessee", "Alabama"]])
 
-
-    # q = TriviaQuestion()
-    # q.question = "Bullshit Question1"
-    # q.answer = "Bullshit Answer1"
-    # q.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer1"
-    # c.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer2"
-    # c.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer3"
-    # c.save()
-
-    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 0)
-    # tq.save()
-
-    # q = TriviaQuestion()
-    # q.question = "Bullshit Question2"
-    # q.answer = "Bullshit Answer1"
-    # q.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer1"
-    # c.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer2"
-    # c.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer3"
-    # c.save()
-
-    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 1)
-    # tq.save()
-
-    # q = TriviaQuestion()
-    # q.question = "Bullshit Question3"
-    # q.answer = "Bullshit Answer1"
-    # q.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer1"
-    # c.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer2"
-    # c.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer3"
-    # c.save()
-
-    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 2)
-    # tq.save()
-
-    # q = TriviaQuestion()
-    # q.question = "Row, row, {}, your {}"
-    # q.answer = "Row, row, row, your boat"
-    # q.save()
-
-    # c = TriviaQuestionChoices()
-    # c.question=q
-    # c.index=0
-    # c.choice = "row"
-    # c.save()
-
-    # c = TriviaQuestionChoices()
-    # c.question=q
-    # c.index=0
-    # c.choice = "plow"
-    # c.save()
-
-    # c = TriviaQuestionChoices()
-    # c.question=q
-    # c.index=1
-    # c.choice = "boat"
-    # c.save()
-
-    # c = TriviaQuestionChoices()
-    # c.question=q
-    # c.index=1
-    # c.choice = "donkey"
-    # c.save()
-
-    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 3)
-    # tq.save()
 
 def create_question(game_id:int, index:int, question:str, answer:str, choices:list, round:int=1):
     game = TriviaGame.objects.get(id=game_id)

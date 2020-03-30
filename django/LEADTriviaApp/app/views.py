@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.shortcuts  import redirect
+import random
 import json
 
 from .models import *
@@ -313,8 +314,10 @@ def next_question(request):
 
     game = get_game(game_id)
 
-    game.next_question()
-    return redirect(show_question)
+    if game.next_question():
+        return redirect(show_question)
+    else:
+        return redirect(round_results)
 
 def submit_answer(request):
     set_session_vars(request)
@@ -515,6 +518,51 @@ def edit_questions(request):
 
 def round_results(request):
     context = {}
+
+    gameId = request.session.get('gameId','')
+    teamId = request.POST.get('teamId',request.session.get('teamId',''))
+    userId = request.session.get('userId','')
+    username = request.session.get('username','')
+
+    #-------------WIP
+    playerPosition = 2
+    totalPositions = 5    
+    questionCheck = {}
+
+    for i in range(1,10):
+        word = ("Question{0}".format(i))
+        val = random.randint(1,101)%2 == 0
+        questionCheck[word] = val
+
+
+    print(questionCheck)
+
+    #-------------WIP
+    
+    if gameId == '' or userId == '':
+        return redirect(index)
+    
+    if teamId!='':
+        teamId = int(teamId)
+    else:
+        return redirect(index)
+    
+
+    team = get_team(gameId,teamId)
+    data = get_gamestate(gameId)
+    users = data['Teams'][teamId]['members']
+
+    request.session['teamId'] = teamId
+    context['game'] = json.dumps(data['Game'])
+    context[TEAMNAME] = team.team_name
+    context['users'] = json.dumps(users)
+    context['username']= username
+    context['errors'] = request.session['errors']
+    context['playerPosition'] = playerPosition
+    context['totalPositions'] = totalPositions
+    context['questionCheck'] = json.dumps(questionCheck)
+
+    
     return render(request,'round_results.html',context)
 
 
