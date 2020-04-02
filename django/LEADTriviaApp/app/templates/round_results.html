@@ -127,8 +127,9 @@
   var username ="{{username|safe}}";
   var game = {{game|safe}};
   var totalPositions = {{totalPositions|safe}}
-  var playerPosition = {{playerPosition|safe}}
   var questionCheck = {{questionCheck|safe}}
+  var results = {{results|safe}}
+
 
 document.onreadystatechange = function(){
   if (document.readyState == "complete"){
@@ -138,7 +139,7 @@ document.onreadystatechange = function(){
 function init() {
     initTeam(teamname);
     initUsers(username, users);
-    createRank(playerPosition, totalPositions);
+    createRank(results['Team']['Rank'], totalPositions);
     check(questionCheck);
     initClock(300);
   }
@@ -162,16 +163,16 @@ function init() {
 
   function initUsers(user, users){
     var WorstPlayer =document.getElementById("WorstPlayer");
-    WorstPlayer.innerText=users;
+    WorstPlayer.innerText=results['Min']['Name'];
 
     var BestPlayer=document.getElementById("BestPlayer");
-    BestPlayer.innerText=users;
+    BestPlayer.innerText=results['Max']['Name'];
 
   }
 
-  function createRank(playerPosition, totalPositions){
-    var PlayerPosition =document.getElementById("PlayerPosition");
-    PlayerPosition.innerText = playerPosition;
+  function createRank(teamPositions, totalPositions){
+    var TeamRank =document.getElementById("TeamRank");
+    TeamRank.innerText = results['Team']['Rank'];
     var TotalPositions =document.getElementById("TotalPositions");
     TotalPositions.innerText = totalPositions;
 
@@ -184,20 +185,13 @@ function init() {
       var _question = document.createElement("div");
       var _answer = document.createElement("div");
       var _host = document.createElement("div")
-
       _answer.innerText = questionCheck[element];
-
       _question.innerText = element;
-
       _answer.classList.add("text");
       _question.classList.add("text");
-
-
       _host.classList.add("questionContainer");
       _host.appendChild(_question);
       _host.appendChild(_answer);
-
-
       questions.appendChild(_host);
       
     });
@@ -228,7 +222,7 @@ function init() {
                 <p id = TeamResults> <u>Team Results</u></p>
 
                 <div id = "Rank">
-                <div id = "PlayerRank"> <p style="float: left;" >Rank: &nbsp;</p> <p style="float: left;" id="PlayerPosition"></p> <p style="float: left;">&nbsp;of&nbsp; </p> <p style= "float: right;" id="TotalPositions"></p> </div>
+                <div id = "PlayerRank"> <p style="float: left;" >Rank: &nbsp;</p> <p style="float: left;" id="TeamRank"></p> <p style="float: left;">&nbsp;of&nbsp; </p> <p style= "float: right;" id="TotalPositions"></p> </div>
 
                 </div>
                 <div id = "MostAccurate">
