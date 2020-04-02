@@ -524,20 +524,38 @@ def round_results(request):
     userId = request.session.get('userId','')
     username = request.session.get('username','')
 
-    #-------------WIP
-    playerPosition = 2
-    totalPositions = 5    
+    results = {}
+    results['GameId'] = 3
+    results['Team'] = {}
+    results['Team']['Id'] = 12
+    results['Team']['Rank'] = 9
+    results['Team']['Points'] = 22
+    results['Team']['Users'] = [{'Id':3,'Name':"Jeff",'Points':6},{'Id':4,'Name':"James",'Points':2},{'Id':5,'Name':"John",'Points':12}] 
+    pointsResults = [{'Points':sub['Points'],'Name':sub['Name'],'ID':sub['Id']}for sub in results['Team']['Users']]
+    pointsResults.sort(key=lambda x:x['Points'])
+    results['Max'] = pointsResults[len(pointsResults)-1]
+    results['Min'] = pointsResults[0]
+
+#----------------------------------------------
+    results['Team']['Questions'] = {}
+    for i in range(0,9): 
+        results['Team']['Questions'][i]
+    results['Team']['Questions'][i] = {}
+    results['Team']['Questions'][i]['IsCorrect'] = True
+    results['Team']['Questions'][i]['Index'] = 0 
+#----------------------------------------------
+ 
+ 
+    totalPositions = 12    
     questionCheck = {}
 
+#----------------------------------------------
     for i in range(1,10):
         word = ("Question{0}".format(i))
         val = random.randint(1,101)%2 == 0
         questionCheck[word] = val
+#----------------------------------------------
 
-
-    print(questionCheck)
-
-    #-------------WIP
     
     if gameId == '' or userId == '':
         return redirect(index)
@@ -551,14 +569,13 @@ def round_results(request):
     team = get_team(gameId,teamId)
     data = get_gamestate(gameId)
     users = data['Teams'][teamId]['members']
-
     request.session['teamId'] = teamId
+    context['results'] = results
     context['game'] = json.dumps(data['Game'])
     context[TEAMNAME] = team.team_name
     context['users'] = json.dumps(users)
     context['username']= username
     context['errors'] = request.session['errors']
-    context['playerPosition'] = playerPosition
     context['totalPositions'] = totalPositions
     context['questionCheck'] = json.dumps(questionCheck)
 
