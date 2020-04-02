@@ -536,14 +536,6 @@ def round_results(request):
     results['Max'] = pointsResults[len(pointsResults)-1]
     results['Min'] = pointsResults[0]
 
-#----------------------------------------------
-    results['Team']['Questions'] = {}
-    for i in range(0,9): 
-        results['Team']['Questions'][i]
-    results['Team']['Questions'][i] = {}
-    results['Team']['Questions'][i]['IsCorrect'] = True
-    results['Team']['Questions'][i]['Index'] = 0 
-#----------------------------------------------
  
  
     totalPositions = 12    
