@@ -524,13 +524,13 @@ def round_results(request):
     userId = request.session.get('userId','')
     username = request.session.get('username','')
 
-    results = {}
-    results['GameId'] = 3
-    results['Team'] = {}
-    results['Team']['Id'] = 12
-    results['Team']['Rank'] = 9
-    results['Team']['Points'] = 22
-    results['Team']['Users'] = [{'Id':3,'Name':"Jeff",'Points':6},{'Id':4,'Name':"James",'Points':2},{'Id':5,'Name':"John",'Points':12}] 
+    results = get_round_results(gameId,1,teamId)
+    # results['GameId'] = 3
+    # results['Team'] = {}
+    # results['Team']['Id'] = 12
+    # results['Team']['Rank'] = 9
+    # results['Team']['Points'] = 22
+    # results['Team']['Users'] = [{'Id':3,'Name':"Jeff",'Points':6},{'Id':4,'Name':"James",'Points':2},{'Id':5,'Name':"John",'Points':12}] 
     pointsResults = [{'Points':sub['Points'],'Name':sub['Name'],'ID':sub['Id']}for sub in results['Team']['Users']]
     pointsResults.sort(key=lambda x:x['Points'])
     results['Max'] = pointsResults[len(pointsResults)-1]
