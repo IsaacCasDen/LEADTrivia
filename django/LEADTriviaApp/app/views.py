@@ -194,7 +194,7 @@ def team(request):
     team = get_team(gameId,teamId)
     request.session['teamId'] = teamId
     context['game'] = json.dumps(data['Game'])
-    context[TEAMNAME] = team.team_name
+    context[TEAMNAME] = team.team.team_name
     context['users'] = json.dumps(users)
     context['username']= username
     context['errors'] = request.session['errors']
@@ -564,13 +564,12 @@ def round_results(request):
     request.session['teamId'] = teamId
     context['results'] = results
     context['game'] = json.dumps(data['Game'])
-    context[TEAMNAME] = team.team_name
+    context[TEAMNAME] = team.team.team_name
     context['users'] = json.dumps(users)
     context['username']= username
     context['errors'] = request.session['errors']
     context['totalPositions'] = totalPositions
     context['questionCheck'] = json.dumps(questionCheck)
-
     
     return render(request,'round_results.html',context)
 
