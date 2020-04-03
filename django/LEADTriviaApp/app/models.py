@@ -245,8 +245,8 @@ def get_user_answer(game_id:int, user_id:int, question_id:int):
     user_answer = ""
     if '{}' in question.question:
         user_answer = question.question.format(*[value[1] for value in indices])
-    else:
-        user_answer = [value[1] for value in indices]
+    elif len(indices)>0:
+        user_answer = indices[0][1]
 
     return user_answer
 
@@ -283,7 +283,7 @@ def get_team_answer(game_id:int, team_id:int, question_id:int):
     if '{}' in question.question:
         team_answer = question.question.format(*[value[1] for value in indices])
     else:
-        team_answer = [value[1] for value in indices]
+        team_answer = indices[0][1]
 
     return team_answer
 
