@@ -523,8 +523,8 @@ def round_results(request):
     teamId = request.POST.get('teamId',request.session.get('teamId',''))
     userId = request.session.get('userId','')
     username = request.session.get('username','')
+    results = get_round_results(gameId,1,teamId)[0]
 
-    results = get_round_results(gameId,1,teamId)
     # results['GameId'] = 3
     # results['Team'] = {}
     # results['Team']['Id'] = 12
@@ -535,18 +535,9 @@ def round_results(request):
     pointsResults.sort(key=lambda x:x['Points'])
     results['Max'] = pointsResults[len(pointsResults)-1]
     results['Min'] = pointsResults[0]
-
  
- 
+  
     totalPositions = 12    
-    questionCheck = {}
-
-#----------------------------------------------
-    for i in range(1,10):
-        word = ("Question{0}".format(i))
-        val = random.randint(1,101)%2 == 0
-        questionCheck[word] = val
-#----------------------------------------------
 
     
     if gameId == '' or userId == '':
@@ -557,19 +548,17 @@ def round_results(request):
     else:
         return redirect(index)
     
-
     team = get_team(gameId,teamId)
     data = get_gamestate(gameId)
     users = data['Teams'][teamId]['members']
     request.session['teamId'] = teamId
-    context['results'] = results
+    context['results'] = json.dumps(results)
     context['game'] = json.dumps(data['Game'])
     context[TEAMNAME] = team.team.team_name
     context['users'] = json.dumps(users)
     context['username']= username
     context['errors'] = request.session['errors']
     context['totalPositions'] = totalPositions
-    context['questionCheck'] = json.dumps(questionCheck)
     
     return render(request,'round_results.html',context)
 
