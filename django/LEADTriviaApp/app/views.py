@@ -338,7 +338,7 @@ def submit_answer(request):
     for key in request.POST.keys():
         if 'option_' in key:
             options.append(key)
-        
+    
     choices = []
     for opt in options:
         _,index = opt.split("_")
@@ -389,6 +389,13 @@ def admin_game(request):
 
 
     context = {}
+
+    context['name'] = json.dumps(game.name)
+    context['currentQuestionIndex'] = json.dumps(game.current_question_index)
+    context['currentRound'] = json.dumps(game.current_round)
+    context['currentQuestion'] = json.dumps(question['question'])
+    context['currentAnswer'] = json.dumps(question['answer'])
+
     return render(request,'admin_game.html',context)
 
 def edit_game(request):
