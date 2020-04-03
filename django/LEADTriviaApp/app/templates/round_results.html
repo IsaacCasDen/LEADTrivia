@@ -127,7 +127,6 @@
   var username ="{{username|safe}}";
   var game = {{game|safe}};
   var totalPositions = {{totalPositions|safe}}
-  var questionCheck = {{questionCheck|safe}}
   var results = {{results|safe}}
 
 
@@ -140,7 +139,7 @@ function init() {
     initTeam(teamname);
     initUsers(username, users);
     createRank(results['Team']['Rank'], totalPositions);
-    check(questionCheck);
+    check();
     initClock(300);
   }
 
@@ -180,13 +179,14 @@ function init() {
 
   function check(){
     var questions = document.getElementById("questions");
-    var keys = Object.keys(questionCheck)
+    var keys = Object.keys(results['Team']['Questions']);    
     keys.forEach(element => {
+      var questionCheck = results['Team']['Questions'][element];
       var _question = document.createElement("div");
       var _answer = document.createElement("div");
       var _host = document.createElement("div")
-      _answer.innerText = questionCheck[element];
-      _question.innerText = element;
+      _question.innerText = 'Question: ' + questionCheck["Index"];
+      _answer.innerText = questionCheck["IsCorrect"];
       _answer.classList.add("text");
       _question.classList.add("text");
       _host.classList.add("questionContainer");
