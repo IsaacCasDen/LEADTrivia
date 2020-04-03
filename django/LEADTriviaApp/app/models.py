@@ -449,7 +449,7 @@ def get_question(game_id:int=None, ind:int= None, question_id:int=None):
     value['question']=question.question.question
     value['answer']=question.question.answer
     value['groups'] = []
-    groups = TriviaQuestionChoiceGroup.objects.filter(question__id=question.id)
+    groups = TriviaQuestionChoiceGroup.objects.filter(question__id=question.question.id)
     for i,group in enumerate(groups):
         _group = {}
         _group['id']=group.id
