@@ -259,7 +259,8 @@ def show_question(request):
     context= {}
 
     context["Question"] = question["question"]
-   # context["Answer"] = question["Answer"]
+    context["Answer"] = ''
+    context["ActualAnswer"] = question['answer']
     context["groups"] = question["groups"]
     context["questionId"] = question["id"]
     return render(request, 'show_question.html',context)
