@@ -175,7 +175,7 @@ function initMultipleChoice(){
     p.classList.add("choice")
     p.value = element['id'];
     p.type = "radio";
-    p.name = "answer";
+    p.name = "option_" + group.id;
     l.appendChild(p)  
     choicesDiv.appendChild(l);
  }
