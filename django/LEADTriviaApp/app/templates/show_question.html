@@ -111,6 +111,8 @@
 // context["Choices"] = question["Choices"]
 // context["QuestionId"] = question["QuestionId"]
 var question = "{{Question | safe}}";
+var answer = "{{Answer | safe}}";
+var actualAnswer = "{{ActualAnswer | safe}}";
 var groups = {{groups | safe}};
 var questionId = {{questionId | safe}};
 
@@ -125,8 +127,13 @@ function init() {
     initQuestion();
   }
 
+  
   function timeup() {
-    alert('Time expired');
+    var answerDiv=document.getElementById("Answer");
+    document.getElementById("Submit").disabled = true;
+    document.getElementById("disableMe").disabled = true; //Wrap in a loop to disable all ID with this type
+    answerDiv.innerText = actualAnswer;
+    
   }
 
   function initClock(time) {
@@ -134,7 +141,7 @@ function init() {
     var divMinutes = document.getElementsByClassName("minutes")[0];
     var divSeconds = document.getElementsByClassName("seconds")[0];
     initLocalClock(time,divHours,divMinutes,divSeconds);
-    // setAction(timeup);//incriment question action
+    setAction(timeup);//incriment question action
   }
 
 function initQuestion(){
@@ -162,7 +169,8 @@ function initMultipleChoice(){
     keys = Object.keys(element);
     l = document.createElement('label');
     l.innerText = element['value'];
-    p=document.createElement('input');
+    p = document.createElement('input'); 
+    p.id = ('disableMe');
     p.classList.add("list-group-item");
     p.classList.add("choice")
     p.value = element['id'];
