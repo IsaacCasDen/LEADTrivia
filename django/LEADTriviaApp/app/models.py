@@ -123,7 +123,8 @@ class TriviaGame(models.Model):
                     self.current_round = nums[i+1][0]
                     self.current_question_index = nums[i+1][1]
                     self.save()
-                    break
+                    return True
+        return False
                     
     
     def prev_question(self):
@@ -138,10 +139,14 @@ class TriviaGame(models.Model):
                     self.save()
                     break
 
+class TriviaGameTeams(models.Model):
+    team = models.ForeignKey(Team,on_delete=models.CASCADE)
+    game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
+
 class TeamMember(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
     user = models.ForeignKey(User,on_delete=models.CASCADE)
-    team = models.ForeignKey(Team,on_delete=models.CASCADE)
+    team = models.ForeignKey(TriviaGameTeams,on_delete=models.CASCADE)
 
     def __str__(self):
         return "Team: {}\tUser:{}".format(team.team_name,user.user_name)
@@ -157,6 +162,9 @@ class OrphanUser(models.Model):
     def __repr__(self):
         return self.__str__()
 
+# class TriviaAnswer(models.Model):
+
+
 class TriviaQuestion(models.Model):
     question = models.CharField(max_length=512)
     answer = models.CharField(max_length=512)
@@ -171,11 +179,8 @@ class TriviaQuestionChoices(models.Model):
     choice = models.CharField(max_length=512)
     # visible = models.BooleanField(default=True)
 
-class TriviaGameTeams(models.Model):
-    team = models.ForeignKey(Team,on_delete=models.CASCADE)
-    game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
-
 class TriviaGameQuestions(models.Model):
+    #Check for correct or wrong
     question = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE)
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)  
     time = models.IntegerField(default=60)
@@ -192,20 +197,109 @@ class TriviaGameQuestions(models.Model):
         return item
 
 class TriviaGameUserAnswer(models.Model):
-    user = models.ForeignKey(User,on_delete=SET_NULL, null=True)
+    game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
+    user = models.ForeignKey(TeamMember,on_delete=SET_NULL, null=True)
     question = models.ForeignKey(TriviaGameQuestions, on_delete=CASCADE)
     group = models.ForeignKey(TriviaQuestionChoiceGroup, on_delete=CASCADE)
-    answer = models.ForeignKey(TriviaQuestionChoices, on_delete=CASCADE)
+    answer = models.ForeignKey(TriviaQuestionChoices, on_delete=CASCADE,null=True)
+
+    @classmethod
+    def get_team_answers(cls,game_id:int,team_id:int,question_id:int,group_id:int):
+        user_answers = TriviaGameUserAnswer.objects.filter(game__id=game_id,user__team__id=team_id,question_id=question_id,group__id=group_id)
+        return user_answers
 
 class TriviaGameTeamAnswer(models.Model):
-    team = models.ForeignKey(Team,on_delete=SET_NULL, null=True)
+    game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
+    team = models.ForeignKey(TriviaGameTeams,on_delete=SET_NULL, null=True)
     question = models.ForeignKey(TriviaGameQuestions, on_delete=CASCADE)
     group = models.ForeignKey(TriviaQuestionChoiceGroup, on_delete=CASCADE)
-    answer = models.ForeignKey(TriviaQuestionChoices, on_delete=CASCADE)
+    answer = models.ForeignKey(TriviaQuestionChoices, on_delete=CASCADE,null=True)
+
+def get_user_answer(game_id:int, user_id:int, question_id:int):
+    answers = {}
+    choices = []
+    user_answers = TriviaGameUserAnswer.objects.filter(game__id=game_id,user__id=user_id,question__id=question_id)
+    if len(user_answers) == 0:
+        return ""
+    
+    for user_answer in user_answers:
+        groups = TriviaQuestionChoiceGroup.objects.filter(question__id=user_answer.question.id)
+        for group in groups:
+            choices = TriviaQuestionChoices.objects.filter(group__id=group.id)
+            if user_answer.answer in choices:
+                answers[group.index]=user_answer.answer.choice
+    indices = [(key,answers[key]) for key in answers.keys()]
+    indices.sort(key=lambda x:x[0])
+
+    for i in range(0,indices[0][0]):
+        indices.insert(i,i)
+        
+    for i in range(1,len(indices)):
+        for j in range(indices[i-1][0]+1,indices[i][0]):
+            value = indices[j-1][0] + j
+            indices.insert(value,(value,""))
+
+    tgq = TriviaGameQuestions.objects.get(id=question_id)
+    question = tgq.question
+    
+    user_answer = ""
+    if '{}' in question.question:
+        user_answer = question.question.format(*[value[1] for value in indices])
+    elif len(indices)>0:
+        user_answer = indices[0][1]
+
+    return user_answer
+
+
+
+def get_team_answer(game_id:int, team_id:int, question_id:int):
+    answers = {}
+    choices = []
+    team_answers = TriviaGameTeamAnswer.objects.filter(game__id=game_id,team__id=team_id,question__id=question_id)
+    if len(team_answers) == 0:
+        return ""
+
+    for team_answer in team_answers:
+        groups = TriviaQuestionChoiceGroup.objects.filter(question__id=team_answer.question.id)
+        for group in groups:
+            choices = TriviaQuestionChoices.objects.filter(group__id=group.id)
+            if team_answer.answer in choices:
+                answers[group.index]=team_answer.answer.choice
+    indices = [(key,answers[key]) for key in answers.keys()]
+    indices.sort(key=lambda x:x[0])
+
+    for i in range(0,indices[0][0]):
+        indices.insert(i,i)
+        
+    for i in range(1,len(indices)):
+        for j in range(indices[i-1][0]+1,indices[i][0]):
+            value = indices[j-1][0] + j
+            indices.insert(value,(value,""))
+
+    tgq = TriviaGameQuestions.objects.get(id=question_id)
+    question = tgq.question
+    
+    team_answer = ""
+    if '{}' in question.question:
+        team_answer = question.question.format(*[value[1] for value in indices])
+    else:
+        team_answer = indices[0][1]
+
+    return team_answer
 
 def submit_user_answer(game_id:int,question_id:int,group_id:int,choice_id:int,user_id:int):
-    
-    answer = TriviaGameUserAnswer.objects.filter(user__id=user_id, question__id=question_id,group__id=group_id)
+      
+    game = TriviaGame.objects.get(id=game_id)
+    if game == None:
+        return False
+
+    user = TeamMember.objects.filter(game__id=game_id,user__id=user_id)
+    if len(user)==0:
+        return False
+    else:
+        user = user[0]
+
+    answer = TriviaGameUserAnswer.objects.filter(game__id=game_id, user__id=user.id, question__id=question_id,group__id=group_id)
     if len(answer)==1:
         answer = answer[0]
         answer.answer = TriviaQuestionChoices.objects.get(id=choice_id)
@@ -214,16 +308,115 @@ def submit_user_answer(game_id:int,question_id:int,group_id:int,choice_id:int,us
         if group == None:
             return False
         answer = TriviaGameUserAnswer()
-        answer.user = User.objects.get(id=user_id)
+        answer.user = user
         answer.group = group
         answer.question=TriviaGameQuestions.objects.get(id=question_id)
         answer.answer = TriviaQuestionChoices.objects.get(id=choice_id)
+        answer.game=game
 
     answer.save()
-    return submit_team_answer()
+    return submit_team_answer(game_id,answer.user.team.id,question_id,group_id,answer.id)
 
-def submit_team_answer() -> bool:
+def submit_team_answer(game_id:int, team_id, question_id: int, group_id:int,choice_id:int) -> bool:
+    
+    user_answers = TriviaGameUserAnswer.get_team_answers(game_id=game_id,team_id=team_id,question_id=question_id,group_id=group_id)
+    team_members = TeamMember.objects.filter(team__id=team_id)
+    if not len(user_answers)>(len(team_members)/2):
+        return False
+
+    answer = TriviaGameTeamAnswer.objects.filter(game__id=game_id,team__id=team_id,question__id=question_id,group__id=group_id)
+    if len(answer)==0:
+        answer = TriviaGameTeamAnswer()
+        answer.game = TriviaGame.objects.get(id=game_id)
+        answer.team = TriviaGameTeams.objects.get(id=team_id)
+        answer.question = TriviaGameQuestions.objects.get(id=question_id)
+        answer.group = TriviaQuestionChoiceGroup.objects.get(id=group_id)
+    else:
+        answer = answer[0]
+
+    answers = {}
+    for a in user_answers:
+        if a.id not in answers:
+            answers[a.id] = [a,1]
+        else:
+            answers[a.id][1] += 1
+        
+    consensus = [None,None]
+    for a in answers:
+        if consensus[1]==None or answers[a][1]>consensus[1]:
+            consensus[0]=answers[a][0]
+            consensus[1]=answers[a][1]
+    
+    answer.answer=consensus[0].answer
+    answer.save()
+
     return True
+
+def get_round_results(game_id:int, round_ind:int, team_id:int = None):
+    results = []
+    if team_id == None:
+        result = {}
+        teams = TriviaGameTeams.objects.filter(game__id=game_id)
+        for team in teams:
+            result = get_round_result(team_id)
+    else:
+        result = get_round_result(game_id,round_ind,team_id)
+        results.append(result)
+
+    return results
+
+def get_round_result(game_id:int, round_ind:int, team_id:int):
+
+    questions = TriviaGameQuestions.objects.filter(game__id=game_id,round=round_ind)
+    
+    users = {}
+    team_users = TeamMember.objects.filter(game__id=game_id,team__id=team_id)
+    for user in team_users:
+        users[user.id] = {}
+        users[user.id]={'answers':{},'points':0}
+        users[user.id]['user']={'id':user.id,'user_name':user.user.user_name}
+        for question in questions:
+            users[user.id]['answers'][question.id]={}
+            users[user.id]['answers'][question.id]['id'] = question.id
+            users[user.id]['answers'][question.id]['value'] = get_user_answer(game_id,user.id,question.id)
+            users[user.id]['answers'][question.id]['answer'] = question.question.answer
+            users[user.id]['answers'][question.id]['is_correct'] = users[user.id]['answers'][question.id]['value'] == users[user.id]['answers'][question.id]['answer']
+            if users[user.id]['answers'][question.id]['is_correct']:
+                users[user.id]['points'] += 1
+
+    team_answers = TriviaGameTeamAnswer.objects.filter(game__id=game_id,team__id=team_id,question__round=round_ind)
+    team = {'answers':{},'points':0}
+    for question in questions:
+        team['answers'][question.id]={}
+        team['answers'][question.id]['id'] = question.id
+        team['answers'][question.id]['index'] = question.index
+        team['answers'][question.id]['value'] = get_team_answer(game_id,team_id,question.id)
+        team['answers'][question.id]['answer'] = question.question.answer
+        team['answers'][question.id]['is_correct'] = team['answers'][question.id]['value'] == team['answers'][question.id]['answer']
+        if team['answers'][question.id]['is_correct']:
+            team['points'] += 1
+
+    result = {}
+    result['GameId'] = game_id
+    result['Team'] = {}
+    result['Team']['Id'] = team_id
+    result['Team']['Rank'] = '?'
+    result['Team']['Points'] = team['points']
+    result['Team']['Users'] = [{'Id':id,'Name':users[id]['user']['user_name'],'Points':users[id]['points']} for id in users.keys()]
+    result['Team']['Questions'] = {}
+    # result['Team']['Users'] = [{'Id':3,'Name':"Jeff",'Points':6},{'Id':4,'Name':"James",'Points':2},{'Id':5,'Name':"John",'Points':12}]
+    #  = {'id':id for id in team['answers'].keys()}
+    for i,key in enumerate(team['answers'].keys()):
+        result['Team']['Questions'][key] = {}
+        result['Team']['Questions'][key] = {'id':key,'IsCorrect':team['answers'][key]['is_correct'],'Index':team['answers'][key]['index']}
+
+    return result
+
+def get_final_results(game_id:int,team_id:int=None):
+    pass
+
+def get_final_result(game_id:int,team_id:int):
+    pass
 
 def get_questions(game_id):
     questions = []
@@ -256,7 +449,7 @@ def get_question(game_id:int=None, ind:int= None, question_id:int=None):
     value['question']=question.question.question
     value['answer']=question.question.answer
     value['groups'] = []
-    groups = TriviaQuestionChoiceGroup.objects.filter(question__id=question.id)
+    groups = TriviaQuestionChoiceGroup.objects.filter(question__id=question.question.id)
     for i,group in enumerate(groups):
         _group = {}
         _group['id']=group.id
@@ -270,104 +463,12 @@ def get_question(game_id:int=None, ind:int= None, question_id:int=None):
 def create_questions(game_id:int):
     game = get_game(game_id)
 
-    create_question(game.id,0,"My mama always said life was like {}. You never know what you're gonna get.","My mama always said life was like {}. You never know what you're gonna get.",[["a box of chocolates","peanut brittle","confused elves"]])
-    create_question(game.id,1,"If you got rid of every {} with {}, then you'd have three {} left.","If you got rid of every cop with some sort of drink problem, then you'd have three cops left.",[['cop','moose','priest'],['some sort of drink problem','a pineapple on their head','a car in their garage'],['cop','moose','priest']])
+    create_question(game.id,0,"My mama always said life was like {}. You never know what you're gonna get.","My mama always said life was like a box of chocolates. You never know what you're gonna get.",[["a box of chocolates","peanut brittle","confused elves"]])
+    create_question(game.id,1,"If you got rid of every {} with {}, then you'd have three {} left.","If you got rid of every cop with some sort of drink problem, then you'd have three cops left.",[['cop','moose','priest'],['some sort of drink problem','a pineapple on their head','a car in their garage'],['cops','moose','priests']])
     create_question(game.id,2,"Which of these is a type of computer?","Apple",[['Apple', 'Nectarine','Orange']])
     create_question(game.id,3,"What was the name of the first satellite sent to space?","Sputnik 1",[["Sputnik 1","Gallileo 1","Neo 3"]])
     create_question(game.id,4,"In which U.S. state was Tennessee Williams born?","Mississippi",[["Mississippi","Tenessee", "Alabama"]])
 
-
-    # q = TriviaQuestion()
-    # q.question = "Bullshit Question1"
-    # q.answer = "Bullshit Answer1"
-    # q.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer1"
-    # c.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer2"
-    # c.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer3"
-    # c.save()
-
-    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 0)
-    # tq.save()
-
-    # q = TriviaQuestion()
-    # q.question = "Bullshit Question2"
-    # q.answer = "Bullshit Answer1"
-    # q.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer1"
-    # c.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer2"
-    # c.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer3"
-    # c.save()
-
-    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 1)
-    # tq.save()
-
-    # q = TriviaQuestion()
-    # q.question = "Bullshit Question3"
-    # q.answer = "Bullshit Answer1"
-    # q.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer1"
-    # c.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer2"
-    # c.save()
-    # c = TriviaQuestionChoices()
-    # c.question = q
-    # c.choice = "Bullshit Answer3"
-    # c.save()
-
-    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 2)
-    # tq.save()
-
-    # q = TriviaQuestion()
-    # q.question = "Row, row, {}, your {}"
-    # q.answer = "Row, row, row, your boat"
-    # q.save()
-
-    # c = TriviaQuestionChoices()
-    # c.question=q
-    # c.index=0
-    # c.choice = "row"
-    # c.save()
-
-    # c = TriviaQuestionChoices()
-    # c.question=q
-    # c.index=0
-    # c.choice = "plow"
-    # c.save()
-
-    # c = TriviaQuestionChoices()
-    # c.question=q
-    # c.index=1
-    # c.choice = "boat"
-    # c.save()
-
-    # c = TriviaQuestionChoices()
-    # c.question=q
-    # c.index=1
-    # c.choice = "donkey"
-    # c.save()
-
-    # tq = TriviaGameQuestions.create(question = q, game = game, time = 60, index = 3)
-    # tq.save()
 
 def create_question(game_id:int, index:int, question:str, answer:str, choices:list, round:int=1):
     game = TriviaGame.objects.get(id=game_id)
@@ -495,7 +596,7 @@ def create_team(game_id:int, teamname:str):
             tgt.game = game
             tgt.save()
 
-            return team
+            return tgt
         finally:
             createteam_lock.release()
     
@@ -538,11 +639,11 @@ def get_orphans(game_id:int):
 
 def get_team(game_id:int, team_id:int):
     
-    teams = TriviaGameTeams.objects.filter(game__id=game_id,team__id=team_id)
+    teams = TriviaGameTeams.objects.filter(game__id=game_id,id=team_id)
 
     if len(teams)>0:
         if len(teams)==1:
-            return teams[0].team
+            return teams[0]
         else:
             pass
 
@@ -570,10 +671,10 @@ def get_gamestate(game_id:int):
     
     for team in get_teams(game_id):
         result['Teams'][team.id]={}
-        result['Teams'][team.id]['id']=team.team.id
+        result['Teams'][team.id]['id']=team.id
         result['Teams'][team.id]['name']=team.team.team_name
         result['Teams'][team.id]['members']=\
-            [user.user_name for user in get_users(game_id,team.team.id)]
+            [user.user_name for user in get_users(game_id,team.id)]
 
     return result
 
