@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts  import redirect
 import random
 import json
@@ -321,6 +321,8 @@ def next_question(request):
         return redirect(round_results)
 
 def submit_answer(request):
+    value = {}
+
     set_session_vars(request)
     gameId = request.session.get(GAMEID,'')
     userId = request.session.get(USERID,'')
@@ -350,10 +352,9 @@ def submit_answer(request):
     for groupId, choiceId in choices:
         answers_submitted = answers_submitted and submit_user_answer(gameId,questionId,groupId,choiceId,userId)
 
-    if answers_submitted:
-        return redirect(next_question)
-    else:
-        return redirect(show_question)
+    value['answer'] = True
+
+    return JsonResponse(value)
 
 def admin_manager(request):
     context = {}
@@ -570,4 +571,18 @@ def round_results(request):
     
     return render(request,'round_results.html',context)
 
+def current_question_index(request):
+    value = {}
+    value['index']='undefined'
+    
+    game_id = request.POST.get(GAMEID,'')
+    if game_id == '':
+        game_id = request.session.get(GAMEID,'')
 
+    if game_id != '':
+        game = get_game(game_id)
+        value['index']=game.current_question_index
+
+    v = json.dumps(value)
+
+    return JsonResponse(value)

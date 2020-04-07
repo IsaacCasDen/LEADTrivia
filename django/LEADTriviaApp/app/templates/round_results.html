@@ -115,7 +115,9 @@
       cursor: pointer;
     }
   
-    
+    .clockTimeWarning {
+        color: red;
+    }  
 </style>
   
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
@@ -202,7 +204,7 @@ function init() {
     <div class="container">
         <div id = "TopDiv">
             {% csrf_token %}
-            <article class="clock">
+            <article id="clock" class="clock">
                 <div class="minutes"></div>
                 <div class="timesep">:</div>
                 <div class="seconds"></div>

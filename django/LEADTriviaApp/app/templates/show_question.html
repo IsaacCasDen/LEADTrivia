@@ -11,20 +11,9 @@
       clear: both;
       float: left;
     }
-    .text{
-      float: left;
-      display: block;
-      margin-right: .5em;
-
-    }
-
+   
     .isChoice{}
 
-    .choice{
-      display: block;
-      clear: both;
-      float: left;
-    }
 
     #Submit{
       display: block;
@@ -42,67 +31,43 @@
       clear: both;
     }
 
-
-    #team {
-      color: darkslategrey; 
-      max-width: 400px; 
-      border-color: darkgoldenrod; 
-      border-style: solid; 
-      border-width: 0.1em;
-    }
-    #team_info {
-      text-align: center;
-      display: block;
+    .text{
       float:left;
+      margin-right: 0.5em;
+      margin-top: 0.5em;
+      padding:0.15em;
     }
-    #team_name {
-      display: inline-block;
+    select {
+      background-color: beige;
     }
-    #Question{
+
+    .consensus {
+      background-color: lightgreen;
     }
-    .user {
-      background-color: aliceblue; 
-      width: 100%;
-      text-align: center;
-      }
-    #btnLeave {
-      background-color: gray;
-      color: whitesmoke;
-      align-self: center;
-      margin: auto;
-      margin-bottom:0.5em;
-      display: block
+
+    .container {
+      float:left;
+      clear: both;
+      width:25em;
     }
-    
-    .modal {
-      width:auto;
-      height:auto;
-      overflow:auto;
-      align-self: center;
-      position:fixed;
-      background-color: rgb(0,0,0);
-      background-color: rgba(0,0,0,0.4);
-    }
-    .modal-content {
-      background-color: #fefefe;
-      padding: 1em;
-      border: 1em solid #888;
+
+    .label {
+      position:relative;
+      float:left;
+      margin-left: .5em;
       width:auto;
     }
-    .close {
-      color:#aaa;
-      float:right;
-      font-size: 18em;
-      font-weight: bold;
+
+    .choice {
+      position:relative;
+      float:left;
+      margin-left: .1em;
+      width:auto;
     }
-  
-    .close:hover, close:focus {
-      color:black;
-      text-decoration: none;
-      cursor: pointer;
+
+    .clockTimeWarning {
+        color: red;
     }
-  
-    
 </style>
   
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
@@ -117,6 +82,7 @@ var answer = "{{Answer | safe}}";
 var actualAnswer = "{{ActualAnswer | safe}}";
 var groups = {{groups | safe}};
 var questionId = {{questionId | safe}};
+var index = undefined;
 
 document.onreadystatechange = function(){
   if (document.readyState == "complete"){
@@ -125,27 +91,58 @@ document.onreadystatechange = function(){
 }
 
 function init() {
-    initClock(10);
+    updateCurrentQuestionIndex(index)
+    initClock(60);
     initQuestion();
   }
 
   function timeup() {
+
     var answerDiv=document.getElementById("Answer");
-    document.getElementById("Submit").disabled = true;
+    document.getElementById("btnSubmit").disabled = true;
     var elements = document.getElementsByClassName("isChoice");
     elements = Array.from(elements);
     elements.forEach(element => {
       element.disabled = true;
     }); 
     answerDiv.innerText = actualAnswer;
+    //checkCurrentQuestionIndex(); //Add Delay
+
+  }
+
+  function updateCurrentQuestionIndex() {
+    var query = $.getJSON('current_question_index');
+    query.done(function(data) {
+      index = data.index
+      if (index==undefined) {
+        document.location.href = 'app/';
+      }
+    });
+  }
+
+  function checkCurrentQuestionIndex() {
+    var query = $.getJSON('current_question_index/');
+    query.done(function(data) {
+      if (data.index>index) {
+        document.location.reload();
+      }
+      else {
+        // setTimeout(checkCurrentQuestionIndex,0.5)
+      }
+    });
   }
 
   function initClock(time) {
     var divHours = document.getElementsByClassName("hours")[0];
     var divMinutes = document.getElementsByClassName("minutes")[0];
     var divSeconds = document.getElementsByClassName("seconds")[0];
-    initLocalClock(time,divHours,divMinutes,divSeconds);
+    initLocalClock(time,[10,showTimeWarning],divHours,divMinutes,divSeconds);
     setAction(timeup);//incriment question action
+  }
+
+  function showTimeWarning() {
+      var clock = document.getElementById('clock');
+      if (clock!=undefined) clock.classList.add("clockTimeWarning");
   }
 
 function initQuestion(){
@@ -155,11 +152,11 @@ function initQuestion(){
   if (question.includes("{}")){
     initFillInBlank();
   }else{
-    initMultipleChoice();
+    initMultipleChoice(groups[0]);
   }
  
 }
-function initMultipleChoice(){
+function initMultipleChoice(group){
   var questionDiv=document.getElementById("Question");
   var answerDiv=document.getElementById("Answer");
   var choicesDiv=document.getElementById("Choices");
@@ -169,19 +166,33 @@ function initMultipleChoice(){
   answerDiv.innerText = "";
 
   for (var i=0; i<choices.length; i++){
+    // var div = document.createElement('div');
     element = choices[i];
     keys = Object.keys(element);
-    l = document.createElement('label');
-    l.innerText = element['value'];
-    p = document.createElement('input'); 
-    p.classList.add("list-group-item");
-    p.classList.add("choice")
-    p.classList.add("isChoice");
-    p.value = element['id'];
-    p.type = "radio";
-    p.name = "option_" + group.id;
-    l.appendChild(p)  
-    choicesDiv.appendChild(l);
+    container = document.createElement('label');
+    container.classList.add('list-group-item');
+    container.classList.add('container');
+
+    var label = document.createElement('div');
+    label.classList.add('form-check-label');
+    label.classList.add('label');
+    label.innerText = element['value'];
+    
+    input=document.createElement('input');
+    input.classList.add("choice")
+    input.classList.add("isChoice");
+    input.classList.add('form-check-input')
+    input.value = element['id'];
+    input.type = "radio";
+    input.name = "option_" + group.id;
+    input.id="idInput" + input.value;
+    
+    container.appendChild(input);
+    container.appendChild(label);
+
+    // div.appendChild(input)  
+    // div.appendChild(label)
+    choicesDiv.appendChild(container);
  }
 }
 
@@ -201,7 +212,8 @@ function createQuestionDiv(text){
   var questArray = question.split("{}");
   
   for (var i = 0; i<questArray.length; i++){
-    var newDiv = document.createElement('div');
+    var newDiv = document.createElement('p');
+    // newDiv.id = questArray[i];
     newDiv.classList.add("text");
     newDiv.innerText = questArray[i];
     divChoices.appendChild(newDiv);
@@ -212,6 +224,7 @@ function createQuestionDiv(text){
 function createChoices(group){
   var optionSelect = document.createElement("select"); 
   optionSelect.name = "option_" + group.id;
+  // optionSelect.classList.add("form-control");
   optionSelect.classList.add("text");
   optionSelect.classList.add("isChoice");
     for (c in group.choices){
@@ -226,6 +239,33 @@ function createChoices(group){
       // return choiceDiv;
 
   }
+
+  function submitAnswer() {
+    //action=""
+    var form = $('#formAnswer');
+    var data = form.serializeArray();
+    // var submit = $.getJSON("submit_answer/");
+    $.ajax({
+      type:"POST",
+      url:"submit_answer/",
+      dataType:"json",
+      data:data,
+      success:onSuccess
+    });
+
+  }
+
+  function onSuccess(data, text, object) {
+    parseResult(data);
+  }
+
+  function parseResult(data) {
+
+  }
+
+  function onBtnSubmitClicked() {
+    submitAnswer()
+  }
   
 </script>
 
@@ -234,9 +274,9 @@ function createChoices(group){
   <div class="container">
     <div>
       <div>
-      <form method = "post" action="submit_answer/" > <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
+      <form id="formAnswer"> <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
         {% csrf_token %}
-        <article class="clock">
+        <article id="clock" class="clock">
           <div class="minutes"></div>
           <div class="timesep">:</div>
           <div class="seconds"></div>
@@ -245,10 +285,11 @@ function createChoices(group){
           <div id="Question">PlaceHolder Question</div>
           <input type="hidden" id = "inputQuestionId" name="questionId" />
         </div>
-        <div id = "Choices" class ="list-group col-lg-auto" ></div>
-        <input type="submit" value="Submit" id="Submit"> 
-        <div id = "Answer">PlaceHolder Answer</div>
+        <div id = "Choices" class ="list-group col-lg-auto"></div>
+        <div style="clear: both;" ></div>
       </form>
+      <div id = "Answer">PlaceHolder Answer</div>
+      <button id="btnSubmit" class="btn btn-primary" onclick="onBtnSubmitClicked()">Submit</button>
       </div>
     </div>
   </div>
