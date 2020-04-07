@@ -18,6 +18,8 @@
 
     }
 
+    .isChoice{}
+
     .choice{
       display: block;
       clear: both;
@@ -123,17 +125,19 @@ document.onreadystatechange = function(){
 }
 
 function init() {
-    initClock(30);
+    initClock(10);
     initQuestion();
   }
 
-  
   function timeup() {
     var answerDiv=document.getElementById("Answer");
     document.getElementById("Submit").disabled = true;
-    document.getElementById("disableMe").disabled = true; //Wrap in a loop to disable all ID with this type
+    var elements = document.getElementsByClassName("isChoice");
+    elements = Array.from(elements);
+    elements.forEach(element => {
+      element.disabled = true;
+    }); 
     answerDiv.innerText = actualAnswer;
-    
   }
 
   function initClock(time) {
@@ -170,9 +174,9 @@ function initMultipleChoice(){
     l = document.createElement('label');
     l.innerText = element['value'];
     p = document.createElement('input'); 
-    p.id = ('disableMe');
     p.classList.add("list-group-item");
     p.classList.add("choice")
+    p.classList.add("isChoice");
     p.value = element['id'];
     p.type = "radio";
     p.name = "option_" + group.id;
@@ -193,13 +197,11 @@ function createQuestionDiv(text){
   parentElement.removeChild(divChoices);
   divChoices = document.createElement('div');
   divChoices.id="divFIB";
-
   parentElement.insertBefore(divChoices, document.getElementById("Submit"));
   var questArray = question.split("{}");
   
   for (var i = 0; i<questArray.length; i++){
     var newDiv = document.createElement('div');
-    // newDiv.id = questArray[i];
     newDiv.classList.add("text");
     newDiv.innerText = questArray[i];
     divChoices.appendChild(newDiv);
@@ -208,11 +210,10 @@ function createQuestionDiv(text){
   }
 }
 function createChoices(group){
-  // var choiceDiv = document.createElement('div');
-
   var optionSelect = document.createElement("select"); 
   optionSelect.name = "option_" + group.id;
   optionSelect.classList.add("text");
+  optionSelect.classList.add("isChoice");
     for (c in group.choices){
       var _choices = document.createElement('option');
       _choices.innerText = group.choices[c].value;
@@ -244,7 +245,7 @@ function createChoices(group){
           <div id="Question">PlaceHolder Question</div>
           <input type="hidden" id = "inputQuestionId" name="questionId" />
         </div>
-        <div id = "Choices" class ="list-group col-lg-auto"></div>
+        <div id = "Choices" class ="list-group col-lg-auto" ></div>
         <input type="submit" value="Submit" id="Submit"> 
         <div id = "Answer">PlaceHolder Answer</div>
       </form>
