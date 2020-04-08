@@ -386,7 +386,7 @@ def admin_game(request):
     request.session[GAMEID] = game_id
 
     game = get_game(game_id)
-    question = get_question(game_id,game.current_question_index)
+    question = get_question(game_id,game.current_round,game.current_question_index)
 
 
 
