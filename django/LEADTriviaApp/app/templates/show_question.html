@@ -92,7 +92,7 @@ document.onreadystatechange = function(){
 
 function init() {
     updateCurrentQuestionIndex(index)
-    initClock(60);
+    initClock(5);
     initQuestion();
   }
 
@@ -106,7 +106,7 @@ function init() {
       element.disabled = true;
     }); 
     answerDiv.innerText = actualAnswer;
-    //checkCurrentQuestionIndex(); //Add Delay
+    setTimeout(checkCurrentQuestionIndex,5000); //Add Delay
 
   }
 
@@ -123,11 +123,11 @@ function init() {
   function checkCurrentQuestionIndex() {
     var query = $.getJSON('current_question_index/');
     query.done(function(data) {
-      if (data.index>index) {
+      if (data.index!=index) {
         document.location.reload();
       }
       else {
-        // setTimeout(checkCurrentQuestionIndex,0.5)
+        setTimeout(checkCurrentQuestionIndex,500)
       }
     });
   }
