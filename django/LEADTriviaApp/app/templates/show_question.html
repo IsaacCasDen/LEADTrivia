@@ -11,7 +11,21 @@
       clear: both;
       float: left;
     }
-    
+   
+    .isChoice{}
+
+
+    #Submit{
+      display: block;
+      clear: both;
+      float: right;
+    }
+
+    #Answer{
+      display: block;
+      clear: both;
+      float: left;
+    }
     #divFIB {
       display: inline-block;
       clear: both;
@@ -64,6 +78,8 @@
 // context["Choices"] = question["Choices"]
 // context["QuestionId"] = question["QuestionId"]
 var question = "{{Question | safe}}";
+var answer = "{{Answer | safe}}";
+var actualAnswer = "{{ActualAnswer | safe}}";
 var groups = {{groups | safe}};
 var questionId = {{questionId | safe}};
 var index = undefined;
@@ -78,6 +94,20 @@ function init() {
     updateCurrentQuestionIndex(index)
     initClock(60);
     initQuestion();
+  }
+
+  function timeup() {
+
+    var answerDiv=document.getElementById("Answer");
+    document.getElementById("btnSubmit").disabled = true;
+    var elements = document.getElementsByClassName("isChoice");
+    elements = Array.from(elements);
+    elements.forEach(element => {
+      element.disabled = true;
+    }); 
+    answerDiv.innerText = actualAnswer;
+    //checkCurrentQuestionIndex(); //Add Delay
+
   }
 
   function updateCurrentQuestionIndex() {
@@ -107,7 +137,7 @@ function init() {
     var divMinutes = document.getElementsByClassName("minutes")[0];
     var divSeconds = document.getElementsByClassName("seconds")[0];
     initLocalClock(time,[10,showTimeWarning],divHours,divMinutes,divSeconds);
-    setAction(checkCurrentQuestionIndex);
+    setAction(timeup);//incriment question action
   }
 
   function showTimeWarning() {
@@ -150,6 +180,7 @@ function initMultipleChoice(group){
     
     input=document.createElement('input');
     input.classList.add("choice")
+    input.classList.add("isChoice");
     input.classList.add('form-check-input')
     input.value = element['id'];
     input.type = "radio";
@@ -177,7 +208,6 @@ function createQuestionDiv(text){
   parentElement.removeChild(divChoices);
   divChoices = document.createElement('div');
   divChoices.id="divFIB";
-
   parentElement.insertBefore(divChoices, document.getElementById("Submit"));
   var questArray = question.split("{}");
   
@@ -192,12 +222,11 @@ function createQuestionDiv(text){
   }
 }
 function createChoices(group){
-  // var choiceDiv = document.createElement('div');
-
   var optionSelect = document.createElement("select"); 
   optionSelect.name = "option_" + group.id;
   // optionSelect.classList.add("form-control");
   optionSelect.classList.add("text");
+  optionSelect.classList.add("isChoice");
     for (c in group.choices){
       var _choices = document.createElement('option');
       _choices.innerText = group.choices[c].value;
