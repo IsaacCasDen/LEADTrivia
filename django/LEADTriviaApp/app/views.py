@@ -548,8 +548,12 @@ def round_results(request):
     results['Max'] = pointsResults[len(pointsResults)-1]
     results['Min'] = pointsResults[0]
  
-  
-    totalPositions = 12    
+    team_position = '?'
+    for i,team in enumerate(teams):
+        if team[0] == teamId:
+            team_position = i+1
+    
+    totalPositions = len(teams)    
 
     
     if gameId == '' or userId == '':
@@ -570,6 +574,7 @@ def round_results(request):
     context['users'] = json.dumps(users)
     context['username']= username
     context['errors'] = request.session['errors']
+    context['teamPosition'] = team_position
     context['totalPositions'] = totalPositions
     
     return render(request,'round_results.html',context)
