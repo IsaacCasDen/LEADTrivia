@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts  import redirect
+import random
 import json
 
 from .models import *
@@ -193,7 +194,7 @@ def team(request):
     team = get_team(gameId,teamId)
     request.session['teamId'] = teamId
     context['game'] = json.dumps(data['Game'])
-    context[TEAMNAME] = team.team_name
+    context[TEAMNAME] = team.team.team_name
     context['users'] = json.dumps(users)
     context['username']= username
     context['errors'] = request.session['errors']
@@ -258,7 +259,8 @@ def show_question(request):
     context= {}
 
     context["Question"] = question["question"]
-   # context["Answer"] = question["Answer"]
+    context["Answer"] = ''
+    context["ActualAnswer"] = question['answer']
     context["groups"] = question["groups"]
     context["questionId"] = question["id"]
     return render(request, 'show_question.html',context)
@@ -313,8 +315,10 @@ def next_question(request):
 
     game = get_game(game_id)
 
-    game.next_question()
-    return redirect(show_question)
+    if game.next_question():
+        return redirect(show_question)
+    else:
+        return redirect(round_results)
 
 def submit_answer(request):
     value = {}
@@ -337,7 +341,7 @@ def submit_answer(request):
     for key in request.POST.keys():
         if 'option_' in key:
             options.append(key)
-        
+    
     choices = []
     for opt in options:
         _,index = opt.split("_")
@@ -382,11 +386,18 @@ def admin_game(request):
     request.session[GAMEID] = game_id
 
     game = get_game(game_id)
-    question = get_question(game_id,game.current_question_index)
+    question = get_question(game_id,game.current_round,game.current_question_index)
 
 
 
     context = {}
+
+    context['name'] = json.dumps(game.name)
+    context['currentQuestionIndex'] = json.dumps(game.current_question_index)
+    context['currentRound'] = json.dumps(game.current_round)
+    context['currentQuestion'] = json.dumps(question['question'])
+    context['currentAnswer'] = json.dumps(question['answer'])
+
     return render(request,'admin_game.html',context)
 
 def edit_game(request):
@@ -517,12 +528,62 @@ def edit_questions(request):
 
 def round_results(request):
     context = {}
+
+    gameId = request.session.get('gameId','')
+    teamId = request.POST.get('teamId',request.session.get('teamId',''))
+    userId = request.session.get('userId','')
+    username = request.session.get('username','')
+    results = get_round_results(gameId,1,teamId)[0]
+    teams = get_teams_answers(gameId)
+    users = get_users_answers(gameId)
+
+    # results['GameId'] = 3
+    # results['Team'] = {}
+    # results['Team']['Id'] = 12
+    # results['Team']['Rank'] = 9
+    # results['Team']['Points'] = 22
+    # results['Team']['Users'] = [{'Id':3,'Name':"Jeff",'Points':6},{'Id':4,'Name':"James",'Points':2},{'Id':5,'Name':"John",'Points':12}] 
+    
+    pointsResults = [{'Points':sub['Points'],'Name':sub['Name'],'ID':sub['Id']}for sub in results['Team']['Users']]
+    pointsResults.sort(key=lambda x:x['Points'])
+    results['Max'] = pointsResults[len(pointsResults)-1]
+    results['Min'] = pointsResults[0]
+ 
+    team_position = '?'
+    for i,team in enumerate(teams):
+        if team[0] == teamId:
+            team_position = i+1
+    
+    totalPositions = len(teams)    
+
+    
+    if gameId == '' or userId == '':
+        return redirect(index)
+    
+    if teamId!='':
+        teamId = int(teamId)
+    else:
+        return redirect(index)
+    
+    team = get_team(gameId,teamId)
+    data = get_gamestate(gameId)
+    users = data['Teams'][teamId]['members']
+    request.session['teamId'] = teamId
+    context['results'] = json.dumps(results)
+    context['game'] = json.dumps(data['Game'])
+    context[TEAMNAME] = team.team.team_name
+    context['users'] = json.dumps(users)
+    context['username']= username
+    context['errors'] = request.session['errors']
+    context['teamPosition'] = team_position
+    context['totalPositions'] = totalPositions
+    
     return render(request,'round_results.html',context)
 
 def current_question_index(request):
     value = {}
     value['index']='undefined'
-    
+        
     game_id = request.POST.get(GAMEID,'')
     if game_id == '':
         game_id = request.session.get(GAMEID,'')

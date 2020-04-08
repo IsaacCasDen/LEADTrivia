@@ -8,7 +8,33 @@
 </style>
 
 <script>
+    var name = {{name|safe}}
+    var currentQuestionIndex = {{currentQuestionIndex|safe}}
+    var currentRound = {{currentRound|safe}}
+    var currentQuestion = {{currentQuestion|safe}}
+    var currentAnswer = {{currentAnswer|safe}}
 
+    document.onreadystatechange = function() {
+        if (document.readyState=="complete") {
+            init();
+        }
+    }
+
+    function init() {
+        var divName = document.getElementById('divName');
+        var divRemaining = document.getElementById('divQuestionsRemaining');
+        var divRound = document.getElementById('divCurrentRound');
+        var divCurrentIndex = document.getElementById('divCurrentQuestion');
+        var divQuestion = document.getElementById('divCurrentQuestionText');
+        var divAnswer = document.getElementById('divCurrentAnswerText');
+
+        divName.innerText = name;
+        divRemaining.innerText = '?';
+        divRound.innerText = currentRound
+        divCurrentIndex.innerText = currentQuestionIndex
+        divQuestion.innerText = currentQuestion;
+        divAnswer.innerText = currentAnswer;
+    }
 </script>
 
 <body>
@@ -16,25 +42,25 @@
         {% csrf_token %}
         <div id="divInfo">
             <div id="divName">Placeholder Name</div>
-            <div id="divQuestionsRemaining">
+            <div>
                 <div style="float: left;">Questions Remaining:&nbsp;</div>
                 <div id="divQuestionsRemaining">10</div>
             </div>
-            <div id="divCurrentRound">
+            <div>
                 <div style="float: left;">Current Round:&nbsp;</div>
-                <div id="divQuestionsRemaining">1</div>
+                <div id="divCurrentRound">1</div>
             </div>
-            <div id="divCurrentQuestion">
+            <div>
                 <div style="float: left;">Current Question:&nbsp;</div>
-                <div id="divQuestionsRemaining">1</div>
+                <div id="divCurrentQuestion">1</div>
             </div>
-            <div id="divCurrentQuestionText">
+            <div>
                 <div style="float: left;">Current Question:&nbsp;</div>
-                <div id="divQuestion">What is the airspeed of a swallow?</div>
+                <div id="divCurrentQuestionText">What is the airspeed of a swallow?</div>
             </div>
-            <div id="divCurrentAnswerText">
+            <div>
                 <div style="float: left;">Current Answer:&nbsp;</div>
-                <div id="divAnswer">African or European?</div>
+                <div id="divCurrentAnswerText">African or European?</div>
             </div>
         </div>
         <div id="divControls">

@@ -5,11 +5,27 @@
 <link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
 
 <style>
+    #PlayerRank {
+      display: inline-block;
+      vertical-align: top;
+    }
 
     #TopDiv{
         display: block;
         width: 100%;
         clear: both;
+    }
+
+    .text{
+      float: left;
+      margin-left: .5em;
+
+    }
+
+    .questionContain{
+      width: fit-content;
+      clear: both;
+      display: inline-block;
     }
 
     #BottomDiv{
@@ -37,6 +53,7 @@
 
     #RoundResult{
         float: left;
+        width: fit-content;
     }
 
 
@@ -106,6 +123,14 @@
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
 
 <script>
+  
+  var teamname = "{{teamname|safe}}";
+  var users = {{users|safe}};
+  var username ="{{username|safe}}";
+  var game = {{game|safe}};
+  var totalPositions = {{totalPositions|safe}}
+  var results = {{results|safe}}
+
 
 document.onreadystatechange = function(){
   if (document.readyState == "complete"){
@@ -113,6 +138,10 @@ document.onreadystatechange = function(){
   }
 }
 function init() {
+    initTeam(teamname);
+    initUsers(username, users);
+    createRank(results['Team']['Rank'], totalPositions);
+    check();
     initClock(300);
   }
 
@@ -126,6 +155,50 @@ function init() {
     var divSeconds = document.getElementsByClassName("seconds")[0];
     initLocalClock(time,divHours,divMinutes,divSeconds);
   }
+
+  function initTeam(name) {
+    var team_name=document.getElementById("teamInfo");
+    team_name.innerText=name;
+
+  }
+
+  function initUsers(user, users){
+    var WorstPlayer =document.getElementById("WorstPlayer");
+    WorstPlayer.innerText=results['Min']['Name'];
+
+    var BestPlayer=document.getElementById("BestPlayer");
+    BestPlayer.innerText=results['Max']['Name'];
+
+  }
+
+  function createRank(teamPositions, totalPositions){
+    var TeamRank =document.getElementById("TeamRank");
+    TeamRank.innerText = results['Team']['Rank'];
+    var TotalPositions =document.getElementById("TotalPositions");
+    TotalPositions.innerText = totalPositions;
+
+  }
+
+  function check(){
+    var questions = document.getElementById("questions");
+    var keys = Object.keys(results['Team']['Questions']);    
+    keys.forEach(element => {
+      var questionCheck = results['Team']['Questions'][element];
+      var _question = document.createElement("div");
+      var _answer = document.createElement("div");
+      var _host = document.createElement("div")
+      _question.innerText = 'Question: ' + questionCheck["Index"];
+      _answer.innerText = questionCheck["IsCorrect"];
+      _answer.classList.add("text");
+      _question.classList.add("text");
+      _host.classList.add("questionContainer");
+      _host.appendChild(_question);
+      _host.appendChild(_answer);
+      questions.appendChild(_host);
+      
+    });
+  }
+
 </script>
 <body >
     <div class="container">
@@ -137,35 +210,32 @@ function init() {
                 <div class="seconds"></div>
             </article>
             <div id=teamDiv>
-                <div id="team_info">
-                    <p id="team_name" class="title">{ Team Name Here }</p>
+                <div id="teamInfo">
                 </div>
             </div>
         </div>
         <div id = "BottomDiv">
             <div id = "LeftDiv">
-                <p id = "RoundResult"> <u>Round Results</u></p> 
-                <div id = "QuestionDiv"> Q1 {Right/Wrong} </div> 
-                <div id = "QuestionDiv"> Q2 {Right/Wrong} </div> 
-                <div id = "QuestionDiv"> Q3 {Right/Wrong} </div> 
-
+                <div id = "RoundResult"> <u>Round Results</u>
+                <div id = "questions"></div>
+                </div> 
             </div>
             <div id = "RightDiv">
                 <p id = TeamResults> <u>Team Results</u></p>
 
                 <div id = "Rank">
-                <p id = "PlayerRank"> Rank: {} of {} </p>
+                <div id = "PlayerRank"> <p style="float: left;" >Rank: &nbsp;</p> <p style="float: left;" id="TeamRank"></p> <p style="float: left;">&nbsp;of&nbsp; </p> <p style= "float: right;" id="TotalPositions"></p> </div>
 
                 </div>
                 <div id = "MostAccurate">
-                <p id = "Accuracy"> Most Accurate:</p>
-                <p id = "PlayerName"> {name}:</p>
+                <p id = "Accuracy" > Most Accurate:</p>
+                <p id = "BestPlayer" ></p>
  
 
                 </div>
                 <div id = "LeastAccurate">
                 <p id = "Accuracy"> Least Accurate:</p>
-                <p id = "PlayerName"> {name}:</p>
+                <p id = "WorstPlayer"></p>
 
 
                 </div>
