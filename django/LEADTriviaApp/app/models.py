@@ -118,12 +118,13 @@ class TriviaGame(models.Model):
         nums = [(q.round,q.index) for q in questions]
         nums.sort()
         for i,value in enumerate(nums):
-            if value[1]==self.current_question_index:
-                if i<len(nums)-1:
-                    self.current_round = nums[i+1][0]
-                    self.current_question_index = nums[i+1][1]
-                    self.save()
-                    return True
+            if value[0]==self.current_round:
+                if value[1]==self.current_question_index:
+                    if i<len(nums)-1:
+                        self.current_round = nums[i+1][0]
+                        self.current_question_index = nums[i+1][1]
+                        self.save()
+                        return True
         return False
                     
     
@@ -132,12 +133,13 @@ class TriviaGame(models.Model):
         nums = [(q.round,q.index) for q in questions]
         nums.sort()
         for i,value in enumerate(nums):
-            if value[1]==self.current_question_index:
-                if i>0:
-                    self.current_round = nums[i-1][0]
-                    self.current_question_index = nums[i-1][1]
-                    self.save()
-                    break
+            if value[0]==self.current_round:
+                if value[1]==self.current_question_index:
+                    if i>0:
+                        self.current_round = nums[i-1][0]
+                        self.current_question_index = nums[i-1][1]
+                        self.save()
+                        break
 
 class TriviaGameTeams(models.Model):
     team = models.ForeignKey(Team,on_delete=models.CASCADE)
