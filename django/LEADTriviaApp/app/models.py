@@ -389,16 +389,6 @@ def get_team_answer(game_id:int, team_id:int, question_id:int):
     return team_answer
 
 def submit_user_answer(game_id:int,question_id:int,group_id:int,choice_id:int,user_id:int):
-    
-    team_answer = ""
-    if '{}' in question.question:
-        team_answer = question.question.format(*[value[1] for value in indices])
-    else:
-        team_answer = indices[0][1]
-
-    return team_answer
-
-def submit_user_answer(game_id:int,question_id:int,group_id:int,choice_id:int,user_id:int):
       
     game = TriviaGame.objects.get(id=game_id)
     if game == None:
@@ -537,14 +527,17 @@ def get_questions(game_id):
         questions.append(value)
     return questions
 
-def get_question(game_id:int=None, ind:int= None, question_id:int=None):
+def get_question(game_id:int=None, round_ind:int= None, ind:int= None, question_id:int=None):
     if game_id==None and ind==None and question_id == None:
         return None
     
     question = None
 
     if game_id!=None and ind!=None:
-        question = TriviaGameQuestions.objects.filter(game__id=game_id, index=ind)
+        if round_ind == None:
+            game = get_game(game_id)
+            round_ind = game.current_round
+        question = TriviaGameQuestions.objects.filter(game__id=game_id, round = round_ind, index=ind)
         if len(question)==1:
             question=question[0]
         else:
@@ -574,11 +567,11 @@ def get_question(game_id:int=None, ind:int= None, question_id:int=None):
 def create_questions(game_id:int):
     game = get_game(game_id)
 
-    create_question(game.id,0,"My mama always said life was like {}. You never know what you're gonna get.","My mama always said life was like a box of chocolates. You never know what you're gonna get.",[["a box of chocolates","peanut brittle","confused elves"]])
-    create_question(game.id,1,"If you got rid of every {} with {}, then you'd have three {} left.","If you got rid of every cop with some sort of drink problem, then you'd have three cops left.",[['cop','moose','priest'],['some sort of drink problem','a pineapple on their head','a car in their garage'],['cops','moose','priests']])
-    create_question(game.id,2,"Which of these is a type of computer?","Apple",[['Apple', 'Nectarine','Orange']])
-    create_question(game.id,3,"What was the name of the first satellite sent to space?","Sputnik 1",[["Sputnik 1","Gallileo 1","Neo 3"]])
-    create_question(game.id,4,"In which U.S. state was Tennessee Williams born?","Mississippi",[["Mississippi","Tenessee", "Alabama"]])
+    create_question(game.id,0,"My mama always said life was like {}. You never know what you're gonna get.","My mama always said life was like a box of chocolates. You never know what you're gonna get.",[["a box of chocolates","peanut brittle","confused elves"]],2)
+    create_question(game.id,0,"If you got rid of every {} with {}, then you'd have three {} left.","If you got rid of every cop with some sort of drink problem, then you'd have three cops left.",[['cop','moose','priest'],['some sort of drink problem','a pineapple on their head','a car in their garage'],['cops','moose','priests']])
+    create_question(game.id,1,"Which of these is a type of computer?","Apple",[['Apple', 'Nectarine','Orange']],2)
+    create_question(game.id,1,"What was the name of the first satellite sent to space?","Sputnik 1",[["Sputnik 1","Gallileo 1","Neo 3"]])
+    create_question(game.id,2,"In which U.S. state was Tennessee Williams born?","Mississippi",[["Mississippi","Tenessee", "Alabama"]])
 
 
 def create_question(game_id:int, index:int, question:str, answer:str, choices:list, round:int=1):
@@ -606,6 +599,7 @@ def create_question(game_id:int, index:int, question:str, answer:str, choices:li
     tq.game=game
     tq.index = index
     tq.question = q
+    tq.round = round
     tq.save()
 
     return True    
