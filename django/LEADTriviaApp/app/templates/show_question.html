@@ -202,9 +202,12 @@ function initFillInBlank(){
 
 function createQuestionDiv(text){
   var questionDiv=document.getElementById("Question");
+  var answerDiv=document.getElementById("Answer");
   questionDiv.innerText = "Fill in the Blank Question"; // Hard coded for now!
   var divChoices = document.getElementById('Choices');
   var parentElement = divChoices.parentElement;
+  questionDiv.innerText = "Please fill in the blanks!";
+  answerDiv.innerText = "";
   parentElement.removeChild(divChoices);
   divChoices = document.createElement('div');
   divChoices.id="divFIB";
