@@ -133,6 +133,7 @@
   var totalPositions = results['round']['team_count']
   var teamPosition = results ['team']['rank']
   var questions = results['team']['questions']
+  var index = undefined;
 
 document.onreadystatechange = function(){
   if (document.readyState == "complete"){
@@ -144,7 +145,7 @@ function init() {
     initUsers(userId, users);
     createRank(teamPosition, totalPositions);
     check();
-    // initClock(300);
+    setTimeout(checkCurrentQuestionIndex,500);
   }
 
   function timeup() {
@@ -179,6 +180,35 @@ function init() {
     var TotalPositions =document.getElementById("TotalPositions");
     TotalPositions.innerText = totalPositions;
 
+  }
+
+  function updateCurrentQuestionIndex() {
+    var query = $.getJSON('current_question_index');
+    query.done(function(data) {
+      index = data.index
+      if (index==undefined) {
+        document.location.href = 'app/';
+      }
+    });
+  }
+
+  function checkCurrentQuestionIndex() {
+    var query = $.getJSON('current_question_index/');
+    query.done(function(data) {
+      if (data.index!=index) {
+        document.location.reload();
+      }
+      else if (data.round_finished == true){
+        document.location.replace('/app/round_results/')
+
+      }
+      else if (data.game_finished == true){
+        document.location.replace('/app/game_results/')
+      }
+      else {
+        setTimeout(checkCurrentQuestionIndex,500)
+      }
+    });
   }
 
   function check(){
