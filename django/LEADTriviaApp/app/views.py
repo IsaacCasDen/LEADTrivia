@@ -530,26 +530,30 @@ def edit_questions(request):
 
 def round_results(request):
     context = {}
-
+    
     gameId = request.session.get('gameId','')
     teamId = request.POST.get('teamId',request.session.get('teamId',''))
     userId = request.session.get('userId','')
     username = request.session.get('username','')
-    results = get_round_results(gameId,1,teamId)[0]
-    # teams = get_teams_answers(gameId)
-    # users = get_users_answers(gameId)
-
-    pointsResults = [{'Points':sub['Points'],'Name':sub['Name'],'ID':sub['Id']}for sub in results['Team']['Users']]
-    pointsResults.sort(key=lambda x:x['Points'])
-    results['Max'] = pointsResults[len(pointsResults)-1]
-    results['Min'] = pointsResults[0]
  
-    team_position = '?'
-    for i,team in enumerate(teams):
-        if team == teamId:
-            team_position = i+1
+    #------------------------------------------------------------------------------------------------------
+    value = {} 
+    questions = {}
+    questions[0] = {'Id':0,'Index':0,'IsCorrect':False}
+    questions[1] = {'Id':1,'Index':1,'IsCorrect':True}
+    questions[2] = {'Id':2,'Index':2,'IsCorrect':True}
+    users = ((1,{'id':0,'username':'John','points':10,'rank':1}),(2,{'id':1,'username':'Frank','points':6,'rank':2}),(3,{'id':3,'username':'Jim','points':1,'rank':3}))
+
+    value['round'] = {}
+    value['round'] = {'id':0, 'index':1, 'team_count':12}      
+    value['teams'] = {}
+    value['teams'][4] = {'id':0,'teamName':'Daves','points':17,'rank':1,'questions':questions,'users':users}
     
-    totalPositions = len(teams)    
+
+    #------------------------------------------------------------------------------------------------------
+    results ={}
+    results['round'] = value['round']
+    results['team'] = value['teams'][teamId]
 
     
     if gameId == '' or userId == '':
@@ -560,18 +564,15 @@ def round_results(request):
     else:
         return redirect(index)
     
-    team = get_team(gameId,teamId)
     data = get_gamestate(gameId)
-    users = data['Teams'][teamId]['members']
+
     request.session['teamId'] = teamId
     context['results'] = json.dumps(results)
     context['game'] = json.dumps(data['Game'])
-    context[TEAMNAME] = team.team.team_name
-    context['users'] = json.dumps(users)
     context['username']= username
+    context['userId'] = userId
     context['errors'] = request.session['errors']
-    context['teamPosition'] = team_position
-    context['totalPositions'] = totalPositions
+
     
     return render(request,'round_results.html',context)
 
