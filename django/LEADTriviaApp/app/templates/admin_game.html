@@ -13,10 +13,14 @@
     var currentRound = {{currentRound|safe}}
     var currentQuestion = {{currentQuestion|safe}}
     var currentAnswer = {{currentAnswer|safe}}
+    var lastQuestion = {{lastQuestion|safe}}
+
+
 
     document.onreadystatechange = function() {
         if (document.readyState=="complete") {
             init();
+            changeQuestionButton();
         }
     }
 
@@ -35,7 +39,21 @@
         divQuestion.innerText = currentQuestion;
         divAnswer.innerText = currentAnswer;
     }
+
+    function changeQuestionButton (){
+        var lQuestion = lastQuestion;
+        var buttonDiv = document.getElementById("move_forward");
+        if (lQuestion == true){
+            // buttonDiv.value = 'Round Results';
+            // buttonDiv.style.backgroundColor = "green";
+            
+
+        }
+     
+    }
 </script>
+
+
 
 <body>
     <form id="formAdminGame" method="POST">
@@ -66,7 +84,7 @@
         <div id="divControls">
             <div id="divCurrentQuestion">
                 <input type="submit" type="button" value="Previous Question" formaction="admin_prev_question/" class="btn btn-secondary">
-                <input type="submit" type="button" value="Next Question" formaction="admin_next_question/" class="btn btn-primary">
+                <input type="submit" type="button" value="Next Question" formaction="admin_next_question/" class="btn btn-primary" id = "move_forward">
             </div>
         </div>
     </form>
