@@ -92,7 +92,7 @@ document.onreadystatechange = function(){
 
 function init() {
     updateCurrentQuestionIndex(index)
-    initClock(5);
+    initClock(90);
     initQuestion();
   }
 
@@ -123,16 +123,16 @@ function init() {
   function checkCurrentQuestionIndex() {
     var query = $.getJSON('current_question_index/');
     query.done(function(data) {
-      if (data.index!=index) {
+      if (data.index!=index || data.round_finished == False) {
         document.location.reload();
       }
-      else if (data.round_finished == true){
-        document.location.replace('/app/round_results/')
+      // else if (data.round_finished == true){
+      //   document.location.replace('/app/round_results/')
 
-      }
-      else if (data.game_finished == true){
-        document.location.replace('/app/game_results/')
-      }
+      // }
+      // else if (data.game_finished == true){
+      //   document.location.replace('/app/game_results/')
+      // }
       else {
         setTimeout(checkCurrentQuestionIndex,500)
       }
