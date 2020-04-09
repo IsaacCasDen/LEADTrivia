@@ -154,19 +154,26 @@ def team(request):
     context = {}
 
     gameId = request.session.get('gameId','')
-    teamId = request.POST.get('teamId',request.session.get('teamId',''))
+    teamId = request.POST.get('teamId')
+    if teamId == '':
+        teamId = request.session.get('teamId','')
     userId = request.session.get('userId','')
     username = request.session.get('username','')
 
     if gameId == '' or userId == '':
         return redirect(index)
     
+    team=None
+
     if teamId!='':
         teamId = int(teamId)
+    
+        team = get_team(gameId,teamId)
+        if team==None:
+            teamId = ''
 
     data = None
     users = None
-    team=None
 
     if teamId == '':
         data = get_gamestate(gameId)
@@ -351,7 +358,7 @@ def submit_answer(request):
     answers_submitted = True
 
     for groupId, choiceId in choices:
-        answers_submitted = answers_submitted and submit_user_answer(gameId,questionId,groupId,choiceId,userId)
+        answers_submitted = answers_submitted and submit_user_choice(gameId,questionId,groupId,choiceId,userId)
 
     value['answer'] = True
 
@@ -535,25 +542,24 @@ def round_results(request):
     teamId = request.POST.get('teamId',request.session.get('teamId',''))
     userId = request.session.get('userId','')
     username = request.session.get('username','')
-    results = get_round_results(gameId,1,teamId)[0]
+    
     # teams = get_teams_answers(gameId)
     # users = get_users_answers(gameId)
 
-    pointsResults = [{'Points':sub['Points'],'Name':sub['Name'],'ID':sub['Id']}for sub in results['Team']['Users']]
-    pointsResults.sort(key=lambda x:x['Points'])
-    results['Max'] = pointsResults[len(pointsResults)-1]
-    results['Min'] = pointsResults[0]
+    # pointsResults = [{'Points':sub['Points'],'Name':sub['Name'],'ID':sub['Id']}for sub in results['Team']['Users']]
+    # pointsResults.sort(key=lambda x:x['Points'])
+    # results['Max'] = pointsResults[len(pointsResults)-1]
+    # results['Min'] = pointsResults[0]
  
-    team_position = '?'
-    for i,team in enumerate(teams):
-        if team == teamId:
-            team_position = i+1
-    
-    totalPositions = len(teams)    
+    team_position = 1
+    totalPositions = 12
 
     
     if gameId == '' or userId == '':
         return redirect(index)
+    
+    game = get_game(gameId)
+    results = get_round_results(game.id,game.current_round)
     
     if teamId!='':
         teamId = int(teamId)
