@@ -254,8 +254,9 @@ def show_question(request):
     if gameId == '':
         return redirect(index)
     state = get_gamestate(gameId)
-    ind = state["Game"]["QuestionIndex"]
-    question = get_question(game_id=gameId, ind=ind)
+    ind = game.current_question_index
+    round_ind = game.current_round
+    question = get_question(game_id=gameId, ind=ind, round_ind = round_ind)
     context= {}
 
     context["Question"] = question["question"]
@@ -388,10 +389,11 @@ def admin_game(request):
     game = get_game(game_id)
     question = get_question(game_id,game.current_round,game.current_question_index)
 
+    is_last_question = True 
 
 
     context = {}
-
+    context["lastQuestion"] = json.dumps(is_last_question)  
     context['name'] = json.dumps(game.name)
     context['currentQuestionIndex'] = json.dumps(game.current_question_index)
     context['currentRound'] = json.dumps(game.current_round)
@@ -537,13 +539,6 @@ def round_results(request):
     teams = get_teams_answers(gameId)
     users = get_users_answers(gameId)
 
-    # results['GameId'] = 3
-    # results['Team'] = {}
-    # results['Team']['Id'] = 12
-    # results['Team']['Rank'] = 9
-    # results['Team']['Points'] = 22
-    # results['Team']['Users'] = [{'Id':3,'Name':"Jeff",'Points':6},{'Id':4,'Name':"James",'Points':2},{'Id':5,'Name':"John",'Points':12}] 
-    
     pointsResults = [{'Points':sub['Points'],'Name':sub['Name'],'ID':sub['Id']}for sub in results['Team']['Users']]
     pointsResults.sort(key=lambda x:x['Points'])
     results['Max'] = pointsResults[len(pointsResults)-1]
@@ -551,7 +546,7 @@ def round_results(request):
  
     team_position = '?'
     for i,team in enumerate(teams):
-        if team[0] == teamId:
+        if team == teamId:
             team_position = i+1
     
     totalPositions = len(teams)    
@@ -580,8 +575,14 @@ def round_results(request):
     
     return render(request,'round_results.html',context)
 
+def game_results(request):
+    context = {}
+
+    return render(request, 'game_results.html',context)
+
 def current_question_index(request):
-    value = {}
+    context = {}
+    value = {}        
     value['index']='undefined'
         
     game_id = request.POST.get(GAMEID,'')
@@ -591,7 +592,9 @@ def current_question_index(request):
     if game_id != '':
         game = get_game(game_id)
         value['index']=game.current_question_index
+        value['round_finished'] = False
+        value['game_finished'] = False
 
-    v = json.dumps(value)
 
     return JsonResponse(value)
+
