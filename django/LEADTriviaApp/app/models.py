@@ -121,10 +121,33 @@ class TriviaGame(models.Model):
             if value[0]==self.current_round:
                 if value[1]==self.current_question_index:
                     if i<len(nums)-1:
-                        self.current_round = nums[i+1][0]
-                        self.current_question_index = nums[i+1][1]
-                        self.save()
-                        return True
+                        if self.current_round == nums[i+1][0]:
+                            self.current_question_index = nums[i+1][1]
+                            self.save()
+                            return True
+                        else:
+                            game_round = get_game_round(self.id,self.current_round)
+                            if game_round == None:
+                                compile_round_stats(self.id)
+                            else:
+                                if game_round.is_finished:
+                                    self.current_round = nums[i+1][0]
+                                    self.current_question_index = nums[i+1][1]
+                                    self.save()
+                                else:
+                                    compile_round_stats(self.id)
+                                    game_round.is_finished = True
+                                    game_round.save()
+                                return True
+                                
+                    else:
+                        if True:
+                            compile_round_stats(self.id)
+                            #compile_game_stats(self.id)
+                            pass
+                        else:
+                            # Finish Game
+                            pass
         return False
                     
     
@@ -135,11 +158,10 @@ class TriviaGame(models.Model):
         for i,value in enumerate(nums):
             if value[0]==self.current_round:
                 if value[1]==self.current_question_index:
-                    if i>0:
-                        self.current_round = nums[i-1][0]
+                    if i>0 and self.current_round <= nums[i-1][0]:
                         self.current_question_index = nums[i-1][1]
                         self.save()
-                        break
+                    break
 
 class TriviaGameTeams(models.Model):
     team = models.ForeignKey(Team,on_delete=models.CASCADE)
@@ -217,6 +239,142 @@ class TriviaGameTeamAnswer(models.Model):
     group = models.ForeignKey(TriviaQuestionChoiceGroup, on_delete=CASCADE)
     answer = models.ForeignKey(TriviaQuestionChoices, on_delete=CASCADE,null=True)
 
+class TriviaGameRound(models.Model):
+    game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
+    round_index = models.IntegerField()
+    is_finished = models.BooleanField(default=False)
+
+class TriviaGameRoundResultTeam(models.Model):
+    game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
+    game_round = models.ForeignKey(TriviaGameRound,on_delete=CASCADE)
+    team = models.ForeignKey(TriviaGameTeams,on_delete=SET_NULL, null=True)
+    points = models.IntegerField()
+    rank = models.IntegerField()
+
+class TriviaGameRoundResultUser(models.Model):
+    game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
+    game_round = models.ForeignKey(TriviaGameRound,on_delete=CASCADE)
+    team = models.ForeignKey(TriviaGameTeams,on_delete=SET_NULL, null=True)
+    user = models.ForeignKey(TeamMember,on_delete=SET_NULL, null=True)
+    points = models.IntegerField()
+    rank = models.IntegerField()
+
+class TriviaGameResultTeam(models.Model):
+    game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
+    team = models.ForeignKey(TriviaGameTeams,on_delete=SET_NULL, null=True)
+    points = models.IntegerField()
+    rank = models.IntegerField()
+
+class TriviaGameResultUser(models.Model):
+    game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
+    team = models.ForeignKey(TriviaGameTeams,on_delete=SET_NULL, null=True)
+    user = models.ForeignKey(TeamMember,on_delete=SET_NULL, null=True)
+    points = models.IntegerField()
+    rank = models.IntegerField()
+
+def compile_round_stats(game_id:int):
+    game = TriviaGame.objects.get(id=game_id)
+    if game == None:
+        return
+
+    game_round = TriviaGameRound.objects.filter(game__id=game.id,round_index=game.current_round)
+    if len(game_round) == 0:
+        game_round = TriviaGameRound()
+        game_round.round_index = game.current_round
+        game_round.game = game
+        game_round.save()
+    else:
+        game_round = game_round[0]
+    
+    compile_round_stats_teams(game_round.id)
+    compile_round_stats_users(game_round.id)
+
+def compile_round_stats_teams(round_id:int):
+    game_round = TriviaGameRound.objects.get(id=round_id)
+    if game_round == None:
+        return
+    
+    game = game_round.game
+    # questions = TriviaGameQuestions.objects.filter(game__id=game.id,round=game_round.round_index)
+    team_list = TriviaGameTeams.objects.filter(game__id=game.id)
+    result_list = []
+    
+    for team in team_list:
+        _result = TriviaGameRoundResultTeam.objects.filter(game__id=game.id,game_round=game_round.id,team__id=team.id)
+        count = len(_result)
+        if len(_result)==1:
+            _result = _result[0]
+        else:
+            _result = TriviaGameRoundResultTeam()
+            _result.game=game
+            _result.game_round=game_round
+            _result.team=team
+        
+        answers = get_team_answers(game.id,team.id,game_round.round_index)
+        _result.points = answers[1]
+        result = (team.id,answers[1],_result)
+        result_list.append(result)
+
+    result_list.sort(key=lambda x:x[1],reverse=True)
+    last_points = None
+    last_rank = None
+    for i,value in enumerate(result_list):
+        if (last_points==None):
+            last_points = value[1]
+            last_rank = i+1
+            value[2].rank=last_rank
+        else:
+            if last_points == value[1]:
+                value[2].rank = last_rank
+            else:
+                last_points = value[1]
+                last_rank += 1
+                value[2].rank = last_rank
+        value[2].save()
+    
+def compile_round_stats_users(round_id:int):
+    game_round = TriviaGameRound.objects.get(id=round_id)
+    if game_round == None:
+        return
+    
+    game = game_round.game
+    # questions = TriviaGameQuestions.objects.filter(game__id=game.id,round=game_round.round_index)
+    user_list = TeamMember.objects.filter(game__id=game.id)
+    result_list = []
+    
+    for user in user_list:
+        _result = TriviaGameRoundResultUser.objects.filter(game__id=game.id,game_round=game_round.id,user__id=user.id)
+        count = len(_result)
+        if len(_result)==1:
+            _result = _result[0]
+        else:
+            _result = TriviaGameRoundResultUser()
+            _result.game=game
+            _result.game_round=game_round
+            _result.user=user
+        
+        answers = get_user_answers(game.id,user.id,game_round.round_index)
+        _result.points = answers[1]
+        result = (user.id,answers[1],_result)
+        result_list.append(result)
+
+    result_list.sort(key=lambda x:x[1],reverse=True)
+    last_points = None
+    last_rank = None
+    for i,value in enumerate(result_list):
+        if (last_points==None):
+            last_points = value[1]
+            last_rank = i+1
+            value[2].rank=last_rank
+        else:
+            if last_points == value[1]:
+                value[2].rank = last_rank
+            else:
+                last_points = value[1]
+                last_rank += 1
+                value[2].rank = last_rank
+        value[2].save()
+
 def get_user_answer(game_id:int, user_id:int, question_id:int):
     answers = {}
     choices = []
@@ -252,49 +410,46 @@ def get_user_answer(game_id:int, user_id:int, question_id:int):
 
     return user_answer
 
-def get_users_answers(game_id:int):
-    game = get_game(game_id)
-    users = TeamMember.objects.filter(game__id=game_id)
+# def get_users_answers(game_id:int):
+#     game = get_game(game_id)
+#     users = TeamMember.objects.filter(game__id=game_id)
 
-    answers = {}
-    for i in range(1,game.current_round+1):
-        answers[i] = []
-        for user in users:
-            answers[i].append(list(get_user_answers(game_id,user.id,i)))
+#     answers = {}
+#     for i in range(1,game.current_round+1):
+#         answers[i] = []
+#         for user in users:
+#             answers[i].append(list(get_user_answers(game_id,user.id,i)))
 
-    for key in answers.keys():
-        answers[key].sort(key=lambda x:x[1],reverse=True)
-        for i in range(0,len(answers[key])):
-            answers[key][i].insert(2,i)
-            answers[key][i] = tuple(answers[key][i])
+#     for key in answers.keys():
+#         answers[key].sort(key=lambda x:x[1],reverse=True)
+#         for i in range(0,len(answers[key])):
+#             answers[key][i].insert(2,i)
+#             answers[key][i] = tuple(answers[key][i])
 
-    return answers    
+#     return answers    
 
-def get_teams_answers(game_id:int):
-    game = get_game(game_id)
-    teams = TriviaGameTeams.objects.filter(game__id=game_id)
+# def get_teams_answers(game_id:int):
+#     game = get_game(game_id)
+#     teams = TriviaGameTeams.objects.filter(game__id=game_id)
 
-    answers = {}
-    for i in range(1,game.current_round+1):
-        answers[i] = []
-        for team in teams:
-            answers[i].append(list(get_team_answers(game_id,team.id,i)))
+#     answers = {}
+#     for i in range(1,game.current_round+1):
+#         answers[i] = []
+#         for team in teams:
+#             answers[i].append(list(get_team_answers(game_id,team.id,i)))
 
-    for key in answers.keys():
-        answers[key].sort(key=lambda x:x[1],reverse=True)
-        for i in range(0,len(answers[key])):
-            answers[key][i].insert(2,i)
-            answers[key][i] = tuple(answers[key][i])
+#     for key in answers.keys():
+#         answers[key].sort(key=lambda x:x[1],reverse=True)
+#         for i in range(0,len(answers[key])):
+#             answers[key][i].insert(2,i)
+#             answers[key][i] = tuple(answers[key][i])
 
-    return answers
+#     return answers
 
-def get_user_answers(game_id:int, user_id:int,round_ind:int=None):
+def get_user_answers(game_id:int, user_id:int,round_index:int):
 
     questions = None
-    if round_ind == None:
-        questions = TriviaGameQuestions.objects.filter(game__id=game_id)
-    else:
-        questions = TriviaGameQuestions.objects.filter(game__id=game_id,round=round_ind)
+    questions = TriviaGameQuestions.objects.filter(game__id=game_id,round=round_index)
 
     user_answers = []
     user_points = 0
@@ -333,14 +488,21 @@ def get_user_answer(game_id:int, user_id:int, question_id:int):
             value = indices[j-1][0] + j
             indices.insert(value,(value,""))
 
+    tgq = TriviaGameQuestions.objects.get(id=question_id)
+    question = tgq.question
+    
+    user_answer = ""
+    if '{}' in question.question:
+        user_answer = question.question.format(*[value[1] for value in indices])
+    else:
+        user_answer = indices[0][1]
 
-def get_team_answers(game_id:int, team_id:int,round_ind:int=None):
+    return user_answer
+
+def get_team_answers(game_id:int, team_id:int,round_index:int):
 
     questions = None
-    if round_ind == None:
-        questions = TriviaGameQuestions.objects.filter(game__id=game_id)
-    else:
-        questions = TriviaGameQuestions.objects.filter(game__id=game_id,round=round_ind)
+    questions = TriviaGameQuestions.objects.filter(game__id=game_id,round=round_index)
 
     team_answers = []
     team_points = 0
@@ -796,6 +958,13 @@ def get_games(only_open:bool=True) -> list:
     else:
         games = [game for game in TriviaGame.objects.all()]
     return games
+
+def get_game_round(game_id:int,round_ind:int) -> TriviaGameRound:
+    game_round = TriviaGameRound.objects.filter(game__id=game_id, round_index=round_ind)
+    if len(game_round)>0:
+        return game_round[0]
+    else:
+        return None
 
 # def get_game():
 #     games = TriviaGame.objects.all()

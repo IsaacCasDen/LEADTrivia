@@ -536,8 +536,8 @@ def round_results(request):
     userId = request.session.get('userId','')
     username = request.session.get('username','')
     results = get_round_results(gameId,1,teamId)[0]
-    teams = get_teams_answers(gameId)
-    users = get_users_answers(gameId)
+    # teams = get_teams_answers(gameId)
+    # users = get_users_answers(gameId)
 
     pointsResults = [{'Points':sub['Points'],'Name':sub['Name'],'ID':sub['Id']}for sub in results['Team']['Users']]
     pointsResults.sort(key=lambda x:x['Points'])
