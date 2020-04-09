@@ -388,7 +388,7 @@ def admin_game(request):
     game = get_game(game_id)
     question = get_question(game_id,game.current_round,game.current_question_index)
 
-
+    
 
     context = {}
 
@@ -534,10 +534,9 @@ def round_results(request):
     userId = request.session.get('userId','')
     username = request.session.get('username','')
     results = get_round_results(gameId,1,teamId)[0]
-    teams = get_teams_answers(gameId)
-    users = get_users_answers(gameId)
+    # teams = get_teams_answers(gameId)
+    # users = get_users_answers(gameId)
 
-    # results['GameId'] = 3
     # results['Team'] = {}
     # results['Team']['Id'] = 12
     # results['Team']['Rank'] = 9
