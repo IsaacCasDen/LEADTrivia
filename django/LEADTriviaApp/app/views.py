@@ -394,13 +394,29 @@ def admin_game(request):
     request.session[GAMEID] = game_id
 
     game = get_game(game_id)
-    question = get_question(game_id,game.current_round,game.current_question_index)
-
-    is_last_question = True 
-
+    questions = get_questions(game.id)
+    # question = get_question(game_id,game.current_round,game.current_question_index)
+    is_last_question = False
+    is_last_round = False
+    count_remaining = 0
+    rounds_remaining = 0
+    
+    if game.current_round in questions[0]:
+        rounds_remaining = (len(questions[0])-1)-questions[0].index(game.current_round)
+        is_last_round = rounds_remaining == 0
+        
+        for i, question in enumerate(questions[1][game.current_round]):
+            if question['round_index'] == game.current_round and question['index'] == game.current_question_index:
+                count_remaining = (len(questions[1][game.current_round])-1)-i
+                if i==len(questions[1][game.current_round])-1:
+                    is_last_question = True
+                    break
 
     context = {}
-    context["lastQuestion"] = json.dumps(is_last_question)  
+    context['countRemaining'] = json.dumps(count_remaining)
+    context["lastQuestion"] = json.dumps(is_last_question)
+    context['lastRound'] = json.dumps(is_last_round)
+    context['roundsRemaining'] = rounds_remaining
     context['name'] = json.dumps(game.name)
     context['currentQuestionIndex'] = json.dumps(game.current_question_index)
     context['currentRound'] = json.dumps(game.current_round)
