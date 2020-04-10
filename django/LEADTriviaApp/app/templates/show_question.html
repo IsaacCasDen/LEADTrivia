@@ -111,7 +111,7 @@ function init() {
   }
 
   function updateCurrentQuestionIndex() {
-    var query = $.getJSON('current_question_index');
+    var query = $.getJSON('/app/current_question_index');
     query.done(function(data) {
       index = data.index
       if (index==undefined) {
@@ -121,18 +121,18 @@ function init() {
   }
 
   function checkCurrentQuestionIndex() {
-    var query = $.getJSON('current_question_index/');
+    var query = $.getJSON('/app/current_question_index/');
     query.done(function(data) {
-      if (data.index!=index || data.round_finished == False) {
+      if (data.index!=index || data.round_finished == false) {
         document.location.reload();
       }
-      // else if (data.round_finished == true){
-      //   document.location.replace('/app/round_results/')
+      else if (data.round_finished == true){
+        document.location.replace('/app/round_results/')
 
-      // }
-      // else if (data.game_finished == true){
-      //   document.location.replace('/app/game_results/')
-      // }
+      }
+      else if (data.game_finished == true){
+        document.location.replace('/app/game_results/')
+      }
       else {
         setTimeout(checkCurrentQuestionIndex,500)
       }

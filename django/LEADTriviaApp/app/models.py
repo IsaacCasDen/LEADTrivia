@@ -115,7 +115,7 @@ class TriviaGame(models.Model):
 
     def next_question(self):
         questions = TriviaGameQuestion.objects.filter(game__id=self.id)
-        nums = [(q.round,q.index) for q in questions]
+        nums = [(q.round_index,q.index) for q in questions]
         nums.sort()
         for i,value in enumerate(nums):
             if value[0]==self.current_round:
@@ -153,7 +153,7 @@ class TriviaGame(models.Model):
     
     def prev_question(self):
         questions = TriviaGameQuestion.objects.filter(game__id=self.id)
-        nums = [(q.round,q.index) for q in questions]
+        nums = [(q.round_index,q.index) for q in questions]
         nums.sort()
         for i,value in enumerate(nums):
             if value[0]==self.current_round:
@@ -351,7 +351,6 @@ def compile_round_stats_teams(round_id:int):
         return
     
     game = game_round.game
-    # questions = TriviaGameQuestion.objects.filter(game__id=game.id,round=game_round.round_index)
     team_list = TriviaGameTeam.objects.filter(game__id=game.id)
     result_list = []
     
@@ -394,7 +393,6 @@ def compile_round_stats_users(round_id:int):
         return
     
     game = game_round.game
-    # questions = TriviaGameQuestion.objects.filter(game__id=game.id,round=game_round.round_index)
     user_list = TeamMember.objects.filter(game__id=game.id)
     result_list = []
     
@@ -434,7 +432,7 @@ def compile_round_stats_users(round_id:int):
 def get_user_answers(game_id:int, user_id:int,round_index:int):
 
     questions = None
-    questions = TriviaGameQuestion.objects.filter(game__id=game_id,round=round_index)
+    questions = TriviaGameQuestion.objects.filter(game__id=game_id,round_index=round_index)
 
     user_answers = []
     user_points = 0
@@ -501,7 +499,7 @@ def get_user_answer(game_id:int, user_id:int, question_id:int):
 def get_team_answers(game_id:int, team_id:int,round_index:int):
 
     questions = None
-    questions = TriviaGameQuestion.objects.filter(game__id=game_id,round=round_index)
+    questions = TriviaGameQuestion.objects.filter(game__id=game_id,round_index=round_index)
 
     team_answers = []
     team_points = 0
@@ -790,7 +788,7 @@ def create_question(game_id:int, index:int, question:str, answer:str, choices:li
     tq.game=game
     tq.index = index
     tq.question = q
-    tq.round = round
+    tq.round_index = round_index
     tq.save()
 
     return True    

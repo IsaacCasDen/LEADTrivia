@@ -198,13 +198,13 @@ function init() {
       if (data.index!=index) {
         document.location.reload();
       }
-      else if (data.round_finished == true){
-        document.location.replace('/app/round_results/')
+      // else if (data.round_finished == true){
+      //   document.location.replace('/app/round_results/')
 
-      }
-      else if (data.game_finished == true){
-        document.location.replace('/app/game_results/')
-      }
+      // }
+      // else if (data.game_finished == true){
+      //   document.location.replace('/app/game_results/')
+      // }
       else {
         setTimeout(checkCurrentQuestionIndex,500)
       }
