@@ -203,6 +203,16 @@ class TriviaQuestionChoice(models.Model):
     choice = models.CharField(max_length=512)
     # visible = models.BooleanField(default=True)
 
+class TriviaQuestionImage(models.Model):
+    question = models.ForeignKey(TriviaQuestion, on_delete=models.CASCADE)
+    index = models.IntegerField(default=0)
+    file_path = models.CharField(max_length=1024)
+
+class TriviaQuestionAudio(models.Model):
+    question = models.ForeignKey(TriviaQuestion, on_delete=models.CASCADE)
+    index = models.IntegerField(default=0)
+    file_path = models.CharField(max_length=1024)
+
 class TriviaGameQuestion(models.Model):
     #Check for correct or wrong
     question = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE)
