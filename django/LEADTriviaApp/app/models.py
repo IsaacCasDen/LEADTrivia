@@ -315,7 +315,7 @@ def get_round_results(game_id:int,round_index:int):
         users.sort(key=lambda x:x[0])
         value['teams'][key]['users']=tuple(users)
 
-        answers = TriviaGameTeamAnswer.objects.filter(game__id=game_id,team__id=key,question__round=round_index)
+        answers = TriviaGameTeamAnswer.objects.filter(game__id=game_id,team__id=key,question__round_index=round_index)
         questions = {}
         for answer in answers:
             questions[answer.question.id] = {'Id':answer.question.id,'Index':answer.question.index,'IsCorrect':answer.is_correct()}
@@ -693,17 +693,28 @@ def update_team_choice(game_id:int, team_id:int, question_id: int, group_id:int)
     return team_choice!=None
 
 def get_questions(game_id:int,round_index:int=None):
-    questions = []
+
+    rounds = {}
     q = None
     if round_index == None:
-        q = [q for q in TriviaGameQuestion.objects.filter(game__id=game_id)]
+        q = TriviaGameQuestion.objects.filter(game__id=game_id)
     else:
-        q = [q for q in TriviaGameQuestion.objects.filter(game__id=game_id,round_index=round_index)]
-
+        q=TriviaGameQuestion.objects.filter(game__id=game_id,round_index=round_index)
+    
     for item in q:
         value = get_question(question_id=item.id)
-        questions.append(value)
-    return questions
+        if value['round_index'] in rounds:
+            rounds[value['round_index']].append(value)
+        else:
+            rounds[value['round_index']] = [value]
+
+    round_list = list(rounds.keys())
+    round_list.sort()
+
+    for _round in rounds.keys():
+        rounds[_round].sort(key=lambda x: (x['round_index'],x['index']))
+
+    return (round_list,rounds)
 
 def get_question(game_id:int=None, round_index:int = None, ind:int= None, question_id:int=None):
     if game_id==None and ind==None and question_id == None:
@@ -730,6 +741,8 @@ def get_question(game_id:int=None, round_index:int = None, ind:int= None, questi
     value['id']=question.id
     value['question']=question.question.question
     value['answer']=question.question.answer
+    value['round_index']=question.round_index
+    value['index']=question.index
     value['groups'] = []
     groups = TriviaQuestionChoiceGroup.objects.filter(question__id=question.question.id)
     for i,group in enumerate(groups):
