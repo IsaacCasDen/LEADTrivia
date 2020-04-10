@@ -209,14 +209,14 @@ class TriviaGameQuestion(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)  
     time = models.IntegerField(default=60)
     index = models.IntegerField()
-    round = models.IntegerField(default=1)
+    round_index = models.IntegerField(default=1)
 
     @classmethod
-    def create(cls, question, game, time, index, round=1):
+    def create(cls, question, game, time, index, round_index=1):
         ind = [q.index for q in TriviaGameQuestion.objects.filter(game__id=game.id)]
         while index in ind:
             index += 1
-        item = cls(question = question, game = game, time = time, index = index, round = round)
+        item = cls(question = question, game = game, time = time, index = index, round_index = round_index)
         #item.save()
         return item
 
@@ -296,11 +296,6 @@ def get_round_results(game_id:int,round_index:int):
         return None
 
     value = {} 
-    # users = (
-    # (1,{'id':0,'username':'John','points':10,'rank':1}),
-    # (2,{'id':1,'username':'Frank','points':6,'rank':2}),
-    # (3,{'id':3,'username':'Jim','points':1,'rank':3})
-    # )
     teams = {item.team.id:item for item in TriviaGameRoundResultTeam.objects.filter(game_round=game_round.id)}
 
     value['round'] = {}
@@ -320,7 +315,7 @@ def get_round_results(game_id:int,round_index:int):
         users.sort(key=lambda x:x[0])
         value['teams'][key]['users']=tuple(users)
 
-        answers = TriviaGameTeamAnswer.objects.filter(game__id=game_id,team__id=key,question__round=round_index)
+        answers = TriviaGameTeamAnswer.objects.filter(game__id=game_id,team__id=key,question__round_index=round_index)
         questions = {}
         for answer in answers:
             questions[answer.question.id] = {'Id':answer.question.id,'Index':answer.question.index,'IsCorrect':answer.is_correct()}
@@ -330,11 +325,6 @@ def get_round_results(game_id:int,round_index:int):
 
     return value
     
-    # value['teams'][4] = {'id':0,'teamName':'Daves','points':17,'rank':1,'questions':questions,'users':users}
-
-
-
-
 def get_game_results():
     pass
 
@@ -702,25 +692,41 @@ def update_team_choice(game_id:int, team_id:int, question_id: int, group_id:int)
     update_team_answer(game_id,question_id,team.id)
     return team_choice!=None
 
-def get_questions(game_id):
-    questions = []
-    q = [q for q in TriviaGameQuestion.objects.filter(game__id=game_id)]
+def get_questions(game_id:int,round_index:int=None):
+
+    rounds = {}
+    q = None
+    if round_index == None:
+        q = TriviaGameQuestion.objects.filter(game__id=game_id)
+    else:
+        q=TriviaGameQuestion.objects.filter(game__id=game_id,round_index=round_index)
+    
     for item in q:
         value = get_question(question_id=item.id)
-        questions.append(value)
-    return questions
+        if value['round_index'] in rounds:
+            rounds[value['round_index']].append(value)
+        else:
+            rounds[value['round_index']] = [value]
 
-def get_question(game_id:int=None, round_ind:int= None, ind:int= None, question_id:int=None):
+    round_list = list(rounds.keys())
+    round_list.sort()
+
+    for _round in rounds.keys():
+        rounds[_round].sort(key=lambda x: (x['round_index'],x['index']))
+
+    return (round_list,rounds)
+
+def get_question(game_id:int=None, round_index:int = None, ind:int= None, question_id:int=None):
     if game_id==None and ind==None and question_id == None:
         return None
     
     question = None
 
     if game_id!=None and ind!=None:
-        if round_ind == None:
+        if round_index == None:
             game = get_game(game_id)
-            round_ind = game.current_round
-        question = TriviaGameQuestion.objects.filter(game__id=game_id, round = round_ind, index=ind)
+            round_index = game.current_round
+        question = TriviaGameQuestion.objects.filter(game__id=game_id, round_index = round_index, index=ind)
         if len(question)==1:
             question=question[0]
         else:
@@ -735,6 +741,8 @@ def get_question(game_id:int=None, round_ind:int= None, ind:int= None, question_
     value['id']=question.id
     value['question']=question.question.question
     value['answer']=question.question.answer
+    value['round_index']=question.round_index
+    value['index']=question.index
     value['groups'] = []
     groups = TriviaQuestionChoiceGroup.objects.filter(question__id=question.question.id)
     for i,group in enumerate(groups):
@@ -757,7 +765,7 @@ def create_questions(game_id:int):
     create_question(game.id,2,"In which U.S. state was Tennessee Williams born?","Mississippi",[["Mississippi","Tenessee", "Alabama"]])
 
 
-def create_question(game_id:int, index:int, question:str, answer:str, choices:list, round:int=1):
+def create_question(game_id:int, index:int, question:str, answer:str, choices:list, round_index:int=1):
     game = TriviaGame.objects.get(id=game_id)
     if game == None:
         return False
