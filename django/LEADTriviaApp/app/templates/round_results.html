@@ -198,10 +198,9 @@ function init() {
       if (data.index!=index) {
         document.location.reload();
       }
-      // else if (data.round_finished == true){
-      //   document.location.replace('/app/round_results/')
-
-      // }
+      else if (data.round_finished == False){
+        document.location.replace('/app/show_question/');
+      }
       // else if (data.game_finished == true){
       //   document.location.replace('/app/game_results/')
       // }
