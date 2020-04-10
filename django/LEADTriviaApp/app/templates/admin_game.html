@@ -14,8 +14,9 @@
     var currentQuestion = {{currentQuestion|safe}}
     var currentAnswer = {{currentAnswer|safe}}
     var lastQuestion = {{lastQuestion|safe}}
-
-
+    var lastRound = {{lastRound|safe}}
+    var countRemaining = {{countRemaining|safe}}
+    var roundsRemaining = {{roundsRemaining|safe}}
 
     document.onreadystatechange = function() {
         if (document.readyState=="complete") {
@@ -33,7 +34,7 @@
         var divAnswer = document.getElementById('divCurrentAnswerText');
 
         divName.innerText = name;
-        divRemaining.innerText = '?';
+        divRemaining.innerText = countRemaining;
         divRound.innerText = currentRound
         divCurrentIndex.innerText = currentQuestionIndex
         divQuestion.innerText = currentQuestion;
