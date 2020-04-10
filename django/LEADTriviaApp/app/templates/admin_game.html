@@ -15,12 +15,10 @@
     var currentAnswer = {{currentAnswer|safe}}
     var lastQuestion = {{lastQuestion|safe}}
 
-
-
     document.onreadystatechange = function() {
         if (document.readyState=="complete") {
             init();
-            changeQuestionButton();
+            checkCurrentQuestionIndex();
         }
     }
 
@@ -40,17 +38,22 @@
         divAnswer.innerText = currentAnswer;
     }
 
-    function changeQuestionButton (){
-        var lQuestion = lastQuestion;
-        var buttonDiv = document.getElementById("move_forward");
-        if (lQuestion == true){
-            // buttonDiv.value = 'Round Results';
-            // buttonDiv.style.backgroundColor = "green";
-            
 
-        }
-     
+
+    function checkCurrentQuestionIndex(){
+        var query = $.getJSON('/app/current_question_index');
+        query.done(function(data) {
+            if (query.round_finished == true){
+                document.getElementById("move_forward");
+                buttonDiv.value = 'Round Results';
+                buttonDiv.style.backgroundColor = "green";
+            }
+
+        });
     }
+
+
+
 </script>
 
 
