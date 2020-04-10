@@ -262,8 +262,8 @@ def show_question(request):
         return redirect(index)
     state = get_gamestate(gameId)
     ind = game.current_question_index
-    round_ind = game.current_round
-    question = get_question(game_id=gameId, ind=ind, round_ind = round_ind)
+    round_index = game.current_round
+    question = get_question(game_id=gameId, index=ind, round_index = round_index)
     context= {}
 
     context["Question"] = question["question"]
