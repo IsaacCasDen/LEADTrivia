@@ -21,7 +21,8 @@
     document.onreadystatechange = function() {
         if (document.readyState=="complete") {
             init();
-            checkCurrentQuestionIndex();
+            updateButton();
+            //checkCurrentQuestionIndex();
         }
     }
 
@@ -42,18 +43,15 @@
     }
 
 
-
-    function checkCurrentQuestionIndex(){
-        var query = $.getJSON('/app/current_question_index');
-        query.done(function(data) {
-            if (query.round_finished == true){
-                document.getElementById("move_forward");
-                buttonDiv.value = 'Round Results';
-                buttonDiv.style.backgroundColor = "green";
-            }
-
-        });
+    function updateButton(){
+        var lquestion = lastQuestion;
+        if (lquestion == true){
+            buttonDiv = document.getElementById("move_forward");
+            buttonDiv.value = 'Round Results';
+            buttonDiv.style.backgroundColor = "green";
+        }
     }
+
 
 
 
