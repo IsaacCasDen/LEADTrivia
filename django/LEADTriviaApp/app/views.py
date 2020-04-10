@@ -395,7 +395,6 @@ def admin_game(request):
 
     game = get_game(game_id)
     questions = get_questions(game.id)
-    # question = get_question(game_id,game.current_round,game.current_question_index)
     is_last_question = False
     is_last_round = False
     count_remaining = 0
@@ -561,26 +560,6 @@ def round_results(request):
     userId = request.session.get('userId','')
     username = request.session.get('username','')
  
-    # #------------------------------------------------------------------------------------------------------
-    # value = {} 
-    # questions = {}
-    # questions[0] = {'Id':0,'Index':0,'IsCorrect':False}
-    # questions[1] = {'Id':1,'Index':1,'IsCorrect':True}
-    # questions[2] = {'Id':2,'Index':2,'IsCorrect':True}
-
-    # users = ((1,{'id':0,'username':'John','points':10,'rank':1}),(2,{'id':1,'username':'Frank','points':6,'rank':2}),(3,{'id':3,'username':'Jim','points':1,'rank':3}))
-
-    # value['round'] = {}
-    # value['round'] = {'id':0, 'index':1, 'team_count':12}      
-    # value['teams'] = {}
-    # value['teams'][4] = {'id':0,'teamName':'Daves','points':17,'rank':1,'questions':questions,'users':users}
-    
-
-    # #------------------------------------------------------------------------------------------------------
-    # results ={}
-    # results['round'] = value['round']
-    # results['team'] = value['teams'][teamId]
-
     if gameId == '' or userId == '':
         return redirect(index)
 
