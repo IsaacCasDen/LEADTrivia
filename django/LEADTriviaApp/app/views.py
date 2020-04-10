@@ -396,11 +396,12 @@ def admin_game(request):
     game = get_game(game_id)
     question = get_question(game_id,game.current_round,game.current_question_index)
 
+    #-------------------------
     is_last_question = True 
 
 
     context = {}
-    context["lastQuestion"] = json.dumps(is_last_question)  
+    context["lastQuestion"] = json.dumps(is_last_question)
     context['name'] = json.dumps(game.name)
     context['currentQuestionIndex'] = json.dumps(game.current_question_index)
     context['currentRound'] = json.dumps(game.current_round)
@@ -549,6 +550,7 @@ def round_results(request):
     # questions[0] = {'Id':0,'Index':0,'IsCorrect':False}
     # questions[1] = {'Id':1,'Index':1,'IsCorrect':True}
     # questions[2] = {'Id':2,'Index':2,'IsCorrect':True}
+
     # users = ((1,{'id':0,'username':'John','points':10,'rank':1}),(2,{'id':1,'username':'Frank','points':6,'rank':2}),(3,{'id':3,'username':'Jim','points':1,'rank':3}))
 
     # value['round'] = {}
@@ -597,7 +599,6 @@ def game_results(request):
     return render(request, 'game_results.html',context)
 
 def current_question_index(request):
-    context = {}
     value = {}        
     value['index']='undefined'
         
@@ -608,7 +609,7 @@ def current_question_index(request):
     if game_id != '':
         game = get_game(game_id)
         value['index']=game.current_question_index
-        value['round_finished'] = False
+        value['round_finished'] = True
         value['game_finished'] = False
 
 
