@@ -716,17 +716,17 @@ def get_questions(game_id:int,round_index:int=None):
 
     return (round_list,rounds)
 
-def get_question(game_id:int=None, round_index:int = None, ind:int= None, question_id:int=None):
-    if game_id==None and ind==None and question_id == None:
+def get_question(game_id:int=None, round_index:int = None, index:int = None, question_id:int=None):
+    if game_id==None and index==None and question_id == None:
         return None
     
     question = None
 
-    if game_id!=None and ind!=None:
+    if game_id!=None and index!=None:
         if round_index == None:
             game = get_game(game_id)
             round_index = game.current_round
-        question = TriviaGameQuestion.objects.filter(game__id=game_id, round_index = round_index, index=ind)
+        question = TriviaGameQuestion.objects.filter(game__id=game_id, round_index = round_index, index=index)
         if len(question)==1:
             question=question[0]
         else:
