@@ -82,6 +82,7 @@ var answer = "{{Answer | safe}}";
 var actualAnswer = "{{ActualAnswer | safe}}";
 var groups = {{groups | safe}};
 var questionId = {{questionId | safe}};
+var media = {{Media | safe}}
 var index = undefined;
 
 document.onreadystatechange = function(){
@@ -94,6 +95,7 @@ function init() {
     updateCurrentQuestionIndex(index)
     initClock(90);
     initQuestion();
+    parseImages();
   }
 
   function timeup() {
@@ -145,6 +147,16 @@ function init() {
     var divSeconds = document.getElementsByClassName("seconds")[0];
     initLocalClock(time,[10,showTimeWarning],divHours,divMinutes,divSeconds);
     setAction(timeup);//incriment question action
+  }
+
+  function parseImages(){
+    var path = "{% static "app/media/images" %}" ; 
+    var image = document.getElementById("GameImage").src = path + "/" + media['images'][0];
+
+  }
+
+  function parseAudio(){
+
   }
 
   function showTimeWarning() {
@@ -294,6 +306,12 @@ function createChoices(group){
         <div>
           <div id="Question">PlaceHolder Question</div>
           <input type="hidden" id = "inputQuestionId" name="questionId" />
+        </div>
+        <div>
+          <div id = "ImageMedia">
+            <div><img id = "GameImage" src = "" style="width: auto; height: auto; max-width: 480; max-height: 480px; object-fit: contain;"/>
+            </div>
+          </div>
         </div>
         <div id = "Choices" class ="list-group col-lg-auto"></div>
         <div style="clear: both;" ></div>
