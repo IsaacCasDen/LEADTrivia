@@ -97,6 +97,7 @@ function init() {
     initQuestion();
     parseImages();
     parseAudio();
+    parseVideo();
   }
 
   function timeup() {
@@ -151,16 +152,34 @@ function init() {
   }
 
   function parseImages(){
+    if (media["images"].length == 0) return;
     var path = "{% static "app/media/images" %}" ; 
-    var image = document.getElementById("GameImage").src = path + "/" + media['images'][1];
+    var image = document.getElementById("GameImage");
+    image.src = path + "/" + media['images'][0];
+    image.style.display = "inline-block";
   }
 
   function parseAudio(){
+    if (media["audio"].length == 0) return;
     var path = "{% static "app/media/audio" %}" + "/" + media['audio'][0]; 
-    //while (path.includes(" ")) path = path.replace(" ", "%20");
-    var audio = document.getElementById("AudioSource").src = path;
+    var audio = document.getElementById("AudioSource");
+    audio.src = path;
     var audioMedia = document.getElementById("AudioMedia");
     audioMedia.load();
+    audioMedia.style.display = "inline-block";
+
+  }
+
+  function parseVideo(){
+    if (media["video"].length == 0) return;
+    var path = "{% static "app/media/video" %}" + "/" + media['video'][0]; 
+    var video = document.getElementById("VideoSource");
+    video.src = path;
+    var videoMedia = document.getElementById("VideoMedia");
+    videoMedia.load();
+    videoMedia.style.display = "inline-block";
+
+    
   }
 
   function showTimeWarning() {
@@ -313,14 +332,17 @@ function createChoices(group){
         </div>
         <div>
           <div id = "Media" style="width: auto;">
-            <div style ="align-items: center; display:flex; justify-content: center;">
-              <img id = "GameImage" src = "" style="width: auto; height: auto; max-width: 500; max-height: 500px; object-fit: contain; "/>
+            <div style ="align-items: center; display:flex; justify-content: center;" >
+              <img id = "GameImage" src = "" style="display: none; width: auto; height: auto; max-width: 500; max-height: 500px; object-fit: contain; "/>
             </div>
             <div style = "align-items: center; display:flex; justify-content: center;">
-              <audio controls controlsList="nodownload" id = "AudioMedia">
+              <audio controls controlsList="nodownload" id = "AudioMedia" style = "display: none;">
                 <source type = "audio/mpeg" id = "AudioSource">
               </audio>
             </div>
+            <video controls controlsList="nodownload" id = "VideoMedia" style = "display: none; max-width: 480; max-height: 480;">
+              <source type = "video/mp4" id = "VideoSource">
+            </video>
           </div>
         </div>
         <div id = "Choices" class ="list-group col-lg-auto"></div>
