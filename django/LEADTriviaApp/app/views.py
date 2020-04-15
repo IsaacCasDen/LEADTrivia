@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts  import redirect
+import sys
+import os
 import random
 import json
 
@@ -258,6 +260,7 @@ def show_question(request):
     game = get_games()[0]
     gameId = game.id
    # gameId = request.session.get(GAMEID,'')
+
     if gameId == '':
         return redirect(index)
     state = get_gamestate(gameId)
@@ -265,6 +268,23 @@ def show_question(request):
     round_index = game.current_round
     question = get_question(game_id=gameId, index=ind, round_index = round_index)
     context= {}
+    
+    pathImages = "django/LEADTriviaApp/app/static/app/media/images"
+    pathAudio = "django/LEADTriviaApp/app/static/app/media/audio"
+    
+    images = os.listdir(pathImages)
+    audio = os.listdir(pathAudio)
+    
+    imagesList = []
+    for item in images:
+        imagesList.append(item)
+    
+    audioList = []
+    for item in audio:
+        audioList.append(item)
+
+    media = {'images': imagesList, 'audio': audioList}
+    context["Media"] = json.dumps(media)
 
     context["Question"] = question["question"]
     context["Answer"] = ''
