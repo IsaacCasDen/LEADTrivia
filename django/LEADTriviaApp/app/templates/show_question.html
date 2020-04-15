@@ -96,6 +96,7 @@ function init() {
     initClock(90);
     initQuestion();
     parseImages();
+    parseAudio();
   }
 
   function timeup() {
@@ -151,12 +152,15 @@ function init() {
 
   function parseImages(){
     var path = "{% static "app/media/images" %}" ; 
-    var image = document.getElementById("GameImage").src = path + "/" + media['images'][0];
-
+    var image = document.getElementById("GameImage").src = path + "/" + media['images'][1];
   }
 
   function parseAudio(){
-
+    var path = "{% static "app/media/audio" %}" + "/" + media['audio'][0]; 
+    //while (path.includes(" ")) path = path.replace(" ", "%20");
+    var audio = document.getElementById("AudioSource").src = path;
+    var audioMedia = document.getElementById("AudioMedia");
+    audioMedia.load();
   }
 
   function showTimeWarning() {
@@ -308,8 +312,14 @@ function createChoices(group){
           <input type="hidden" id = "inputQuestionId" name="questionId" />
         </div>
         <div>
-          <div id = "ImageMedia">
-            <div><img id = "GameImage" src = "" style="width: auto; height: auto; max-width: 480; max-height: 480px; object-fit: contain;"/>
+          <div id = "Media" style="width: auto;">
+            <div style ="align-items: center; display:flex; justify-content: center;">
+              <img id = "GameImage" src = "" style="width: auto; height: auto; max-width: 500; max-height: 500px; object-fit: contain; "/>
+            </div>
+            <div style = "align-items: center; display:flex; justify-content: center;">
+              <audio controls controlsList="nodownload" id = "AudioMedia">
+                <source type = "audio/mpeg" id = "AudioSource">
+              </audio>
             </div>
           </div>
         </div>
