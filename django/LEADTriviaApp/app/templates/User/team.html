@@ -1,0 +1,337 @@
+
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
+
+<style>
+  #team {
+    padding:1em;
+    display:block;
+    color: darkslategrey; 
+    width: fit-content;
+    height:fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    border-color: darkgoldenrod; 
+    border-style: solid; 
+    border-width: 0.1em;
+    z-index: 1;
+    border-radius: 2.25em;
+  }
+  #team_header {
+    width: fit-content;
+    height:fit-content;
+    display: flex;
+  }
+ 
+  #team_info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /* float:left; */
+    flex:1;
+    padding:.5em;
+    background-color: whitesmoke;
+    height:fit-content;
+    width: fit-content;
+    text-align: center;
+    border-top-left-radius: 5em;
+    border-bottom-left-radius: 5em;
+    border-color: black;
+    border-width: 0.5;
+    border-style: solid;
+  }
+  
+  #team_name {
+    text-align: center;
+    display: inline-block;
+    font-size: 1.5em;
+    margin-right: 0.5em;
+  }
+
+  #btnEditTeamName {
+    width:1.25em;
+    height:1.25em
+  }
+
+  #team_users {
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    width:fit-content;
+    margin-top: 1em;
+    margin-bottom: .5em;
+  }
+
+  .user {
+    background-color: aliceblue; 
+    width: 100%;
+    text-align: center;
+  }
+
+  #formLeave {
+    position: relative;
+    margin-top: 1em;
+    margin-bottom:0.1em;
+    height:fit-content;
+    width:fit-content;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  #btnLeave {
+    background-color: gray;
+    color: whitesmoke;
+  }
+
+  #clock {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    position: relative;
+    float:left;
+    padding:0.02em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    /* padding-top:0.5em; */
+    margin-top: 0.01em;
+    background-color: whitesmoke;
+    color: slategray;
+    text-shadow: -.015em 0 black, 0 .015em black, .015em 0 black, 0 -.015em black;
+    font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    /* font-weight: bold; */
+    font-variant: small-caps;
+    font-size: larger;
+
+    text-align: center;
+    width: fit-content;
+
+    flex:content;
+    flex-direction: column;
+
+    border-top-right-radius: 5em;
+    border-bottom-right-radius: 5em;
+    border-color: black;
+    border-width: 0.5;
+    border-style: solid;
+  }
+
+  #clock div {
+    position: relative;
+    font-size: 1.05em;    
+    width: fit-content;    
+  }
+
+  .modal {
+    display:none;
+    margin-left:auto;
+    margin-right:auto;
+    position: fixed;
+    width: fit-content;
+    height:fit-content;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+  }
+  .modal-content {
+    background-color: #fefefe;
+    padding: 1em;
+    border: 1em solid #888;
+    width:fit-content;
+    height: fit-content;
+  }
+  .close {
+    color:#aaa;
+    float:right;
+    font-size: 18em;
+    font-weight: bold;
+  }
+
+  .close:hover, close:focus {
+    color:black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .clockTimeWarning {
+        color: red;
+  }  
+
+</style>  
+
+<script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
+
+<script>
+  var teamname = "{{teamname|safe}}";
+  var users = {{users|safe}};
+  var username ="{{username|safe}}";
+  var game = {{game|safe}};
+
+  var startTime = game.StartTime;
+
+  document.onreadystatechange=function() {
+    if (document.readyState=="complete") {
+      init()
+    }
+  }
+
+  function calcTimeRemaining(date,time) {
+      var value = new Date(date + ' ' + time);
+      var diff = (value - Date.now())/1000; 
+      return diff;
+  }
+
+  function init() {
+    initClock(calcTimeRemaining(game['StartTime']['date'],game['StartTime']['time']));
+    initTeam(teamname);
+    initUsers(username,users);
+    
+  }
+
+  function timeup() {
+    document.location="/app/next_round/";
+  }
+
+  function initClock(time) {
+    var divHours = document.getElementsByClassName("hours")[0];
+    var divMinutes = document.getElementsByClassName("minutes")[0];
+    var divSeconds = document.getElementsByClassName("seconds")[0];
+    initLocalClock(time,[15,showTimeWarning],divHours,divMinutes,divSeconds);
+    setAction(timeup);
+  }
+
+  function showTimeWarning() {
+        var clock = document.getElementById('clock');
+        if (clock!=undefined) clock.classList.add("clockTimeWarning");
+    }
+
+  function initTeam(name) {
+    var formTeam = document.getElementById("formTeam");
+    var team_info = document.getElementById('team_info');
+    var team_name=document.getElementById("team_name");
+    var btnEditTeamName = document.getElementById("btnEditTeamName");
+    var modalChangeTeamName = document.getElementById("modalChangeTeamName");
+    var btnEditNameSubmit = document.getElementById("btnTeamSubmit");
+    var btnEditNameCancel = document.getElementById("btnTeamCancel");
+    var btnLeaveTeam = document.getElementById("btnLeave");
+
+    btnLeaveTeam.onclick = function() {
+      formTeam.submit();
+    }
+
+    team_name.innerText=name
+
+    var clock = document.getElementById('clock');
+      clock.style.height = team_info.clientHeight;
+
+    btnEditTeamName.onclick = function() {
+      modalChangeTeamName.style.display="block";
+    }
+    btnEditNameSubmit.onclick=function() {
+      modalChangeTeamName.style.display="none";
+    }
+    btnEditNameCancel.onclick=function() {
+      modalChangeTeamName.style.display="none";
+    }
+  }
+
+  function initUsers(user,users) {
+    var team_users=document.getElementById("team_users");
+  
+    for (var i=0; i<users.length; i++) {
+      element=users[i];
+      input=document.createElement('input');
+      input.value=element;
+      input.type="button";
+      input.classList.add("user");
+      input.classList.add("list-group-item");
+      input.classList.add("btn");
+
+      if (element===user) {
+        input.id="btnUser";
+        input.onclick = function() {
+          modalChangeUserName.style.display="block";
+        }
+      } else {
+        input.classList.add("disabled") 
+      };
+      team_users.appendChild(input);
+    }
+
+    var btnEditUserName = document.getElementById("btnUser");
+    var modalChangeUserName = document.getElementById("modalChangeUserName");
+    var btnEditNameSubmit = document.getElementById("btnUserSubmit");
+    var btnEditNameCancel = document.getElementById("btnUserCancel");
+
+    btnEditUserName.onclick = function() {
+      modalChangeUserName.style.display="block";
+    }
+    btnEditNameSubmit.onclick=function() {
+      modalChangeUserName.style.display="none";
+    }
+    btnEditNameCancel.onclick=function() {
+      modalChangeUserName.style.display="none";
+    }
+  } 
+</script>
+
+<div>
+  <div>
+    <form id="modalChangeTeamName" class="modal" method="POST" action="update_teamname/">
+      {% csrf_token %}
+      <div class="modal-content form-group">
+        <label for="txtTeamName">New Team Name:</label>
+        <input type="text" id="txtTeamName" name="new_teamname" class="form-control" />
+      </div>
+      <div>
+        <input type="submit" id="btnTeamSubmit" class="btn btn-primary" value="Submit" />
+        <input type="button" id="btnTeamCancel" class="btn btn-secondary" value="Cancel" />
+      </div>
+    </form>
+    <form id="modalChangeUserName" class="modal" method="POST" action="update_username/">
+      {% csrf_token %}
+      <div class="modal-content form-group">
+        <label for="txtUserName">New User Name:</label>
+        <input type="text" id="txtTeamName" name="new_username" class="form-control" />
+      </div>
+      <div>
+        <input type="submit" id="btnUserSubmit" class="btn btn-primary" value="Submit" />
+        <input type="button" id="btnUserCancel" class="btn btn-secondary" value="Cancel" />
+      </div>
+    </form>
+  </div>
+  <div style="width: fit-content; height: fit-content; margin-left: auto; margin-right: auto;">
+    <div id="team">
+      <div id="team_header">
+        <div id="team_info">
+          <div id="team_name" class="title"></div>
+          <input type="image" id="btnEditTeamName" src="{% static "app/images/edit.png" %}" alt="Suggest new name">
+        </div>
+        <div id="clock" class="clock">
+          <div>
+            <!-- <div class="hours"></div>
+            <div class="timesep">:</div> -->
+            <div class="minutes"></div>
+            <div class="timesep">:</div>
+            <div class="seconds"></div>
+          </div>
+        </div>
+      </div>
+      <div id="team_users" class="list-group col-lg-auto"></div>
+        <form id="formLeave" method="POST" action="leave_team/">
+          {% csrf_token %}
+          <div>
+            <input type="submit" id="btnLeave" class="btn" value="Leave" />
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

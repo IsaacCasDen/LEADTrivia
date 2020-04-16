@@ -1,0 +1,353 @@
+{% extends 'base.html'%}
+{% load static %}
+
+{% block content%}
+<!-- <img src= alt="Lobby"> -->
+
+<link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
+
+<style>
+    body{ 
+        background-image: url("{% static "app/images/lobbyimage.jpg" %}");
+        background-repeat: no-repeat;
+        background-color: firebrick;
+        background-size: 100%;
+    }
+    #header {
+        align-content: center;
+        clear:both;
+        position: relative;
+        width:100%;
+        top: 0em;
+        left:0em;
+        height:auto;
+        overflow: auto;
+    }
+    #body {
+        clear:both;
+        height: auto;
+        overflow: auto;
+        flex-wrap: wrap;
+    }
+    #footer {
+        clear:both;
+        position: relative;
+        bottom: 0em;
+        left:0em;
+        height: auto;
+        overflow: auto;
+    }
+    #divTeams {
+        align-content:flex-start;
+    }
+    #divTitle {
+        position: relative;
+        float:left;
+        padding:0.1em;
+        padding-left: 1em;
+        background-color: firebrick;
+        color: whitesmoke;
+        font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        font-variant: small-caps;
+        font-size: larger;
+        width: 80%;
+        min-height:1.5em;
+        height: fit-content;
+        
+        flex: 1;
+        flex-direction: column;
+
+        text-align: center;
+        border-top-left-radius: 5em;
+        border-bottom-left-radius: 5em;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+    }
+
+    #clock {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        position: relative;
+        float:left;
+        padding:0.02em;
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+        /* padding-top:0.5em; */
+        margin-top: 0.01em;
+        background-color: whitesmoke;
+        color: slategray;
+        text-shadow: -.015em 0 black, 0 .015em black, .015em 0 black, 0 -.015em black;
+        font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        /* font-weight: bold; */
+        font-variant: small-caps;
+        font-size: larger;
+
+        text-align: center;
+        width: fit-content;
+
+        flex:content;
+        flex-direction: column;
+
+        border-top-right-radius: 5em;
+        border-bottom-right-radius: 5em;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+    }
+
+    #clock div {
+        position: relative;
+        font-size: 1.05em;    
+        width: fit-content;    
+    }
+
+    #userInfo {
+        display: flexbox;
+        justify-content: center;
+        align-items: center;
+
+        float:left;
+        flex:1;
+        padding:.25em;
+        background-color: whitesmoke;
+        width: fit-content;
+        text-align: center;
+        border-top-left-radius: 5em;
+        border-bottom-left-radius: 5em;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+        
+    }
+
+    #btnNewTeam {
+        float:left;
+        flex:1;
+
+        border-top-right-radius: 5em;
+        border-bottom-right-radius: 5em;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+
+        font-size: 1em;
+    }
+    
+    .infoitem {
+        display: inline;
+        font-size: 1em;
+    }
+
+    .h1 {
+        /* background-color: whitesmoke; */
+        width: 100%;
+        display: inline-block;
+    }
+    .teamHeader {
+        font-size: 1.1em;
+    }
+    .divTeam {
+        
+        float:left;
+        background-color: whitesmoke;
+        padding: 1em;
+        margin: 1em;
+        
+        border-radius: 5%;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+
+        font-size: 1em;
+    }
+
+    .clockTimeWarning {
+        color: red;
+    }
+
+    .clockGameStarted {
+        background-color: blue;
+    }
+</style>
+
+<script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
+
+<script>
+    var game={{game|safe}};
+    var teams={{teams|safe}};
+    var orphans={{orphans|safe}};
+    var gameId = {{gameId|safe}};
+    var timeremaining = 0;
+    var timerEvents = [[40,showTimeWarning]];
+
+
+    document.onreadystatechange=function() {
+        if (document.readyState=="complete") {
+            init()
+        }
+    }
+
+    function init() {
+        timeremaining = calcTimeRemaining(game['StartTime']['date'], game['StartTime']['time']);
+        initClock(timeremaining);
+        initTeams();
+        initTitlesAndSizes();
+    }
+
+    function initTitlesAndSizes() {
+        var title = document.getElementById('divTitle');
+        title.innerText = game.Name;
+
+        var clock = document.getElementById('clock');
+        clock.style.height = title.clientHeight;
+
+        var userInfo = document.getElementById('userInfo');
+        var btnNewTeam = document.getElementById('btnNewTeam');
+
+        btnNewTeam.style.height = userInfo.clientHeight;
+    }
+
+    function calcTimeRemaining(date,time) {
+        var value = new Date(date + ' ' + time);
+        var diff = (value - Date.now())/1000; 
+        return diff;
+    }
+
+    function timeup() {
+        var clock = document.getElementById('clock');
+        children = clock.children;
+        if (children.length !== undefined && children.length>0){
+            for (var i=1; i<children.length; i++) {
+                clock.removeChild(children[i]);
+            }
+
+            clock = children[0];
+            
+            children=clock.children;
+            if (children.length !== undefined && children.length>0) {
+                for (var i=0; i<children.length; i++) {
+                    clock.removeChild(children[i]);
+                }
+            }
+            
+
+            clock.innerText="Game Started!"
+            // clock.classList.remove("clockTimeWarning");
+            clock.parentElement.style.backgroundColor="lightgreen";
+        }
+        
+        
+    }
+
+    function initClock(time) {
+        if (time>0) {
+            var divHours = document.getElementsByClassName("hours")[0];
+            var divMinutes = document.getElementsByClassName("minutes")[0];
+            var divSeconds = document.getElementsByClassName("seconds")[0];
+            initLocalClock(time,timerEvents,divHours,divMinutes,divSeconds);
+            setAction(timeup);
+        } else {
+            timeup()
+        }
+    }
+
+    function showTimeWarning() {
+        var clock = document.getElementById('clock');
+        clock.style.backgroundColor="palegoldenrod";
+    }
+
+    function initTeams() {
+        var btnNewTeam = document.getElementById("btnNewTeam");
+        var formTeams = document.getElementById("formTeams");
+        var divTeams = document.getElementById("divTeams");
+        var divUser = document.getElementById("divUser");
+        var teamIds = Object.keys(teams);
+
+        divUser.innerText = username;
+
+        btnNewTeam.onclick = function() {
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = 'teamId';
+            hiddenField.value = null;
+            formTeams.appendChild(hiddenField);
+            formTeams.submit();
+        }
+
+        teamIds.forEach(element => {
+            var div = createTeam(formTeams,teams[element]);
+            divTeams.appendChild(div);
+        });
+    }
+
+    function createTeam(parent, team) {
+        var divTeam = document.createElement('div');
+        divTeam.onclick = function() {
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = 'teamId';
+            hiddenField.value = team['id'];
+            parent.appendChild(hiddenField);
+            parent.submit();
+        }
+
+        divTeam.classList.add("divTeam");
+
+        var header = document.createElement('p');
+        header.innerText=team['name'];
+        header.classList.add('teamHeader');
+
+        var listUsers = document.createElement('ul');
+        divTeam.appendChild(header);
+        divTeam.appendChild(listUsers);
+
+        team['members'].forEach(element=> {
+            var user = document.createElement('li');
+            user.innerText=element;
+            listUsers.appendChild(user);
+        })
+
+        return divTeam;
+    }
+
+    
+
+</script>
+<body>
+    <form id="formTeams" method="POST" action="/app/team/">
+        {% csrf_token %}
+        <div id="header">
+            <div class="h1">
+                <div style="margin-left: auto; margin-right: auto; width: 90%; display: flex;">
+                    <div id="divTitle">LEAD TRIVIA NIGHT</div>
+                    <div id="clock" class="clock">
+                        <div>
+                            <!-- <div class="hours"></div>
+                            <div class="timesep">:</div> -->
+                            <div class="minutes">00</div>
+                            <div class="timesep">:</div>
+                            <div class="seconds">00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-left: auto; margin-right: auto; margin-top: .5em; width: fit-content; display: flex; font-size: larger;">
+                <div id="userInfo">
+                    <div class="infoitem">Welcome </div><div id="divUser" class="infoitem"></div><div class="infoitem">! Please select a team below to join, or create a new team!</div>
+                </div>
+                <div>
+                    <input id="btnNewTeam" class="btn btn-large btn-primary" type="button" value="New Team" />
+                </div>
+            </div>
+        </div>
+        <div id="body">
+            <div id="divTeams"></div>
+        </div>
+        <div id="footer">
+        </div>
+    </form>
+</body>
+{% endblock %}
