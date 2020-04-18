@@ -26,5 +26,6 @@ urlpatterns = [
     path('edit_game/edit_questions/',views.edit_questions,name="edit_questions"),
     path('round_results/', views.round_results, name = "round_results"),
     path('game_results/', views.game_results, name = "game_results"),
+    path('admin_save_questions/', views.admin_save_questions, name = "admin_save_questions"),
 
 ]
