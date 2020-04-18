@@ -1,0 +1,358 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
+
+<style>
+
+    #Choices{
+      display: block;
+      clear: both;
+      float: left;
+    }
+   
+    .isChoice{}
+
+
+    #Submit{
+      display: block;
+      clear: both;
+      float: right;
+    }
+
+    #Answer{
+      display: block;
+      clear: both;
+      float: left;
+    }
+    #divFIB {
+      display: inline-block;
+      clear: both;
+    }
+
+    .text{
+      float:left;
+      margin-right: 0.5em;
+      margin-top: 0.5em;
+      padding:0.15em;
+    }
+    select {
+      background-color: beige;
+    }
+
+    .consensus {
+      background-color: lightgreen;
+    }
+
+    .container {
+      float:left;
+      clear: both;
+      width:25em;
+    }
+
+    .label {
+      position:relative;
+      float:left;
+      margin-left: .5em;
+      width:auto;
+    }
+
+    .choice {
+      position:relative;
+      float:left;
+      margin-left: .1em;
+      width:auto;
+    }
+
+    .clockTimeWarning {
+        color: red;
+    }
+</style>
+  
+<script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
+
+<script>
+// context["Question"] = question["Question"]
+// context["Answer"] = question["Answer"]
+// context["Choices"] = question["Choices"]
+// context["QuestionId"] = question["QuestionId"]
+var question = "{{Question | safe}}";
+var answer = "{{Answer | safe}}";
+var actualAnswer = "{{ActualAnswer | safe}}";
+var groups = {{groups | safe}};
+var questionId = {{questionId | safe}};
+var media = {{Media | safe}}
+var index = undefined;
+
+document.onreadystatechange = function(){
+  if (document.readyState == "complete"){
+    init();
+  }
+}
+
+function init() {
+    updateCurrentQuestionIndex(index)
+    initClock(90);
+    initQuestion();
+    parseImages();
+    parseAudio();
+    parseVideo();
+  }
+
+  function timeup() {
+
+    var answerDiv=document.getElementById("Answer");
+    document.getElementById("btnSubmit").disabled = true;
+    var elements = document.getElementsByClassName("isChoice");
+    elements = Array.from(elements);
+    elements.forEach(element => {
+      element.disabled = true;
+    }); 
+    answerDiv.innerText = actualAnswer;
+    setTimeout(checkCurrentQuestionIndex,5000); //Add Delay
+
+  }
+
+  function updateCurrentQuestionIndex() {
+    var query = $.getJSON('/app/current_question_index');
+    query.done(function(data) {
+      index = data.index
+      if (index==undefined) {
+        document.location.href = 'app/';
+      }
+    });
+  }
+
+  function checkCurrentQuestionIndex() {
+    var query = $.getJSON('/app/current_question_index/');
+    query.done(function(data) {
+      if (data.index!=index || data.round_finished == false) {
+        document.location.reload();
+      }
+      else if (data.round_finished == true){
+        document.location.replace('/app/round_results/')
+
+      }
+      else if (data.game_finished == true){
+        document.location.replace('/app/game_results/')
+      }
+      else {
+        setTimeout(checkCurrentQuestionIndex,500)
+      }
+    });
+  }
+
+  function initClock(time) {
+    var divHours = document.getElementsByClassName("hours")[0];
+    var divMinutes = document.getElementsByClassName("minutes")[0];
+    var divSeconds = document.getElementsByClassName("seconds")[0];
+    initLocalClock(time,[10,showTimeWarning],divHours,divMinutes,divSeconds);
+    setAction(timeup);//incriment question action
+  }
+
+  function parseImages(){
+    if (media["images"].length == 0) return;
+    var path = "{% static "app/media/images" %}" ; 
+    var image = document.getElementById("GameImage");
+    image.src = path + "/" + media['images'][0];
+    image.style.display = "inline-block";
+  }
+
+  function parseAudio(){
+    if (media["audio"].length == 0) return;
+    var path = "{% static "app/media/audio" %}" + "/" + media['audio'][0]; 
+    var audio = document.getElementById("AudioSource");
+    audio.src = path;
+    var audioMedia = document.getElementById("AudioMedia");
+    audioMedia.load();
+    audioMedia.style.display = "inline-block";
+
+  }
+
+  function parseVideo(){
+    if (media["video"].length == 0) return;
+    var path = "{% static "app/media/video" %}" + "/" + media['video'][0]; 
+    var video = document.getElementById("VideoSource");
+    video.src = path;
+    var videoMedia = document.getElementById("VideoMedia");
+    videoMedia.load();
+    videoMedia.style.display = "inline-block";
+
+    
+  }
+
+  function showTimeWarning() {
+      var clock = document.getElementById('clock');
+      if (clock!=undefined) clock.classList.add("clockTimeWarning");
+  }
+
+function initQuestion(){
+  var inputId = document.getElementById("inputQuestionId");
+  if (inputId.length>0) inputId = inputId[0];
+  inputId.value = questionId;
+  if (question.includes("{}")){
+    initFillInBlank();
+  }else{
+    initMultipleChoice(groups[0]);
+  }
+ 
+}
+function initMultipleChoice(group){
+  var questionDiv=document.getElementById("Question");
+  var answerDiv=document.getElementById("Answer");
+  var choicesDiv=document.getElementById("Choices");
+  var group = groups[0]
+  var choices = group.choices;
+  questionDiv.innerText = question;
+  answerDiv.innerText = "";
+
+  for (var i=0; i<choices.length; i++){
+    // var div = document.createElement('div');
+    element = choices[i];
+    keys = Object.keys(element);
+    container = document.createElement('label');
+    container.classList.add('list-group-item');
+    container.classList.add('container');
+
+    var label = document.createElement('div');
+    label.classList.add('form-check-label');
+    label.classList.add('label');
+    label.innerText = element['value'];
+    
+    input=document.createElement('input');
+    input.classList.add("choice")
+    input.classList.add("isChoice");
+    input.classList.add('form-check-input')
+    input.value = element['id'];
+    input.type = "radio";
+    input.name = "option_" + group.id;
+    input.id="idInput" + input.value;
+    
+    container.appendChild(input);
+    container.appendChild(label);
+
+    // div.appendChild(input)  
+    // div.appendChild(label)
+    choicesDiv.appendChild(container);
+ }
+}
+
+function initFillInBlank(){
+  createQuestionDiv();
+}
+
+function createQuestionDiv(text){
+  var questionDiv=document.getElementById("Question");
+  var answerDiv=document.getElementById("Answer");
+  questionDiv.innerText = "Fill in the Blank Question"; // Hard coded for now!
+  var divChoices = document.getElementById('Choices');
+  var parentElement = divChoices.parentElement;
+  questionDiv.innerText = "Please fill in the blanks!";
+  answerDiv.innerText = "";
+  parentElement.removeChild(divChoices);
+  divChoices = document.createElement('div');
+  divChoices.id="divFIB";
+  parentElement.insertBefore(divChoices, document.getElementById("Submit"));
+  var questArray = question.split("{}");
+  
+  for (var i = 0; i<questArray.length; i++){
+    var newDiv = document.createElement('p');
+    // newDiv.id = questArray[i];
+    newDiv.classList.add("text");
+    newDiv.innerText = questArray[i];
+    divChoices.appendChild(newDiv);
+    if (i < groups.length){ divChoices.appendChild(createChoices(groups[i])); }
+
+  }
+}
+function createChoices(group){
+  var optionSelect = document.createElement("select"); 
+  optionSelect.name = "option_" + group.id;
+  // optionSelect.classList.add("form-control");
+  optionSelect.classList.add("text");
+  optionSelect.classList.add("isChoice");
+    for (c in group.choices){
+      var _choices = document.createElement('option');
+      _choices.innerText = group.choices[c].value;
+      _choices.value = group.choices[c].id;
+      optionSelect.appendChild(_choices);
+
+      }
+      return optionSelect
+      // choiceDiv.appendChild(optionSelect);
+      // return choiceDiv;
+
+  }
+
+  function submitAnswer() {
+    //action=""
+    var form = $('#formAnswer');
+    var data = form.serializeArray();
+    // var submit = $.getJSON("submit_answer/");
+    $.ajax({
+      type:"POST",
+      url:"submit_answer/",
+      dataType:"json",
+      data:data,
+      success:onSuccess
+    });
+
+  }
+
+  function onSuccess(data, text, object) {
+    parseResult(data);
+  }
+
+  function parseResult(data) {
+
+  }
+
+  function onBtnSubmitClicked() {
+    submitAnswer()
+  }
+  
+</script>
+
+<!-- This needs to fix the border to wrap correctly and then move the submit button -->
+<body >
+  <div class="container">
+    <div>
+      <div>
+      <form id="formAnswer"> <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
+        {% csrf_token %}
+        <article id="clock" class="clock">
+          <div class="minutes"></div>
+          <div class="timesep">:</div>
+          <div class="seconds"></div>
+        </article>
+        <div>
+          <div id="Question">PlaceHolder Question</div>
+          <input type="hidden" id = "inputQuestionId" name="questionId" />
+        </div>
+        <div>
+          <div id = "Media" style="width: auto;">
+            <div style ="align-items: center; display:flex; justify-content: center;" >
+              <img id = "GameImage" src = "" style="display: none; width: auto; height: auto; max-width: 500; max-height: 500px; object-fit: contain; "/>
+            </div>
+            <div style = "align-items: center; display:flex; justify-content: center;">
+              <audio controls controlsList="nodownload" id = "AudioMedia" style = "display: none;">
+                <source type = "audio/mpeg" id = "AudioSource">
+              </audio>
+            </div>
+            <video controls controlsList="nodownload" id = "VideoMedia" style = "display: none; max-width: 480; max-height: 480;">
+              <source type = "video/mp4" id = "VideoSource">
+            </video>
+          </div>
+        </div>
+        <div id = "Choices" class ="list-group col-lg-auto"></div>
+        <div style="clear: both;" ></div>
+      </form>
+      <div id = "Answer">PlaceHolder Answer</div>
+      <button id="btnSubmit" class="btn btn-primary" onclick="onBtnSubmitClicked()">Submit</button>
+      </div>
+    </div>
+  </div>
+</body>
+
+{% endblock %}

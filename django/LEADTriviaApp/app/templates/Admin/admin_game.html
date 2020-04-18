@@ -1,0 +1,97 @@
+{% extends 'base.html'%}
+{% load static %}
+
+{% block content%}
+
+<style>
+
+</style>
+
+<script>
+    var name = {{name|safe}}
+    var currentQuestionIndex = {{currentQuestionIndex|safe}}
+    var currentRound = {{currentRound|safe}}
+    var currentQuestion = {{currentQuestion|safe}}
+    var currentAnswer = {{currentAnswer|safe}}
+    var lastQuestion = {{lastQuestion|safe}}
+    var lastRound = {{lastRound|safe}}
+    var countRemaining = {{countRemaining|safe}}
+    var roundsRemaining = {{roundsRemaining|safe}}
+
+    document.onreadystatechange = function() {
+        if (document.readyState=="complete") {
+            init();
+            updateButton();
+            //checkCurrentQuestionIndex();
+        }
+    }
+
+    function init() {
+        var divName = document.getElementById('divName');
+        var divRemaining = document.getElementById('divQuestionsRemaining');
+        var divRound = document.getElementById('divCurrentRound');
+        var divCurrentIndex = document.getElementById('divCurrentQuestion');
+        var divQuestion = document.getElementById('divCurrentQuestionText');
+        var divAnswer = document.getElementById('divCurrentAnswerText');
+
+        divName.innerText = name;
+        divRemaining.innerText = countRemaining;
+        divRound.innerText = currentRound
+        divCurrentIndex.innerText = currentQuestionIndex
+        divQuestion.innerText = currentQuestion;
+        divAnswer.innerText = currentAnswer;
+    }
+
+
+    function updateButton(){
+        var lquestion = lastQuestion;
+        if (lquestion == true){
+            buttonDiv = document.getElementById("move_forward");
+            buttonDiv.value = 'Round Results';
+            buttonDiv.style.backgroundColor = "green";
+        }
+    }
+
+
+
+
+</script>
+
+
+
+<body>
+    <form id="formAdminGame" method="POST">
+        {% csrf_token %}
+        <div id="divInfo">
+            <div id="divName">Placeholder Name</div>
+            <div>
+                <div style="float: left;">Questions Remaining:&nbsp;</div>
+                <div id="divQuestionsRemaining">10</div>
+            </div>
+            <div>
+                <div style="float: left;">Current Round:&nbsp;</div>
+                <div id="divCurrentRound">1</div>
+            </div>
+            <div>
+                <div style="float: left;">Current Question:&nbsp;</div>
+                <div id="divCurrentQuestion">1</div>
+            </div>
+            <div>
+                <div style="float: left;">Current Question:&nbsp;</div>
+                <div id="divCurrentQuestionText">What is the airspeed of a swallow?</div>
+            </div>
+            <div>
+                <div style="float: left;">Current Answer:&nbsp;</div>
+                <div id="divCurrentAnswerText">African or European?</div>
+            </div>
+        </div>
+        <div id="divControls">
+            <div id="divCurrentQuestion">
+                <input type="submit" type="button" value="Previous Question" formaction="admin_prev_question/" class="btn btn-secondary">
+                <input type="submit" type="button" value="Next Question" formaction="admin_next_question/" class="btn btn-primary" id = "move_forward">
+            </div>
+        </div>
+    </form>
+</body>
+
+{% endblock %}

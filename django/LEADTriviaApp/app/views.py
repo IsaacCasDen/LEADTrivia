@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts  import redirect
+import sys
+import os
 import random
 import json
 import os
@@ -16,6 +18,8 @@ GAMEID = 'gameId'
 GAMENAME = 'gameName'
 
 def set_session_vars(request):
+    request.session['mode'] = 1
+
     if 'gameId' not in request.session.keys():
         request.session['gameId'] = ''
     if 'errors' not in request.session.keys():
@@ -54,19 +58,18 @@ def init_db():
 def index(request):
     set_session_vars(request)
     init_db()
-
-    context = {}
+    mode = request.session['mode']
 
     games = get_games()
     _games = []
     for game in games:
         _games.append(game.get_info())
 
-    context['games'] = json.dumps(_games)
-
     if len(games)==0:
         return HttpResponse("No Games Available")
-    game_data = get_gamestate(games[len(games)-1].id)
+
+    if mode == 1:
+        return redirect(lobby)    
 
     if request.session['gameId'] == '':
         pass
@@ -80,15 +83,20 @@ def index(request):
     if isinstance(userId,int) and isinstance(gameId,int) and  len(request.session['errors'])==0:
         return redirect(lobby)
 
+    game_data = get_gamestate(games[len(games)-1].id)
+    context = {}
+    context['games'] = json.dumps(_games)
+
     context['gameId'] = request.session['gameId']
     context['userId'] = request.session['userId']
     context['username'] = request.session['username']
     context['errors'] = request.session['errors']
     context['data'] = json.dumps(game_data)
 
-    return render(request,'index.html', context)
+    return render(request,'User/index.html', context)
 
 def lobby(request):
+    mode = request.session['mode']
     set_session_vars(request)
     context = {}
 
@@ -99,60 +107,73 @@ def lobby(request):
     request.session['gameId'] = gameId
     request.session['errors'] = []
 
+
     if gameId != '':
         gameId = int(gameId)
         request.session['gameId'] = gameId
     
-    if userId != '':
-        userId = int(userId)
-        request.session['userId'] = userId
-    
-    if teamId != '':
-        teamId = int(teamId)
-        request.session['teamId'] = teamId
+    state = get_gamestate(gameId)
+    if mode == 0:
+            
+        if userId != '':
+            userId = int(userId)
+            request.session['userId'] = userId
+        
+        if teamId != '':
+            teamId = int(teamId)
+            request.session['teamId'] = teamId
 
-    if gameId == '':
-        return redirect(index)
-    elif userId == '' and username == '':
-        request.session['errors'] = ['Please enter a username']
-        return redirect(index)
-    elif userId == '':
-        request.session['username'] = username
-        user = create_user(int(gameId),username)
-        if user == None:
-            request.session['errors'] = ['Username already taken']
+        if gameId == '':
             return redirect(index)
-        else:
-            request.session['userId']=user.id
-    else:
-        user = get_user(int(gameId), int(userId))
-        if user != None:
-            request.session['userId']=user['user'].id
-            request.session['username']=user['user'].user_name
-            request.session['teamId']=user['team'].id
-            return redirect(team)
-        else:
-            user = get_orphan(int(gameId),int(userId))
+        elif userId == '' and username == '':
+            request.session['errors'] = ['Please enter a username']
+            return redirect(index)
+        elif userId == '':
+            request.session['username'] = username
+            user = create_user(int(gameId),username)
             if user == None:
-                request.session['userId'] = ''
-                request.session['teamId'] = ''
+                request.session['errors'] = ['Username already taken']
                 return redirect(index)
             else:
-                request.session['username'] = user.user.user_name
+                request.session['userId']=user.id
+        else:
+            user = get_user(int(gameId), int(userId))
+            if user != None:
+                request.session['userId']=user['user'].id
+                request.session['username']=user['user'].user_name
+                request.session['teamId']=user['team'].id
+                return redirect(team)
+            else:
+                user = get_orphan(int(gameId),int(userId))
+                if user == None:
+                    request.session['userId'] = ''
+                    request.session['teamId'] = ''
+                    return redirect(index)
+                else:
+                    request.session['username'] = user.user.user_name
         
-    state = get_gamestate(gameId)
+        context['username'] = request.session['username']
+   
 
     context['teams'] = json.dumps(state['Teams'])
     context['orphans'] = json.dumps(state['Orphans'])
     context['game']=json.dumps(state['Game'])
-    context['username'] = request.session['username']
     context['gameId'] = request.session['gameId']
     context['errors'] = request.session['errors'] 
-    return render(request, 'lobby.html',context)
-            
+    
+
+    if mode == 0:
+        return render(request, 'User/lobby.html',context)
+    else:
+        return render(request, 'Competition/comp_lobby.html',context)
+       
 def team(request):
+    mode = request.session['mode']
     set_session_vars(request)
     context = {}
+
+    if mode == 1:
+        return redirect(lobby)
 
     gameId = request.session.get('gameId','')
     teamId = request.POST.get('teamId')
@@ -207,9 +228,11 @@ def team(request):
     context['username']= username
     context['errors'] = request.session['errors']
     
-    return render(request,'team.html',context)
+    if mode == 0:
+        return render(request,'User/team.html',context)
+    else:
+        return render(request, 'Competition/comp_team.html',context)
     
-
 def leave_team(request):
     set_session_vars(request)
     gameId = request.session.get(GAMEID,'')
@@ -250,15 +273,22 @@ def update_username(request):
     return redirect(team)
 
 def next_round(request):
+    mode = request.session['mode']
     context = {}
     context['round']=1
-    return render(request,'next_round.html',context)
+    if mode == 0:
+        return render(request,'User/next_round.html',context)
+    else:
+        return render(request, 'Competition/comp_next_round.html', context)
 
 def show_question(request):
+    mode = request.session['mode']
+
     set_session_vars(request)
     game = get_games()[0]
     gameId = game.id
    # gameId = request.session.get(GAMEID,'')
+
     if gameId == '':
         return redirect(index)
     state = get_gamestate(gameId)
@@ -266,13 +296,40 @@ def show_question(request):
     round_index = game.current_round
     question = get_question(game_id=gameId, index=ind, round_index = round_index)
     context= {}
+    
+    pathImages = "django/LEADTriviaApp/app/static/app/media/images"
+    pathAudio = "django/LEADTriviaApp/app/static/app/media/audio"
+    pathVideo = "django/LEADTriviaApp/app/static/app/media/video"
+    
+    images = os.listdir(pathImages)
+    audio = os.listdir(pathAudio)
+    video = os.listdir(pathVideo)
+    
+    imagesList = []
+    # for item in images:
+    #     imagesList.append(item)
+    
+    audioList = []
+    # for item in audio:
+    #     audioList.append(item)
+
+    videoList = []
+    for item in video:
+        videoList.append(item)
+
+    media = {'images': imagesList, 'audio': audioList, 'video': videoList }
+    context["Media"] = json.dumps(media)
 
     context["Question"] = question["question"]
     context["Answer"] = ''
     context["ActualAnswer"] = question['answer']
     context["groups"] = question["groups"]
     context["questionId"] = question["id"]
-    return render(request, 'show_question.html',context)
+    
+    if mode == 0:
+        return render(request, 'User/show_question.html',context)
+    else:
+        return render(request, "Competition/comp_show_question.html",context)
 
 def admin_prev_question(request):
     
@@ -298,41 +355,10 @@ def admin_next_question(request):
     game.next_question()
     return redirect(admin_game)
 
-def prev_question(request):
-    set_session_vars(request)
-
-    game_id = request.POST.get(GAMEID,'')
-    if game_id == '':
-        game_id = request.session.get(GAMEID,'')
-    if game_id == '':
-        games = get_games()
-        game_id = games[len(get_games)-1].id
-
-    game = get_game(game_id)
-    game.prev_question()
-    return redirect(show_question)
-
-def next_question(request):
-    set_session_vars(request)
-    
-    game_id = request.POST.get(GAMEID,'')
-    if game_id == '':
-        game_id = request.session.get(GAMEID,'')
-    if game_id == '':
-        games = get_games()
-        game_id = games[len(get_games)-1].id
-
-    game = get_game(game_id)
-
-    if game.next_question():
-        return redirect(show_question)
-    else:
-        return redirect(round_results)
-
 def submit_answer(request):
     value = {}
-
     set_session_vars(request)
+
     gameId = request.session.get(GAMEID,'')
     userId = request.session.get(USERID,'')
     teamId = request.session.get(TEAMID,'')
@@ -554,6 +580,7 @@ def edit_questions(request):
     return render(request,'edit_questions.html',context)
 
 def round_results(request):
+    mode = request.session['mode']
     context = {}
     
     gameId = request.session.get('gameId','')
@@ -587,13 +614,19 @@ def round_results(request):
     context['userId'] = userId
     context['errors'] = request.session['errors']
 
-    
-    return render(request,'round_results.html',context)
+    if mode == 0:
+        return render(request,'User/round_results.html',context)
+    else: 
+        return render(request, 'Competition/comp_round_results.html', context)
 
-def game_results(request):
+def final_results(request):
     context = {}
+    mode = request.session['mode']
 
-    return render(request, 'game_results.html',context)
+    if mode == 0:
+        return render(request,'User/final_results.html',context)
+    else: 
+        return render(request, 'Competition/comp_final_results.html', context)
 
 def current_question_index(request):
     value = {}        

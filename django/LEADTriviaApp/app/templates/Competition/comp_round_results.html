@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
+
+<style>
+    #PlayerRank {
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    #TopDiv{
+        display: block;
+        width: 100%;
+        clear: both;
+    }
+
+    .text{
+      float: left;
+      margin-left: .5em;
+
+    }
+
+    .questionContain{
+      width: fit-content;
+      clear: both;
+      display: inline-block;
+    }
+
+    #BottomDiv{
+        display: block;
+        width: 100%;
+        clear: both;
+    }
+
+    #LeftDiv{
+        float: left;
+        padding: .5em;
+        border-right: grey solid 0.1em;
+        height: 60%;
+   
+    }
+
+    #RightDiv{
+        float: left;
+        padding: .5em;
+    }
+
+    #Accuracy{
+        float: left;
+    }
+
+    #RoundResult{
+        float: left;
+        width: fit-content;
+    }
+
+
+    #team {
+      color: darkslategrey; 
+      max-width: 400px; 
+      border-color: darkgoldenrod; 
+      border-style: solid; 
+      border-width: 0.1em;
+    }
+    #team_info {
+      text-align: center;
+      display: block;
+      float:left;
+    }
+    #team_name {
+      display: inline-block;
+    }
+   
+    .user {
+      background-color: aliceblue; 
+      width: 100%;
+      text-align: center;
+      }
+    #btnLeave {
+      background-color: gray;
+      color: whitesmoke;
+      align-self: center;
+      margin: auto;
+      margin-bottom:0.5em;
+      display: block
+    }
+    
+    .modal {
+      width:auto;
+      height:auto;
+      overflow:auto;
+      align-self: center;
+      position:fixed;
+      background-color: rgb(0,0,0);
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      padding: 1em;
+      border: 1em solid #888;
+      width:auto;
+    }
+    .close {
+      color:#aaa;
+      float:right;
+      font-size: 18em;
+      font-weight: bold;
+    }
+  
+    .close:hover, close:focus {
+      color:black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  
+    .clockTimeWarning {
+        color: red;
+    }  
+</style>
+  
+<!-- <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script> -->
+
+<script>
+  // THIS PAGE NEEDS SOME HEAVY REWORK FOR THE COMPETITION SCREEN
+    // THIS PAGE NEEDS SOME HEAVY REWORK FOR THE COMPETITION SCREEN
+      // THIS PAGE NEEDS SOME HEAVY REWORK FOR THE COMPETITION SCREEN
+
+  var username ="{{username|safe}}";
+  var userId = {{userId | safe}};
+  var game = {{game|safe}};
+  var results = {{results|safe}}
+  var users = results['team']['users']
+  var teamname = results['team']['teamName'];
+  var totalPositions = results['round']['team_count']
+  var teamPosition = results ['team']['rank']
+  var questions = results['team']['questions']
+  var index = undefined;
+
+document.onreadystatechange = function(){
+  if (document.readyState == "complete"){
+    init();
+  }
+}
+function init() {
+    initTeam(teamname);
+    initUsers(userId, users);
+    createRank(teamPosition, totalPositions);
+    check();
+    setTimeout(checkCurrentQuestionIndex,500);
+  }
+
+  function timeup() {
+    alert('Time expired');
+  }
+
+  function initClock(time) {
+    var divHours = document.getElementsByClassName("hours")[0];
+    var divMinutes = document.getElementsByClassName("minutes")[0];
+    var divSeconds = document.getElementsByClassName("seconds")[0];
+    initLocalClock(time,divHours,divMinutes,divSeconds);
+  }
+
+  function initTeam(name) {
+    var team_name=document.getElementById("teamInfo");
+    team_name.innerText=name;
+
+  }
+
+  function initUsers(user, users){
+    var WorstPlayer =document.getElementById("WorstPlayer");
+    WorstPlayer.innerText=users[users.length-1][1]['username']; 
+
+    var BestPlayer=document.getElementById("BestPlayer");
+    BestPlayer.innerText=users[0][1]['username'];
+
+  }
+
+  function createRank(teamPositions, totalPositions){
+    var TeamRank =document.getElementById("TeamRank");
+    TeamRank.innerText = teamPosition;
+    var TotalPositions =document.getElementById("TotalPositions");
+    TotalPositions.innerText = totalPositions;
+
+  }
+
+  function updateCurrentQuestionIndex() {
+    var query = $.getJSON('current_question_index');
+    query.done(function(data) {
+      index = data.index
+      if (index==undefined) {
+        document.location.href = 'app/';
+      }
+    });
+  }
+
+  function checkCurrentQuestionIndex() {
+    var query = $.getJSON('current_question_index/');
+    query.done(function(data) {
+      if (data.index!=index) {
+        document.location.reload();
+      }
+      else if (data.round_finished == False){
+        document.location.replace('/app/show_question/');
+      }
+      // else if (data.game_finished == true){
+      //   document.location.replace('/app/game_results/')
+      // }
+      else {
+        setTimeout(checkCurrentQuestionIndex,500)
+      }
+    });
+  }
+
+  function check(){
+    var q = document.getElementById("questions");
+    var keys = Object.keys(questions);    
+    keys.forEach(element => {
+      var questionCheck = questions[element];
+      var _question = document.createElement("div");
+      var _answer = document.createElement("div");
+      var _host = document.createElement("div")
+      _question.innerText = 'Question: ' + questionCheck["Index"];
+      _answer.innerText = questionCheck["IsCorrect"];
+      _answer.classList.add("text");
+      _question.classList.add("text");
+      _host.classList.add("questionContainer");
+      _host.appendChild(_question);
+      _host.appendChild(_answer);
+      q.appendChild(_host);
+      
+    });
+  }
+
+</script>
+<body >
+    <div class="container">
+        <div id = "TopDiv">
+            {% csrf_token %}
+            <!-- <article id="clock" class="clock">
+                <div class="minutes"></div>
+                <div class="timesep">:</div>
+                <div class="seconds"></div>
+            </article> -->
+            <div id=teamDiv>
+                <div id="teamInfo">
+                </div>
+            </div>
+        </div>
+        <div id = "BottomDiv">
+            <div id = "LeftDiv">
+                <div id = "RoundResult"> <u>Round Results</u>
+                <div id = "questions"></div>
+                </div> 
+            </div>
+            <div id = "RightDiv">
+                <p id = TeamResults> <u>Team Results</u></p>
+
+                <div id = "Rank">
+                <div id = "PlayerRank"> <p style="float: left;" >Rank: &nbsp;</p> <p style="float: left;" id="TeamRank"></p> <p style="float: left;">&nbsp;of&nbsp; </p> <p style= "float: right;" id="TotalPositions"></p> </div>
+
+                </div>
+                <div id = "MostAccurate">
+                <p id = "Accuracy" > Most Accurate:</p>
+                <p id = "BestPlayer" ></p>
+ 
+
+                </div>
+                <div id = "LeastAccurate">
+                <p id = "Accuracy"> Least Accurate:</p>
+                <p id = "WorstPlayer"></p>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends 'base.html'%}
+{% load static %}
+
+{% block content%}
+
+<style>
+
+    form {
+        padding: 1em;
+    }
+
+    #divState {
+        height:auto;
+    }
+
+    .btn {
+        margin: 0.25em;
+    }
+</style>
+
+<script>
+    var id = {{id|safe}};
+    var name = {{name|safe}};
+    var state = {{state|safe}};
+    var currentRound = {{current_round|safe}};
+    var currentQuestionIndex = {{current_question_index|safe}};
+    var startDate = {{start_date|safe}};
+    var startTime = {{start_time|safe}};
+    var isCancelled = {{is_cancelled|safe}};
+
+    document.onreadystatechange = function() {
+        if (document.readyState=="complete") {
+            init();
+        }
+    }
+
+    function init() {
+        if (id!=undefined) setValue("inputId","value",id)
+        if (name!="undefined") setValue("inputName","value",name);
+        if (state!=undefined) {
+            switch (state) {
+                case 0:
+                    setValue("inputClosed","checked",true);
+                    break;
+                case 1:
+                    setValue("inputOpen","checked",true);
+                    break;
+                case 2:
+                    setValue("inputFinished","checked",true);
+                    break;
+            }
+        }
+
+        
+        if (currentRound!=undefined) setValue("inputCurrentRound","value",currentRound);
+        if (currentQuestionIndex!=undefined) setValue("inputCurrentQuestionIndex","value",currentQuestionIndex);
+        if (startDate!="undefined") setValue("inputStartDate","value",startDate);
+        if (startTime!="undefined") setValue("inputStartTime","value",startTime);
+        if (isCancelled!=undefined) setValue("inputIsCancelled","value",isCancelled);
+    }
+    function setValue(container, property, value) {
+        var item = document.getElementById(container);
+        if (item!=undefined) {
+            item.setAttribute(property,value)
+        }
+    }
+
+    function validateForm() {
+        
+        var isValid = true;
+
+
+
+        return isValid;
+    }
+
+    function onClose(event) {
+        document.location="/app/admin_manager";
+    }
+</script>
+
+<body>
+    <form id="formEditGame" method="POST">
+        {% csrf_token %}
+        <div>
+            
+            <input id="inputId" type="hidden" name="gameId" value="" readonly />
+            <div class="form-group row">
+                <label for="inputName" class="col-form-label">Trivia Game Name:&nbsp;</label>
+                <input id="inputName" class="form-control col-sm-5" type="text" name="name" placeholder="Name" required/>
+            </div>
+            <div class="form-group row">
+                <label for="divState" class="col-form-label">Game State:&nbsp;</label>
+                <div id="divState" class="form-control col-sm-5">
+                    <fieldset>
+                        <label for="inputClosed"><input id="inputClosed" type="radio" required name="state" value=0 />Closed</label>
+                        <label for="inputOpen"><input id="inputOpen" type="radio" required name="state" value=1 />Open</label>
+                        <label for="inputFinished"><input id="inputFinished" type="radio" required name="state" value=2 />Finished</label>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="form-group row">
+                <label for="inputCurrentRound" class="col-form-label">Current Round:&nbsp;</label>
+                <input id="inputCurrentRound" class="form-control col-sm-1" type="number" name="current_round" value="1" required />
+            </div>
+            
+            <div class="form-group row">
+                <label for="inputCurrentQuestionIndex" class="col-form-label">Current Question Index:&nbsp;</label>
+                <input id="inputCurrentQuestionIndex" class="form-control col-sm-1" type="number" name="current_question_index" value="0" required/>
+            </div>
+            <div class="form-group row">
+                <label for="inputStartDate" class="col-form-label">Start Date:&nbsp;</label>
+                <input id="inputStartDate" class="form-control col-sm-4" type="date" name="start_date" value="" required/>
+            </div>
+
+            <div class="form-group row">
+                <label for="inputStartTime" class="col-form-label">Start Time:&nbsp;</label>
+                <input id="inputStartTime" class="form-control col-sm-4" type="time" name="start_time" value="" required/>
+            </div>
+            
+            <div class="form-group row">
+                <label for="inputIsCancelled" class="col-form-label">Game Cancelled:&nbsp;</label>
+                <input id="inputIsCancelled" class="form-control col-sm-1" type="checkbox" name="is_cancelled" value="false" />
+            </div>
+
+            <div class="form-group row">
+                <input type="submit" class="btn btn-primary" value="Save" formaction="/app/save_game/" onsubmit="return validateForm()"/>
+                <button id="btnClose" type="button" class="btn btn-danger" onclick="onClose()">Close</button>
+                <input type="submit" class="btn btn-secondary" value="Edit Questions" formaction="edit_questions/" />
+            </div>
+        </div>
+    </form>
+</body>
+
+{% endblock %}
