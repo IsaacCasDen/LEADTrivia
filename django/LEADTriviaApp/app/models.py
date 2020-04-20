@@ -308,6 +308,7 @@ def get_round_results(game_id:int,round_index:int):
     value = {} 
     teams = {item.team.id:item for item in TriviaGameRoundResultTeam.objects.filter(game_round=game_round.id)}
 
+
     value['round'] = {}
     value['round']['id']=game_round.id
     value['round']['index']=game_round.round_index
@@ -316,14 +317,24 @@ def get_round_results(game_id:int,round_index:int):
 
     
     value['teams'] = {}
+    value['users'] = []
+    value['teamRank'] = []
+
     for i,key in enumerate(teams.keys()):
         users = []
         value['teams'][key] = {'id':key, 'teamName':teams[key].team.team.team_name,'points':teams[key].points,'rank':teams[key].rank,'questions':{}}
         _users = TriviaGameRoundResultUser.objects.filter(game_round=game_round.id, user__team__id=key)
         for user in _users:
-            users.append((user.rank,{'id':user.user.user.id,'username':user.user.user.user_name,'points':user.points,'rank':user.rank}))
+            u = [user.rank,{'id':user.user.user.id,'username':user.user.user.user_name,'points':user.points,'rank':user.rank}]
+            users.append(tuple(u))
+        
+            value['users'].append([user.points, u[1], teams[key].team.team.team_name])
+
+        value['teamRank'].append((teams[key].rank, key))
+
         users.sort(key=lambda x:x[0])
         value['teams'][key]['users']=tuple(users)
+
 
         answers = TriviaGameTeamAnswer.objects.filter(game__id=game_id,team__id=key,question__round_index=round_index)
         questions = {}
@@ -332,6 +343,16 @@ def get_round_results(game_id:int,round_index:int):
 
 
         value['teams'][key]['questions'] = questions
+
+    value['teamRank'].sort(key = lambda x:x[0])
+    value['users'].sort(key = lambda x:x[0], reverse=True)
+
+    for i, user in enumerate(value['users']):
+        user[0] = i + 1
+        user[1]['rank'] = i + 1
+        value['users'][i] = tuple(user)
+
+
 
     return value
     
