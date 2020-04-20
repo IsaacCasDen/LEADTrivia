@@ -31,6 +31,7 @@
       clear: both;
     }
 
+
     .text{
       float:left;
       margin-right: 0.5em;
@@ -46,9 +47,8 @@
     }
 
     .container {
-      float:left;
+      float:center;
       clear: both;
-      width:25em;
     }
 
     .label {
@@ -93,7 +93,7 @@ document.onreadystatechange = function(){
 
 function init() {
     updateCurrentQuestionIndex(index)
-    initClock(90);
+    initClock(200);
     initQuestion();
     parseImages();
     parseAudio();
@@ -103,11 +103,10 @@ function init() {
   function timeup() {
 
     var answerDiv=document.getElementById("Answer");
-    document.getElementById("btnSubmit").disabled = true;
     var elements = document.getElementsByClassName("isChoice");
     elements = Array.from(elements);
     elements.forEach(element => {
-      element.disabled = true;
+      //element.disabled = true;
     }); 
     answerDiv.innerText = actualAnswer;
     setTimeout(checkCurrentQuestionIndex,5000); //Add Delay
@@ -221,15 +220,9 @@ function initMultipleChoice(group){
     label.innerText = element['value'];
     
     input=document.createElement('input');
-    input.classList.add("choice")
     input.classList.add("isChoice");
-    input.classList.add('form-check-input')
-    input.value = element['id'];
-    input.type = "radio";
-    input.name = "option_" + group.id;
     input.id="idInput" + input.value;
     
-    container.appendChild(input);
     container.appendChild(label);
 
     // div.appendChild(input)  
@@ -267,15 +260,15 @@ function createQuestionDiv(text){
   }
 }
 function createChoices(group){
-  var optionSelect = document.createElement("select"); 
-  optionSelect.name = "option_" + group.id;
-  // optionSelect.classList.add("form-control");
+  var optionSelect = document.createElement("ul"); 
+  optionSelect.style.listStyleType = "none";
   optionSelect.classList.add("text");
+  optionSelect.classList.add("list-group");
   optionSelect.classList.add("isChoice");
     for (c in group.choices){
-      var _choices = document.createElement('option');
+      var _choices = document.createElement('li');
       _choices.innerText = group.choices[c].value;
-      _choices.value = group.choices[c].id;
+      _choices.classList.add("list-group-item");
       optionSelect.appendChild(_choices);
 
       }
@@ -349,7 +342,6 @@ function createChoices(group){
         <div style="clear: both;" ></div>
       </form>
       <div id = "Answer">PlaceHolder Answer</div>
-      <button id="btnSubmit" class="btn btn-primary" onclick="onBtnSubmitClicked()">Submit</button>
       </div>
     </div>
   </div>
