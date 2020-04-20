@@ -73,8 +73,10 @@ def index(request):
     if request.session['gameId'] == '':
         pass
 
+    game_data = get_gamestate(games[len(games)-1].id) 
     userId = request.session['userId']
     gameId = request.session['gameId']
+
     if gameId != game_data['Game']['Id']:
         gameId = game_data['Game']['Id']
         request.session['gameId']=gameId
@@ -82,7 +84,6 @@ def index(request):
     if isinstance(userId,int) and isinstance(gameId,int) and  len(request.session['errors'])==0:
         return redirect(lobby)
 
-    game_data = get_gamestate(games[len(games)-1].id)
     context = {}
     context['games'] = json.dumps(_games)
 
@@ -275,6 +276,7 @@ def next_round(request):
     mode = request.session['mode']
     context = {}
     context['round']=1
+    
     if mode == 0:
         return render(request,'User/next_round.html',context)
     else:
@@ -313,8 +315,8 @@ def show_question(request):
     #     audioList.append(item)
 
     videoList = []
-    for item in video:
-        videoList.append(item)
+    # for item in video:
+    #     videoList.append(item)
 
     media = {'images': imagesList, 'audio': audioList, 'video': videoList }
     context["Media"] = json.dumps(media)
@@ -405,7 +407,7 @@ def admin_manager(request):
     for game in games:
         context['Games'].append(json.dumps(game.get_info()))
 
-    return render(request,'admin_manager.html',context)
+    return render(request,'Admin/admin_manager.html',context)
 
 def admin_game(request):
 
@@ -450,7 +452,7 @@ def admin_game(request):
     context['currentQuestion'] = json.dumps(item['question'])
     context['currentAnswer'] = json.dumps(item['answer'])
 
-    return render(request,'admin_game.html',context)
+    return render(request,'Admin/admin_game.html',context)
 
 def edit_game(request):
     context = {}
@@ -490,7 +492,7 @@ def edit_game(request):
 
 
     
-    return render(request,'edit_game.html',context)
+    return render(request,'Admin/edit_game.html',context)
 
 def create_game(request):
     context = {}
@@ -576,46 +578,54 @@ def edit_questions(request):
     context['game'] = json.dumps(game.get_info())
     context['questions'] = json.dumps(questions)
 
-    return render(request,'edit_questions.html',context)
+    return render(request,'Admin/edit_questions.html',context)
 
 def round_results(request):
     mode = request.session['mode']
     context = {}
-    
     gameId = request.session.get('gameId','')
-    teamId = request.POST.get('teamId',request.session.get('teamId',''))
-    userId = request.session.get('userId','')
-    username = request.session.get('username','')
- 
-    if gameId == '' or userId == '':
+    
+    if gameId == '':
         return redirect(index)
 
-    if teamId!='':
-        teamId = int(teamId)
-    else:
-        return redirect(index)
-    
     game = get_game(gameId)
-    round_results = get_round_results(game.id,game.current_round)
+    round_results = get_round_results(game.id,1) #game.current_round
     if round_results==None:
         return redirect(show_question)
 
     results = {}
     results['round'] = round_results['round']
-    results['team'] = round_results['teams'][teamId]
     
     data = get_gamestate(gameId)
 
-    request.session['teamId'] = teamId
     context['results'] = json.dumps(results)
     context['game'] = json.dumps(data['Game'])
-    context['username']= username
-    context['userId'] = userId
     context['errors'] = request.session['errors']
 
     if mode == 0:
+        teamId = request.POST.get('teamId',request.session.get('teamId',''))
+        userId = request.session.get('userId','')
+        username = request.session.get('username','')
+ 
+        if userId == '':
+            return redirect(index)
+
+        if teamId!='':
+            teamId = int(teamId)
+        else:
+            return redirect(index)
+
+        results['team'] = round_results['teams'][teamId]
+        request.session['teamId'] = teamId
+        context['username']= username
+        context['userId'] = userId
         return render(request,'User/round_results.html',context)
-    else: 
+    else:
+        results['users'] = round_results['users']
+        results['teamRank'] = round_results['teamRank'] 
+        results['teams'] = round_results['teams']
+        context['results'] = json.dumps(results)
+        
         return render(request, 'Competition/comp_round_results.html', context)
 
 def final_results(request):
