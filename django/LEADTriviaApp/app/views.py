@@ -5,6 +5,7 @@ import sys
 import os
 import random
 import json
+import os
 
 from .models import *
 # Create your views here.
@@ -388,7 +389,7 @@ def submit_answer(request):
     for groupId, choiceId in choices:
         answers_submitted = answers_submitted and submit_user_choice(gameId,questionId,groupId,choiceId,userId)
 
-    value['answer'] = True
+    value['answer'] = answers_submitted
 
     return JsonResponse(value)
 
@@ -570,9 +571,9 @@ def edit_questions(request):
         return redirect(admin_game)
     
     questions = get_questions(game_id)
-    if len(questions[1].keys())==0:
-        create_questions(game_id)
-        questions = get_questions(game_id)
+    # if len(questions[1].keys())==0:
+    #     create_questions(game_id)
+    #     questions = get_questions(game_id)
 
     context = {}
     context['game'] = json.dumps(game.get_info())
@@ -654,3 +655,23 @@ def current_question_index(request):
 
     return JsonResponse(value)
 
+def admin_save_questions(request):
+    value = {}
+    value['result'] = False
+
+    gameId = request.POST.get('gameId','')
+    if gameId == '':
+        return JsonResponse(value)
+
+    _data = request.POST.get('data','')
+    if _data == '':
+        return JsonResponse(value)
+
+    data = None
+    try:
+        data = json.loads(_data)
+    except:
+        return JsonResponse(value)
+    
+    if data == '':
+        return JsonResponse(value)

@@ -3,64 +3,943 @@
 
 {% block content%}
 
+{% csrf_token %}
+
 <style>
     #divData {
         height: 80%;
+        width: 95%;
+        padding: 0.5em;
+        margin: 0.5em;
+        border-color: black;
+        border-width: 1px;
+        border-style: solid;
+        overflow-y: auto;
+    }
+    #divRounds {
+    }
+    #divControls {
+        height:20%;
+        margin: 0.5em;
+        padding: 0.5em;
+    }
+
+    .border {
+        border-color: gray;
+        border-style: solid;
+        border-width: 2px;
+    }
+    .divRound {
+        margin-left:1em;
+        clear: both;
+    }
+
+    ul {
+        list-style-type: none;
+    }
+
+    .list-group-horizontal {
+        overflow-x: auto;
+    }
+
+    .divQuestion {
+        margin-left:0.5em;
+        display: block;
+        clear: both;
+    }
+
+    .arrowContainer {
+        float: left;
+        margin: 0em .25em 0em 0em;
+        /* padding: .05em; */
+        height: auto;
+        width: auto;
+        background-color: #ffffff;
+    }
+
+    .arrow {
+        object-fit:fill;
+        float: left;
+        clear: both;
+        height: 1em;
+        width: 2em;
+        margin: .05em;
+        padding: 0em;
+    }
+
+    .item {
+        float:left;
+    }
+
+    .block {
+        height:fit-content;
+    }
+
+    .index {
+        width:auto;
+    }
+
+    .textblock {
+        width:95%;
+        min-height: auto;
+    }
+
+    .nopadding {
+        padding: 0;
+    }
+
+    .nomargin {
+        margin:0;
+    }
+
+    .btn {
+        margin:.5em;
+    }
+    .btn img {
+        margin: 0;
+        padding: 0;
+    }
+
+    .choice-container {
+        display:grid;
+        grid-template-columns: auto 2em;
+        gap: 10px;
+        padding: 10px;
+        width: 100%;
+    }
+
+    .row {
+        width: 100%;
+    }
+
+    .question {
+    }
+
+
+    .slides {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        width: 300px;
+    }
+    .slide {
+        padding: 15px;
+        background-color: #2F2F2F;
+        margin: 0 0 15px;
+        text-align: center;
+        color: #FFF;
+        border: 2px solid #444;
+    }
+
+    .slide-placeholder {
+        background: #DADADA;
+        position: relative;
+    }
+    .slide-placeholder:after {
+        content: " ";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 15px;
+        background-color: #FFF;
+    }
+
+    .slide2 {
+        height: 30px;
+    }
+    .slide3 {
+        height: 50px;
+    }
+    .slide4 {
+        height: 90px;
+    }
+    .slide5 {
+        height: 35px;
     }
 </style>
 
 <script>
+
+    class RecordItem {
+        constructor(id) {
+            this.id=id;
+            this.name = "";
+            this.changed=false;
+            this.deleted=false;
+            this.new = false;
+        }
+    }
+
+    class Parent extends RecordItem {
+        constructor(id) {
+            super(id);
+            this.items = {};
+            this.count=0;
+            this.deleted = [];
+        }
+
+        getItems() {
+            var items = []
+
+            Object.keys(this.items).forEach(key => {
+                items.push([parseInt(key),this.items[key]]);
+            })
+
+            return items;
+        }
+
+        getValues() {
+            var values = []
+            var keys = Object.keys(this.items);
+            keys.forEach(key=> {
+                values.push(this.items[key]);
+            });
+
+            return values;
+        }
+
+        addItem(item) {
+            var keys = Object.keys(this.items);
+            keys.forEach(key=>{
+                if (this.items[key]===item) return key;
+            });
+            this.items[this.count]=item;
+            // item.changed=true;
+            item.parent=this;
+            this.count++;
+            return this.count-1;
+        }
+        setItem(pos,item) {
+            if (pos<0) return;
+            this.count++;
+            if (!(pos in this.items))  {
+                this.items[pos]=item;
+                if (!item.parent || item.parent != this)
+                    item.parent=this;
+                else if (item.parent instanceof Parent) {
+                    parent.removeItem(item);
+                }
+
+                item.parent=this;
+            } else {
+                for (var i=this.count-1; i>pos; i++) {
+                    this.items[i]=this.items[i-1];
+                    this.items[i].changed=true;
+                }
+                this.items[pos]=item;
+            }
+            // item.changed=true;
+        }
+        removeItem(item) {
+            if (this.count==0) return false;
+
+            var hasItem = false;
+            var key;
+            var keys = Object.keys(this.items);
+            
+            for (var i=0; i<keys.length; i++) {
+                key=keys[i];
+                var obj = this.items[key];
+                if (this.items[key]===item) {
+                    hasItem=true;
+                    break;
+                }
+            };
+
+            if (!hasItem) return false;
+            key = parseInt(key);
+            if (this.count==1) {
+                this.items = {};
+                this.count=0;
+                item.deleted=true;
+                this.deleted.push(item)
+                return true;
+            } else if (key+1>=this.count) {
+                delete this.items[key];
+                item.deleted=true;
+                this.count--;
+                this.deleted.push(item)
+                return true;
+            }
+            
+            for (var i=key+1;i<this.count;i++) {
+                if (i+1==this.count) {
+                    this.items[i-1]=this.items[i]
+                    delete this.items[i];
+                    break;
+                } else {
+                    this.items[i-1]=this.items[i]
+                }
+            }
+            this.count--;
+            item.deleted=true;
+            this.deleted.push(item)
+            return true;
+        }
+
+        incIndex(item) {
+            var value = false;
+            for (var i=0; i<this.count-1; i++) {
+                if (this.items[i] == item) {
+                    this.items[i] = this.items[i+1];
+                    this.items[i+1] = item;
+                    value=true;
+                }
+            }
+            // if (value) item.changed=true;
+            return value;
+        }
+
+        decIndex(item) {
+            var value=false;
+            for (var i=1; i<this.count; i++) {
+                if (this.items[i]==item) {
+                    value=true;
+                    this.items[i] = this.items[i-1];
+                    this.items[i-1] = item;
+                }
+            }
+            // if (value) item.changed=true;
+            return value;
+        }
+
+        getIndex(item) {
+            var value = undefined;
+            this.items.forEach(key => {
+                if (this.item[key]==item) return key;
+            });
+            return undefined;
+        }
+    }
+
+    class Rounds extends Parent {
+        constructor() {
+            super();
+            this.name = "Rounds";
+        }
+
+        
+    }
+    class Round extends Parent {
+        constructor() {
+            super();
+            this.name = "Round";
+        }
+
+        
+    }
+    class Question extends Parent {
+        constructor(id,questionText,answerText) {
+            super(id);
+            this.name = "Question";
+            this.questionText=questionText;
+            this.answerText=answerText;
+        }
+        setQuestionText(value) {
+            if (this.questionText!=value) {
+                this.questionText=value;
+                this.changed=true;
+            }
+        }
+        setAnswerText(value) {
+            if (this.answerText!=value) {
+                this.answerText=value;
+                this.changed=true;
+            }
+        }
+    }
+
+    class Group extends Parent {
+        constructor(id) {
+            super(id);
+            this.name = "Group";
+            this.id=id;
+        }
+    }
+
+    class Choice extends RecordItem {
+        constructor(id,value) {
+            super(id);
+            this.name = "Choice";
+            this.value=value;
+        }
+        setValue(value) {
+            if (this.value!=value) {
+                this.value=value;
+                this.changed=true;
+            }
+        }
+    }
+
     var game = {{game|safe}};
     var questions = {{questions|safe}};
-    var divData;
+    var data = {'Rounds':[],'Questions':{},'Groups':{},'Choices':{}};
+    var rounds;
+
+    function parseQuestions() {
+        this.rounds = new Rounds();
+        questions[0].forEach(roundKey => {
+            round = new Round();
+            var index = rounds.addItem(round);
+            var gameQuestions = questions[1][roundKey];
+            gameQuestions.forEach(q => {
+                question = new Question(q.id,q.question,q.answer);
+                round.setItem(q.index,question);
+                q.groups.forEach(g => {
+                    group = new Group(g.id);
+                    question.setItem(g.index,group);
+                    g.choices.forEach(c => {
+                        choice = new Choice(c.id,c.value);
+                        group.addItem(choice);
+                    }); 
+                });
+            });
+
+        });
+    }
+
+    // function parseQuestions() {
+    //     gameRounds = questions[0];
+    //     gameRounds.forEach(roundIndex => {
+    //         data['Rounds'].push(roundIndex);
+    //         gameQuestions = questions[1][roundIndex];
+    //         gameQuestions.forEach(question => {
+    //             var q = {};
+    //             q.id=question.id;
+    //             q.question = question.question;
+    //             q.index = question.index;
+    //             data['Questions'][q.id]=q;
+
+    //             question.groups.forEach(group => {
+    //                 var g = {};
+    //                 g.questionId = q.id;
+    //                 g.id=group.id;
+    //                 g.index=group.index;
+    //                 data['Groups'][g.id]=g;
+
+    //                 group.choices.forEach(choice=> {
+    //                     var c = {}
+    //                     c.groupId = g.id;
+    //                     c.id=choice.id;
+    //                     c.value=choice.value
+    //                     data['Choices'][c.id]=c;
+    //                 });
+    //             })
+    //         })
+
+    //     });
+        
+    // }
 
     document.onreadystatechange = function() {
         if (document.readyState=="complete") {
             init();
         }
     }
+    
     function init() {
-        divData = document.getElementById('divData');
-
-        populateData()
+        parseQuestions();
+        createRounds();
+        attachEvents();
     }
-    function populateData() {
-        for (var i=0; i<questions.length; i++) {
-            divData.appendChild(createQuestion(i,questions[i]));
+
+    function reloadGame() {
+        parseQuestions();
+        refreshGame();        
+    }
+    function refreshGame() {
+        var ulRounds = document.getElementById('ulRounds');
+        while (ulRounds.firstChild) ulRounds.removeChild(ulRounds.lastChild);
+        createRounds();
+    }
+
+    function attachEvents() {
+        // attachReordering();
+        attachTextChangedListeners();
+    }
+
+
+
+    function attachTextChangedListeners() {
+        // var elements = document.getElementsByName();
+    }
+
+    function createDraggable(item,text) {
+        var div = document.createElement('div');
+        div.classList.add('input-group');
+        div.classList.add('input-group-text');
+
+        var divIcon = document.createElement('div');
+        var btnUp = document.createElement('button');
+        var imgUp = document.createElement('img');
+        // btnUp.type="image";
+        imgUp.src="{% static "app/images/uparrow.png" %}";
+        btnUp.addEventListener('click',function() {onClick_DecItemIndex(item)})
+
+        var btnDown = document.createElement('button');
+        var imgDown = document.createElement('img');
+        // btnDown.type="image";
+        imgDown.src="{% static "app/images/downarrow.png" %}";
+        btnDown.addEventListener('click',function() {onClick_IncItemIndex(item)})
+
+        
+        btnUp.appendChild(imgUp);
+        btnDown.appendChild(imgDown);
+        divIcon.classList.add('arrowContainer');
+        divIcon.classList.add('border');
+        imgUp.classList.add('arrow');
+        imgDown.classList.add('arrow');
+        btnUp.classList.add('arrow');
+        btnUp.classList.add('btn');
+        btnDown.classList.add('arrow');
+        btnDown.classList.add('btn');
+
+        var title = document.createElement('div');
+
+        title.innerText=text;
+
+        var divControls = document.createElement('div');
+        
+        var input = document.createElement('button');
+        input.classList.add('btn');
+        input.classList.add('grid-item');
+        input.classList.add('nopadding');
+        input.onclick = function() { alert('Delete'); }
+
+        var img = document.createElement('img');
+        img.width=48;
+        img.height=48;
+        img.src="{% static "app/images/icon_delete.png" %}";
+        img.classList.add('nopadding');
+        img.classList.add('nomargin');
+
+        input.appendChild(img);
+
+        divControls.appendChild(input);
+        divControls.style.float="right";
+        divControls.style.width="auto";
+
+        divIcon.appendChild(btnUp);
+        divIcon.appendChild(btnDown);        
+        div.appendChild(divIcon);
+        div.appendChild(title);
+        div.appendChild(divControls);
+        return div;
+    }
+
+    function onClick_IncItemIndex(item) {
+        if (item!=undefined && item.parent && item.parent instanceof Parent) {
+            item.parent.incIndex(item);
         }
     }
-    function createQuestion(index,data) {
-        var child = document.createElement('div');
-        var inputQ = createInput('textarea');
-        inputQ.name = 'question_id_' + data['id'];
-        inputQ.value = data.question;
-        child.appendChild(inputQ);
-
-        return child;
+    function onClick_DecItemIndex(item) {
+        if (item!=undefined && item.parent && item.parent instanceof Parent) {
+            item.parent.decIndex(item);
+        }
     }
 
-    function createInput(type) {
-        var input;
-        switch(type) {
-            case 'text':
-                input = document.createElement('input');
-                input.type = type
-                break;
-            case 'textarea':
-                input = document.createElement('textarea');
-                break;
-        }        
+    function createRounds() {
+        // return;
+        var ulRounds = document.getElementById('ulRounds');
+        items = rounds.getItems();
+        var hasControls = false;
+        while (items.length>ulRounds.children.length) {
+            for (var i=0; i<items.length; i++) {
+                var item = items[i];
+                if (item[0] == ulRounds.children.length) {
+                    var round = createRound(item);
+                    ulRounds.appendChild(round);
+                    hasControls=true;
+                    break;
+                }
+            }
+        }
+        if (!hasControls) {
+            ulRounds.appendChild(createRoundControls())
+        }
+    }
+
+    function createRound(item) {
+        var liRound = document.createElement('li');
+        liRound.classList.add("divRound");
+        liRound.classList.add("form-group");
+
+        var divRoundTitle = createDraggable(item[1],'Round ' + item[0]);
+        var ulQuestions = createQuestions(item[1],item[1].getItems());
+
+        liRound.appendChild(divRoundTitle);
+        liRound.appendChild(ulQuestions);
+        liRound.appendChild(createRoundControls());
+
+        return liRound;
+    }
+
+    function createRoundControls() {
+        var div = document.createElement('div');
+        var input = document.createElement('button');
+        input.innerText = "New Round";
+        input.classList.add('btn');
+        input.classList.add('btn-success');
+        input.onclick=onClick_newRound;
+
+        div.appendChild(input);
+
+        return div;
+    }
+
+    function onClick_newRound(event) {
+        value = new Round();
+        value.new = true;
+        rounds.addItem(value);
+        refreshGame();
+    }
+    
+    function createQuestions(round,items) {
+
+        var ulQuestions = document.createElement('ul');
+        var hasControls = false;
+        while (items.length>ulQuestions.children.length) {
+            for (var i=0; i<items.length; i++) {
+                var item = items[i];
+                if (item[0] == ulQuestions.children.length) {
+                    var question = createQuestion(round,item[0],item);
+                    ulQuestions.appendChild(question);
+                    hasControls=true;
+                    break;
+                }
+            };
+        }
+        if (!hasControls) {
+            ulQuestions.appendChild(createQuestionControls(round,0));
+        }
+
+        return ulQuestions;
+
+    }
+
+    function createQuestion(round,questionIndex,item) {
+        var liQuestion = document.createElement('li');
+        liQuestion.classList.add('divQuestion');
+        liQuestion.classList.add('form-group');
+
+        var divTitle = createDraggable(item[1],'Question ' + item[0]);
+        var divContent = document.createElement('div');
+        var ulGroups = createGroups(item[1],item[1].getItems())
+
+        liQuestion.appendChild(divTitle);
+        liQuestion.appendChild(divContent);
+
         
-        return input;
+        divContent.appendChild(createQuestionText(item[1],item[1].questionText));
+        divContent.appendChild(createAnswerText(item[1],item[1].answerText));
+        divContent.appendChild(ulGroups);
+        divContent.appendChild(createQuestionControls());
+
+        return liQuestion;
+    }
+    function createQuestionText(question,text) {
+        var label,input,div;
+        
+        div = document.createElement('div');
+        div.classList.add('form-group');
+        div.classList.add('input-group');
+        div.classList.add('block');
+
+        label = document.createElement('label');
+        label.classList.add("input-group");
+        label.classList.add("item");
+        label.classList.add("input-group-text");
+
+        input = document.createElement('textarea');
+        input.classList.add('question');
+        input.classList.add('item');
+        input.classList.add('textblock');
+        input.classList.add("form-control");
+        input.classList.add("form-control-lg");
+
+        label.innerText = 'Question';
+        input.innerText = text;
+        input.addEventListener('change',function() {onChange_QuestionText(question,input)});
+        div.appendChild(label);
+        div.appendChild(input);
+
+        return div;
     }
 
+    function onChange_QuestionText(question,source) {
+        question.setQuestionText(source.value);
+    }
+    function onChange_AnswerText(question,source) {
+        question.setAnswerText(source.value);
+    }
+
+    function createAnswerText(question,text) {
+        var label,input,div;
+        
+        div = document.createElement('div');
+        div.classList.add('form-group');
+        div.classList.add('input-group');
+        div.classList.add('block');
+
+        label = document.createElement('label');
+        label.classList.add("item");
+        label.classList.add("input-group");
+        label.classList.add("input-group-text");
+
+        input = document.createElement('textarea');
+        input.classList.add('question');
+        input.classList.add('item');
+        input.classList.add('textblock');
+        input.classList.add("form-control");
+        input.classList.add("form-control-lg");
+
+        label.innerText = 'Answer';
+        input.innerText = text;
+        input.addEventListener('change',function() {onChange_AnswerText(question,input)});
+
+        div.appendChild(label);
+        div.appendChild(input);
+
+        return div;
+    }
+
+    function createQuestionControls(round,index) {
+        var div = document.createElement('div');
+        
+        input = document.createElement('button');
+        input.innerText = "New Question";
+        input.classList.add('btn');
+        input.classList.add('btn-success');
+        input.addEventListener('click',function() {onClick_NewQuestion(round,index)})
+
+        div.appendChild(input);
+
+        return div;
+    }
+    function onClick_NewQuestion(round,index) {
+        value = new Question();
+        value.new=true;
+        value.questionText = '';
+        value.answerText = '';
+        round.setItem(index,value);
+        refreshGame();
+    }
+
+    function createGroups(question,items) {
+        var divGroups = document.createElement('div');
+        divGroups.classList.add('border');
+
+        var divContent = document.createElement('div');
+        var divControls = document.createElement('div');
+
+        var ulGroups = document.createElement('ul');
+        ulGroups.classList.add('list-group');
+        // ulGroups.classList.add('list-group-horizontal');
+        ulGroups.classList.add('border');
+
+        while (items.length>ulGroups.children.length) {
+            for (var i=0; i<items.length; i++) {
+                var item = items[i];
+                if (item[0] == ulGroups.children.length) {
+                    var group = createGroup(item);
+                    ulGroups.appendChild(group);
+                    break;
+                }
+            };
+        }
+
+        divContent.appendChild(ulGroups);
+
+        var input = document.createElement('button');
+        input.classList.add('btn');
+        input.classList.add('btn-success');
+        // input.style.width = "1em";
+        // input.style.height = "1em";
+
+        input.innerText="New Group"
+        input.addEventListener('click', function() { onClick_NewGroup(question) });
+        
+        divControls.appendChild(input);
+
+        divGroups.appendChild(divContent);
+        divGroups.appendChild(divControls);
+
+        return divGroups;
+    }
+    function onClick_NewGroup(question) {
+        value = new Group();
+        value.new=true;
+        question.addItem(value);
+        refreshGame();
+    }
+
+    function createGroup(item) {
+        var liGroup = document.createElement('li');
+        liGroup.classList.add('list-group-item');
+        
+        var label = document.createElement('label');
+        label.innerText = "Group " + item[0];
+        label.classList.add("input-group-text");
+
+        var ulContent = createChoices(item[1].getItems())
+        ulContent.classList.add('list-group');
+
+        var divControls = document.createElement('div');
+        var input = document.createElement('button');
+        input.innerText = "New Choice"
+        input.classList.add('btn');
+        input.classList.add('btn-success');
+        input.addEventListener('click',function() {onClick_NewChoice(item[1])});
+
+        divControls.appendChild(input);
+
+        liGroup.appendChild(label);
+        liGroup.appendChild(ulContent);
+        liGroup.appendChild(divControls);
+        return liGroup
+    }
+    function onClick_NewChoice(group) {
+        value = new Choice();
+        value.new=true;
+        value.value = "";
+        group.addItem(value);
+        refreshGame();
+    }
+
+    function createChoices(items) {
+        var ulChoices = document.createElement('ul');
+        ulChoices.classList.add('list-group');
+
+        while (items.length>ulChoices.children.length) {
+            for (var i=0; i<items.length; i++) {
+                var item = items[i];
+                if (item[0] == ulChoices.children.length) {
+                    var choices = createChoice(item);
+                    ulChoices.appendChild(choices);
+                    break;
+                }
+            };
+        }
+        return ulChoices;
+    }
+
+    function createChoice(item) {
+        var liChoice = document.createElement('li');
+        var div = document.createElement('div');
+        div.classList.add('choice-container');
+
+        var input = document.createElement('textarea');
+        // input.classList.add('item');
+        // input.classList.add('textblock');
+        input.classList.add("form-control");
+        input.classList.add("form-control-lg");
+        input.classList.add('grid-item')        ;
+
+        input.value = item[1].value;
+
+        input.addEventListener('change',function() {onChange_ChoiceText(item[1],input)});
+        div.appendChild(input);
+
+        var btn = document.createElement('button');
+        btn.classList.add('btn');
+        btn.classList.add('grid-item');
+        btn.classList.add('nopadding');
+        btn.addEventListener('click', function() {onClick_DeleteChoice(item[1])});
+
+        var img = document.createElement('img');
+        img.width=48;
+        img.height=48;
+        img.src="{% static "app/images/icon_delete.png" %}";
+        img.classList.add('nopadding');
+        img.classList.add('nomargin');
+
+        btn.appendChild(img);
+
+        div.appendChild(btn);
+
+        liChoice.appendChild(div);
+        liChoice.classList.add('list-group-item');
+
+        return liChoice;
+    }
+
+    function onChange_ChoiceText(choice,source) {
+        choice.setValue(source.value);
+    }
+    function onClick_DeleteChoice(choice) {
+        if (choice.parent!=undefined) {
+            choice.parent.removeItem(choice);
+            refreshGame();
+        }
+    }
+
+    function onClick_Save() {
+        var path = "/app/admin_save_questions/";
+        var _data = {'gameId':game['id'],'data':JSON.stringify(rounds,function(key,value) {
+            if (key=='parent') { return value.id; }
+            else { return value; }
+        })};
+        
+        $.ajax({
+            type:"POST",
+            url:path,
+            dataType:"json",
+            data:_data,
+            beforeSend:function(xhr,settings) {
+                $.ajaxSettings.beforeSend(xhr,settings);
+            },
+            success:onSuccess
+        })
+    }
+
+    function onSuccess(data,text,object) {
+        alert('Questions Saved');
+    }
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i=0; i<cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                if (cookie.substring(0,name.length+1)==(name+'=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length+1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        }
+    })
+
+    function onClick_Cancel() {
+        reloadGame();
+    }
+
+    function onClick_Close() {
+        document.location = "/app/edit_game"
+    }
 </script>
 
 <body>
-    <form id="formData">
-        <div id="divData"></div>
-        <div id="divControls"></div>
-    </form>
+    <div id="divData">
+        <ul id="ulRounds">
+
+        </ul>
+    </div>
+    <div id="divControls">
+        <input type="button" class="btn btn-primary" value="Save" onclick="onClick_Save()">
+        <input type="button" class="btn btn-danger" value="Cancel" onclick="onClick_Cancel()">
+        <input type="button" class="btn btn-secondary" value="Close" onclick="onClick_Close()">
+    </div>
 </body>
 
 {% endblock %}

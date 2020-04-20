@@ -208,6 +208,12 @@ class TriviaQuestionImage(models.Model):
     index = models.IntegerField(default=0)
     file_path = models.CharField(max_length=1024)
 
+class TriviaQuestionVideo(models.Model):
+    question = models.ForeignKey(TriviaQuestion, on_delete=models.CASCADE)
+    index = models.IntegerField(default=0)
+    file_path = models.CharField(max_length=1024)
+    is_local = models.BooleanField(default=False)
+
 class TriviaQuestionAudio(models.Model):
     question = models.ForeignKey(TriviaQuestion, on_delete=models.CASCADE)
     index = models.IntegerField(default=0)
