@@ -27,7 +27,7 @@ urlpatterns = [
     path('show_question/submit_answer/',views.submit_answer,name="submit_answer"),
     path('next_round/',views.next_round,name='next_round'),
     path('round_results/', views.round_results, name = "round_results"),
-    path('game_results/', views.game_results, name = "game_results"),
+    # path('game_results/', views.game_results, name = "game_results"),
     path('final_results/', views.final_results, name = "final_results"),
   
 

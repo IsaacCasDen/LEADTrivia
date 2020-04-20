@@ -406,7 +406,7 @@ def admin_manager(request):
     for game in games:
         context['Games'].append(json.dumps(game.get_info()))
 
-    return render(request,'admin_manager.html',context)
+    return render(request,'admin/admin_manager.html',context)
 
 def admin_game(request):
 
@@ -451,7 +451,7 @@ def admin_game(request):
     context['currentQuestion'] = json.dumps(item['question'])
     context['currentAnswer'] = json.dumps(item['answer'])
 
-    return render(request,'admin_game.html',context)
+    return render(request,'admin/admin_game.html',context)
 
 def edit_game(request):
     context = {}
@@ -491,7 +491,7 @@ def edit_game(request):
 
 
     
-    return render(request,'edit_game.html',context)
+    return render(request,'admin/edit_game.html',context)
 
 def create_game(request):
     context = {}
@@ -577,7 +577,7 @@ def edit_questions(request):
     context['game'] = json.dumps(game.get_info())
     context['questions'] = json.dumps(questions)
 
-    return render(request,'edit_questions.html',context)
+    return render(request,'admin/edit_questions.html',context)
 
 def round_results(request):
     mode = request.session['mode']
