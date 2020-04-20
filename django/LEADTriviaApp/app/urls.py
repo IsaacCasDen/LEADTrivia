@@ -15,6 +15,7 @@ urlpatterns = [
     path('edit_game/edit_questions/',views.edit_questions,name="edit_questions"),
     path('current_question_index/', views.current_question_index, name='current_question_index'),
     path('save_game/', views.save_game,name='save_game'),
+    path('admin_save_questions/', views.admin_save_questions, name = "admin_save_questions"),
 
     #------------------USER
     path('lobby/',views.lobby,name='lobby'),
@@ -26,6 +27,7 @@ urlpatterns = [
     path('show_question/submit_answer/',views.submit_answer,name="submit_answer"),
     path('next_round/',views.next_round,name='next_round'),
     path('round_results/', views.round_results, name = "round_results"),
+    # path('game_results/', views.game_results, name = "game_results"),
     path('final_results/', views.final_results, name = "final_results"),
   
 
