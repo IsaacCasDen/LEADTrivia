@@ -18,7 +18,7 @@ GAMEID = 'gameId'
 GAMENAME = 'gameName'
 
 def set_session_vars(request):
-    request.session['mode'] = 1
+    request.session['mode'] = 0
 
     if 'gameId' not in request.session.keys():
         request.session['gameId'] = ''
@@ -620,6 +620,10 @@ def round_results(request):
         request.session['teamId'] = teamId
         context['username']= username
         context['userId'] = userId
+        results['users'] = round_results['users']
+        results['teamRank'] = round_results['teamRank'] 
+        results['teams'] = round_results['teams']
+        context['results'] = json.dumps(results)
         return render(request,'User/round_results.html',context)
     else:
         results['users'] = round_results['users']
