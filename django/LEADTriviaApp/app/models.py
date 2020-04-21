@@ -207,6 +207,7 @@ class TriviaQuestionImage(models.Model):
     question = models.ForeignKey(TriviaQuestion, on_delete=models.CASCADE)
     index = models.IntegerField(default=0)
     file_path = models.CharField(max_length=1024)
+    is_local = models.BooleanField(default=True)
 
 class TriviaQuestionVideo(models.Model):
     question = models.ForeignKey(TriviaQuestion, on_delete=models.CASCADE)
@@ -218,6 +219,7 @@ class TriviaQuestionAudio(models.Model):
     question = models.ForeignKey(TriviaQuestion, on_delete=models.CASCADE)
     index = models.IntegerField(default=0)
     file_path = models.CharField(max_length=1024)
+    is_local = models.BooleanField(default=True)
 
 class TriviaGameQuestion(models.Model):
     #Check for correct or wrong
@@ -758,6 +760,7 @@ def get_question(game_id:int=None, round_index:int = None, index:int = None, que
     value['round_index']=question.round_index
     value['index']=question.index
     value['groups'] = []
+    
     groups = TriviaQuestionChoiceGroup.objects.filter(question__id=question.question.id)
     for i,group in enumerate(groups):
         _group = {}
@@ -766,20 +769,46 @@ def get_question(game_id:int=None, round_index:int = None, index:int = None, que
         _group['choices'] = [{'id':c.id, 'value':c.choice} for c in TriviaQuestionChoice.objects.filter(group__id=group.id)]
         value['groups'].append(_group)
     
+    value['videos'] = []
+    videos = TriviaQuestionVideo.objects.filter(question__id=question.question.id)
+    for i,media in enumerate(videos):
+        _media = {}
+        _media['id']=media.id
+        _media['file_path']=media.file_path
+        _media['is_local']=media.is_local
+        value['videos'].append(_media)
+
+    value['images'] = []
+    images = TriviaQuestionImage.objects.filter(question__id=question.question.id)
+    for i,media in enumerate(videos):
+        _media = {}
+        _media['id']=media.id
+        _media['file_path']=media.file_path
+        _media['is_local']=media.is_local
+        value['images'].append(_media)
+
+    value['audios'] = []
+    audios = TriviaQuestionAudio.objects.filter(question__id=question.question.id)
+    for i,media in enumerate(videos):
+        _media = {}
+        _media['id']=media.id
+        _media['file_path']=media.file_path
+        _media['is_local']=media.is_local
+        value['audios'].append(_media)
 
     return value
 
 def create_questions(game_id:int):
     game = get_game(game_id)
 
-    create_question(game.id,0,"My mama always said life was like {}. You never know what you're gonna get.","My mama always said life was like a box of chocolates. You never know what you're gonna get.",[["a box of chocolates","peanut brittle","confused elves"]],2)
-    create_question(game.id,0,"If you got rid of every {} with {}, then you'd have three {} left.","If you got rid of every cop with some sort of drink problem, then you'd have three cops left.",[['cop','moose','priest'],['some sort of drink problem','a pineapple on their head','a car in their garage'],['cops','moose','priests']])
-    create_question(game.id,1,"Which of these is a type of computer?","Apple",[['Apple', 'Nectarine','Orange']],2)
-    create_question(game.id,1,"What was the name of the first satellite sent to space?","Sputnik 1",[["Sputnik 1","Gallileo 1","Neo 3"]])
-    create_question(game.id,2,"In which U.S. state was Tennessee Williams born?","Mississippi",[["Mississippi","Tenessee", "Alabama"]])
+    create_question(game.id,0,"My mama always said life was like {}. You never know what you're gonna get.","My mama always said life was like a box of chocolates. You never know what you're gonna get.",[["a box of chocolates","peanut brittle","confused elves"]],2,[('https://www.youtube.com/embed/CJh59vZ8ccc?controls=0&amp;start=30;end=40',False)])
+    create_question(game.id,0,"If you got rid of every {} with {}, then you'd have three {} left.","If you got rid of every cop with some sort of drink problem, then you'd have three cops left.",[['cop','moose','priest'],['some sort of drink problem','a pineapple on their head','a car in their garage'],['cops','moose','priests']],1,[('static/app/media/video/ants.mp4',True)],[('static/app/media/image/ShruggingTom.png',True)],[('static/app/media/audio/30 Second Timer With Jeopardy Thinking Music.mp3',True)])
+    create_question(game.id,1,"Which of these is a type of computer?","Apple",[['Apple', 'Nectarine','Orange']],2,[('static/app/media/video/ants.mp4',True)],[('static/app/media/image/ShruggingTom.png',True)],[('static/app/media/audio/30 Second Timer With Jeopardy Thinking Music.mp3',True)])
+    create_question(game.id,1,"What was the name of the first satellite sent to space?","Sputnik 1",[["Sputnik 1","Gallileo 1","Neo 3"]],1,[('static/app/media/video/ants.mp4',True)],[('static/app/media/image/ShruggingTom.png',True)],[('static/app/media/audio/30 Second Timer With Jeopardy Thinking Music.mp3',True)])
+    create_question(game.id,2,"In which U.S. state was Tennessee Williams born?","Mississippi",[["Mississippi","Tenessee", "Alabama"]],1,[('static/app/media/video/ants.mp4',True)],[('static/app/media/image/ShruggingTom.png',True)],[('static/app/media/audio/30 Second Timer With Jeopardy Thinking Music.mp3',True)])
 
 
-def create_question(game_id:int, index:int, question:str, answer:str, choices:list, round_index:int=1):
+def create_question(game_id:int, index:int, question:str, answer:str, choices:list, round_index:int=1,videos:list=[],images:list=[],audios:list=[]):
     game = TriviaGame.objects.get(id=game_id)
     if game == None:
         return False
@@ -799,6 +828,31 @@ def create_question(game_id:int, index:int, question:str, answer:str, choices:li
             choice.choice=_choice
             choice.group = group
             choice.save()
+
+    for i,value in enumerate(videos):
+        tv = TriviaQuestionVideo()
+        tv.question=q
+        tv.index=i
+        tv.file_path=value[0]
+        tv.is_local=value[1]
+        tv.save()
+    
+    for i,value in enumerate(images):
+        ti = TriviaQuestionImage()
+        ti.question=q
+        ti.index=i
+        ti.file_path=value
+        ti.is_local=value[1]
+        ti.save()
+    
+    for i,value in enumerate(audios):
+        ta = TriviaQuestionAudio()
+        ta.question=q
+        ta.index=i
+        ta.file_path=value
+        ta.is_local=value[1]
+        ta.save()
+    
 
     tq = TriviaGameQuestion()
     tq.game=game
