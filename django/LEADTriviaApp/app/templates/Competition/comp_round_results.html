@@ -13,6 +13,14 @@
     #TeamRank {
       display: inline-block;
       vertical-align: top;
+      overflow-x:hidden;
+      overflow-y:hidden;
+      height:775px;
+    }
+    #BestPlayer{
+      overflow-x:hidden;
+      overflow-y:hidden;
+      height:775px;
     }
 
     #TopDiv{
@@ -52,8 +60,12 @@
         float: left;
         padding: .5em;
         border-right: grey solid 0.1em;
-        height: 60%;
+        height: 90%;
    
+    }
+    
+    ul{
+        list-style-type:none ;
     }
 
     #RightDiv{
@@ -148,8 +160,11 @@ document.onreadystatechange = function(){
 }
 function init() {
     setTimeout(checkCurrentQuestionIndex,500);
+    scrollDiv_Left();
     updateTeamDisplay(teamRank);
     updateUserDisplay(users);
+    
+
   }
 
   function timeup() {
@@ -192,10 +207,27 @@ function init() {
     });
   }
 
+  function scrollDiv_left() {
+    if (!ReachedMaxScrollLeft) {
+        DivElmnt.scrollTop = PreviousScrollTopLeft;
+        PreviousScrollTopLeft++;
+        ReachedMaxScrollLeft = DivElmnt.scrollTop >= (DivElmnt.scrollHeight - DivElmnt.offsetHeight);
+    }
+    else {
+        ReachedMaxScrollLeft = (DivElmnt.scrollTop == 0)?false:true;
+        DivElmnt.scrollTop = PreviousScrollTopLeft;
+        PreviousScrollTopLeft--;
+    }
+  }      
+    function scrollDiv_Left(){
+      scrollDiv_init_left();
+      scrollDiv_left();
+    }
+
   function updateUserDisplay(users){
     var u = document.getElementById("BestPlayer");
     
-    for (var i = 0; i < users.length; i++ ){
+    for (var i = 0; i < 3; i++ ){
       
       var user = results['users'][i];
       
@@ -204,9 +236,9 @@ function init() {
       var _points = document.createElement("div");
       var _host = document.createElement("li");
 
-      _PlayerName.textContent = user['username'] + " rank: ";
-      _PlayerRank.textContent = user['rank'] + " points: ";
-      _points.textContent = user['points'];
+      _PlayerName.textContent = user[1]['username'] + " rank: "; //Cannot Read Property of '1' of undefined
+      _PlayerRank.textContent = user[1]['rank'] + " points: ";
+      _points.textContent = user[1]['points'];
 
       _PlayerName.classList.add("spacingLeft");
       _PlayerRank.classList.add("spacingLeft");
@@ -220,6 +252,33 @@ function init() {
     }
   }
   
+    //--LEFT
+  var ScrollRateLeft = 50;
+  function scrollDiv_init_left() {
+    DivElmnt = document.getElementById('TeamRank');
+    ReachedMaxScrollLeft = false;
+    DivElmnt.scrollTop = 0;
+    PreviousScrollTopLeft  = 0;
+    ScrollInterval = setInterval('scrollDiv_left()', ScrollRateLeft); //Put timeout here
+  } 
+
+  function scrollDiv_left() {
+    if (!ReachedMaxScrollLeft) {
+        DivElmnt.scrollTop = PreviousScrollTopLeft;
+        PreviousScrollTopLeft++;
+        ReachedMaxScrollLeft = DivElmnt.scrollTop >= (DivElmnt.scrollHeight - DivElmnt.offsetHeight);
+    }
+    else {
+        ReachedMaxScrollLeft = (DivElmnt.scrollTop == 0)?false:true;
+        DivElmnt.scrollTop = PreviousScrollTopLeft;
+        PreviousScrollTopLeft--;
+    }
+  }      
+    function scrollDiv_Left(){
+      scrollDiv_init_left();
+      scrollDiv_left();
+    }
+
 
   function updateTeamDisplay(teamRank){
     var t = document.getElementById("TeamRank");
