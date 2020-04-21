@@ -5,15 +5,37 @@
 <link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
 
 <style>
-    #PlayerRank {
+
+    .container {
+      float:center;
+      clear: both;
+    }
+    #TeamRank {
       display: inline-block;
       vertical-align: top;
+      overflow-x:hidden;
+      overflow-y:hidden;
+      height:775px;
+    }
+    #BestPlayer{
+      overflow-x:hidden;
+      overflow-y:hidden;
+      height:775px;
     }
 
     #TopDiv{
         display: block;
         width: 100%;
         clear: both;
+    }
+    .spacingLeft{
+      float:left;
+      margin: .2em;
+    }
+
+    .spacingRight{
+      float:right;
+      margin: .2em;
     }
 
     .text{
@@ -38,24 +60,18 @@
         float: left;
         padding: .5em;
         border-right: grey solid 0.1em;
-        height: 60%;
+        height: 90%;
    
+    }
+    
+    ul{
+        list-style-type:none ;
     }
 
     #RightDiv{
         float: left;
         padding: .5em;
     }
-
-    #Accuracy{
-        float: left;
-    }
-
-    #RoundResult{
-        float: left;
-        width: fit-content;
-    }
-
 
     #team {
       color: darkslategrey; 
@@ -64,10 +80,12 @@
       border-style: solid; 
       border-width: 0.1em;
     }
-    #team_info {
+    #teamInfo {
       text-align: center;
       display: block;
       float:left;
+      margin-right: .5em;
+      
     }
     #team_name {
       display: inline-block;
@@ -127,16 +145,13 @@
     // THIS PAGE NEEDS SOME HEAVY REWORK FOR THE COMPETITION SCREEN
       // THIS PAGE NEEDS SOME HEAVY REWORK FOR THE COMPETITION SCREEN
 
-  var username ="{{username|safe}}";
-  var userId = {{userId | safe}};
   var game = {{game|safe}};
-  var results = {{results|safe}}
-  var users = results['team']['users']
-  var teamname = results['team']['teamName'];
-  var totalPositions = results['round']['team_count']
-  var teamPosition = results ['team']['rank']
-  var questions = results['team']['questions']
+  var results = {{results|safe}};
+  var teams = results['teams'];
+  var users = results['users'];
+  var totalPositions = results['round']['team_count'];
   var index = undefined;
+  var teamRank = results['teamRank'];
 
 document.onreadystatechange = function(){
   if (document.readyState == "complete"){
@@ -144,11 +159,12 @@ document.onreadystatechange = function(){
   }
 }
 function init() {
-    initTeam(teamname);
-    initUsers(userId, users);
-    createRank(teamPosition, totalPositions);
-    check();
     setTimeout(checkCurrentQuestionIndex,500);
+    scrollDiv_Left();
+    updateTeamDisplay(teamRank);
+    updateUserDisplay(users);
+    
+
   }
 
   function timeup() {
@@ -162,28 +178,6 @@ function init() {
     initLocalClock(time,divHours,divMinutes,divSeconds);
   }
 
-  function initTeam(name) {
-    var team_name=document.getElementById("teamInfo");
-    team_name.innerText=name;
-
-  }
-
-  function initUsers(user, users){
-    var WorstPlayer =document.getElementById("WorstPlayer");
-    WorstPlayer.innerText=users[users.length-1][1]['username']; 
-
-    var BestPlayer=document.getElementById("BestPlayer");
-    BestPlayer.innerText=users[0][1]['username'];
-
-  }
-
-  function createRank(teamPositions, totalPositions){
-    var TeamRank =document.getElementById("TeamRank");
-    TeamRank.innerText = teamPosition;
-    var TotalPositions =document.getElementById("TotalPositions");
-    TotalPositions.innerText = totalPositions;
-
-  }
 
   function updateCurrentQuestionIndex() {
     var query = $.getJSON('current_question_index');
@@ -213,24 +207,103 @@ function init() {
     });
   }
 
-  function check(){
-    var q = document.getElementById("questions");
-    var keys = Object.keys(questions);    
-    keys.forEach(element => {
-      var questionCheck = questions[element];
-      var _question = document.createElement("div");
-      var _answer = document.createElement("div");
-      var _host = document.createElement("div")
-      _question.innerText = 'Question: ' + questionCheck["Index"];
-      _answer.innerText = questionCheck["IsCorrect"];
-      _answer.classList.add("text");
-      _question.classList.add("text");
-      _host.classList.add("questionContainer");
-      _host.appendChild(_question);
-      _host.appendChild(_answer);
-      q.appendChild(_host);
+  function scrollDiv_left() {
+    if (!ReachedMaxScrollLeft) {
+        DivElmnt.scrollTop = PreviousScrollTopLeft;
+        PreviousScrollTopLeft++;
+        ReachedMaxScrollLeft = DivElmnt.scrollTop >= (DivElmnt.scrollHeight - DivElmnt.offsetHeight);
+    }
+    else {
+        ReachedMaxScrollLeft = (DivElmnt.scrollTop == 0)?false:true;
+        DivElmnt.scrollTop = PreviousScrollTopLeft;
+        PreviousScrollTopLeft--;
+    }
+  }      
+    function scrollDiv_Left(){
+      scrollDiv_init_left();
+      scrollDiv_left();
+    }
+
+  function updateUserDisplay(users){
+    var u = document.getElementById("BestPlayer");
+    
+    for (var i = 0; i < 3; i++ ){
       
-    });
+      var user = results['users'][i];
+      
+      var _PlayerName = document.createElement("div");
+      var _PlayerRank = document.createElement("div");
+      var _points = document.createElement("div");
+      var _host = document.createElement("li");
+
+      _PlayerName.textContent = user[1]['username'] + " rank: "; //Cannot Read Property of '1' of undefined
+      _PlayerRank.textContent = user[1]['rank'] + " points: ";
+      _points.textContent = user[1]['points'];
+
+      _PlayerName.classList.add("spacingLeft");
+      _PlayerRank.classList.add("spacingLeft");
+      _points.classList.add("spacingRight");
+
+      _host.appendChild(_PlayerName);
+      _host.appendChild(_PlayerRank);
+      _host.appendChild( _points);
+
+      u.appendChild(_host);
+    }
+  }
+  
+    //--LEFT
+  var ScrollRateLeft = 50;
+  function scrollDiv_init_left() {
+    DivElmnt = document.getElementById('TeamRank');
+    ReachedMaxScrollLeft = false;
+    DivElmnt.scrollTop = 0;
+    PreviousScrollTopLeft  = 0;
+    ScrollInterval = setInterval('scrollDiv_left()', ScrollRateLeft); //Put timeout here
+  } 
+
+  function scrollDiv_left() {
+    if (!ReachedMaxScrollLeft) {
+        DivElmnt.scrollTop = PreviousScrollTopLeft;
+        PreviousScrollTopLeft++;
+        ReachedMaxScrollLeft = DivElmnt.scrollTop >= (DivElmnt.scrollHeight - DivElmnt.offsetHeight);
+    }
+    else {
+        ReachedMaxScrollLeft = (DivElmnt.scrollTop == 0)?false:true;
+        DivElmnt.scrollTop = PreviousScrollTopLeft;
+        PreviousScrollTopLeft--;
+    }
+  }      
+    function scrollDiv_Left(){
+      scrollDiv_init_left();
+      scrollDiv_left();
+    }
+
+
+  function updateTeamDisplay(teamRank){
+    var t = document.getElementById("TeamRank");
+    
+    for (var i = 0; i < teamRank.length; i++ ){
+      var team = teams[teamRank[i][1]];
+      var _teamName = document.createElement("div");
+      var _teamRank = document.createElement("div");
+      var _points = document.createElement("div");
+      var _host = document.createElement("li");
+
+      _teamName.textContent = team['teamName'] + " rank: ";
+      _teamRank.textContent = team['rank'] + " points: ";
+      _points.textContent = team['points'];
+
+      _teamName.classList.add("spacingLeft");
+      _teamRank.classList.add("spacingLeft");
+      _points.classList.add("spacingRight");
+
+      _host.appendChild(_teamName);
+      _host.appendChild(_teamRank);
+      _host.appendChild( _points);
+
+      t.appendChild(_host);
+    }
   }
 
 </script>
@@ -244,35 +317,25 @@ function init() {
                 <div class="seconds"></div>
             </article> -->
             <div id=teamDiv>
-                <div id="teamInfo">
+                <div>
                 </div>
             </div>
         </div>
         <div id = "BottomDiv">
             <div id = "LeftDiv">
-                <div id = "RoundResult"> <u>Round Results</u>
-                <div id = "questions"></div>
+                <div id = "RoundResult"> <u>Round Rankings</u>
+                  <div id = "Rank">
+                  <ul id = "TeamRank"></ul> 
+                  </div>
                 </div> 
             </div>
             <div id = "RightDiv">
-                <p id = TeamResults> <u>Team Results</u></p>
-
-                <div id = "Rank">
-                <div id = "PlayerRank"> <p style="float: left;" >Rank: &nbsp;</p> <p style="float: left;" id="TeamRank"></p> <p style="float: left;">&nbsp;of&nbsp; </p> <p style= "float: right;" id="TotalPositions"></p> </div>
-
-                </div>
+                <div id = PlayerResults> <u>Best Players</u></div>
                 <div id = "MostAccurate">
-                <p id = "Accuracy" > Most Accurate:</p>
-                <p id = "BestPlayer" ></p>
+                <ul id = "BestPlayer" ></ul>
  
 
-                </div>
-                <div id = "LeastAccurate">
-                <p id = "Accuracy"> Least Accurate:</p>
-                <p id = "WorstPlayer"></p>
-
-
-                </div>
+            
             </div>
         </div>
     </div>
