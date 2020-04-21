@@ -1,4 +1,4 @@
-{% extends 'base.html'%}
+{% extends '../base.html'%}
 {% load static %}
 
 {% block content%}
@@ -329,12 +329,70 @@
 
         
     }
+    
+    class ImageFiles extends Parent {
+        constructor() {
+            super();
+            this.name = "Images";
+        }
+    }
+
+    class ImageFile extends RecordItem {
+        constructor(id,filePath,isUrl) {
+            super(id);
+            this.name="Image";
+            this.filePath=filePath;
+            this.isUrl=isUrl;
+        }
+    }
+
+    class AudioFiles extends Parent {
+        constructor() {
+            super();
+            this.name = "Audios";
+        }
+    }
+
+    class AudioFile extends RecordItem {
+        constructor(id,filePath,isUrl) {
+            super(id);
+            this.name="Audio";
+            this.filePath=filePath;
+            this.isUrl=isUrl;
+        }
+    }
+
+    class VideoFile extends RecordItem {
+        constructor(id,filePath,isUrl) {
+            super(id);
+            this.name="Video";
+            this.filePath=filePath;
+            this.isUrl=isUrl;
+        }
+    }
+
+    class VideoFiles extends Parent {
+        constructor() {
+            super();
+            this.name = "Videos";
+        }
+    }
+
     class Question extends Parent {
         constructor(id,questionText,answerText) {
             super(id);
             this.name = "Question";
             this.questionText=questionText;
             this.answerText=answerText;
+            this.videos = new VideoFiles();
+            this.videos.parent = this;
+
+            this.audios = new AudioFiles();
+            this.audios.parent = this;
+
+            this.images = new ImageFiles();
+            this.images.parent = this;
+
         }
         setQuestionText(value) {
             if (this.questionText!=value) {
@@ -393,6 +451,24 @@
                         choice = new Choice(c.id,c.value);
                         group.addItem(choice);
                     }); 
+                });
+
+                // videos = new VideoFiles();
+                q.videos.forEach(m => {
+                    media = new VideoFile(m.id,m.file_path,m.is_local);
+                    question.videos.addItem(media);
+                });
+
+                // images = new ImageFiles();
+                q.images.forEach(m => {
+                    media = new ImageFile(m.id,m.file_path,m.is_local);
+                    question.images.addItem(media);
+                });
+
+                // audios = new AudioFiles();
+                q.audios.forEach(m => {
+                    media = new AudioFile(m.id,m.file_path,m.is_local);
+                    question.audios.addItem(media);
                 });
             });
 
@@ -630,9 +706,12 @@
         liQuestion.appendChild(divTitle);
         liQuestion.appendChild(divContent);
 
-        
         divContent.appendChild(createQuestionText(item[1],item[1].questionText));
         divContent.appendChild(createAnswerText(item[1],item[1].answerText));
+        divContent.appendChild(createVideoList(item[1]))
+        divContent.appendChild(createImageList(item[1]))
+        divContent.appendChild(createAudioList(item[1]))
+        divContent.appendChild(createMediaControls(item[1]))
         divContent.appendChild(ulGroups);
         divContent.appendChild(createQuestionControls());
 
@@ -704,6 +783,108 @@
         return div;
     }
 
+    function createVideoList(item) {
+        var div = document.createElement('div');
+
+        var label = document.createElement('div');
+        label.innerText="Video";
+
+        var ulVideos = document.createElement('ul');
+        var items = item.videos.getItems();
+        while (items.length>0) {
+            for (var i=0; i<items.length; i++) {
+                if (items[i][0]==ulVideos.children.length) {
+                    ulVideos.appendChild(createVideoItem(items[i][1]));
+                }
+            }
+        }
+
+        div.appendChild(label);
+        div.appendChild(ulVideos);
+
+        return div;
+    }
+    function createVideoItem(item) {
+        var liVideo = document.createElement('li');
+        var div = document.createElement('div');
+        var divText = document.createElement('div');
+        var divControls = document.createElement('div');
+        var btnDelete = document.createElement('button');
+        var chkLocal = document.createElement('input');
+        chkLocal.innerText = "Is Remote"
+        chkLocal.value=item.isUrl;
+
+        divText.innerText=item.filePath;
+
+        divControls.appendChild(chkLocal);
+        divControls.appendChild(btnDelete);
+        div.appendChild(divText);
+        div.appendChild(divControls);
+        liVideo.appendChild(div);
+
+        return div;
+    }
+
+    function createImageList(item) {
+        var div = document.createElement('div');
+        
+        return div;
+    }
+
+    function createAudioList(item) {
+        var div = document.createElement('div');
+        
+        return div;
+    }
+
+    function createMediaControls(item) {
+        var div = document.createElement('div');
+
+        var btnAddImage = document.createElement('button');
+        div.appendChild(btnAddImage);
+        btnAddImage.innerText = 'Add Image';
+        btnAddImage.classList.add('btn');
+        btnAddImage.classList.add('btn-secondary');
+        btnAddImage.addEventListener('click',function() { onClick_AddImage(item); })
+
+        var btnAddAudio = document.createElement('button');
+        div.appendChild(btnAddAudio);
+        btnAddAudio.innerText = 'Add Audio';
+        btnAddAudio.classList.add('btn');
+        btnAddAudio.classList.add('btn-secondary');
+        btnAddAudio.addEventListener('click',function() { onClick_AddAudio(item); })
+
+        var btnAddVideo = document.createElement('button');
+        div.appendChild(btnAddVideo);
+        btnAddVideo.innerText = 'Add Video';
+        btnAddVideo.classList.add('btn');
+        btnAddVideo.classList.add('btn-secondary');
+        btnAddVideo.addEventListener('click',function() { onClick_AddVideo(item); })
+
+        return div;
+    }
+
+    function onClick_AddImage(item) {
+
+    }
+    function onClick_DeleteImage(item) {
+
+    }
+
+    function onClick_AddAudio(item) {
+
+    }
+    function onClick_DeleteAudio(item) {
+
+    }
+
+    function onClick_AddVideo(item) {
+
+    }
+    function onClick_DeleteVideo(item) {
+
+    }
+
     function createQuestionControls(round,index) {
         var div = document.createElement('div');
         
@@ -712,6 +893,7 @@
         input.classList.add('btn');
         input.classList.add('btn-success');
         input.addEventListener('click',function() {onClick_NewQuestion(round,index)})
+
 
         div.appendChild(input);
 
