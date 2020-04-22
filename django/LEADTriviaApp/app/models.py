@@ -801,7 +801,7 @@ def get_question(game_id:int=None, round_index:int = None, index:int = None, que
 
     value['images'] = []
     images = TriviaQuestionImage.objects.filter(question__id=question.question.id)
-    for i,media in enumerate(videos):
+    for i,media in enumerate(images):
         _media = {}
         _media['id']=media.id
         _media['file_path']=media.file_path
@@ -810,7 +810,7 @@ def get_question(game_id:int=None, round_index:int = None, index:int = None, que
 
     value['audios'] = []
     audios = TriviaQuestionAudio.objects.filter(question__id=question.question.id)
-    for i,media in enumerate(videos):
+    for i,media in enumerate(audios):
         _media = {}
         _media['id']=media.id
         _media['file_path']=media.file_path
