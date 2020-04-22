@@ -624,8 +624,10 @@ def round_results(request):
         results['teamRank'] = round_results['teamRank'] 
         results['teams'] = round_results['teams']
         context['results'] = json.dumps(results)
+
         return render(request,'User/round_results.html',context)
     else:
+        
         results['users'] = round_results['users']
         results['teamRank'] = round_results['teamRank'] 
         results['teams'] = round_results['teams']
@@ -668,6 +670,10 @@ def final_results(request):
         else:
             return redirect(index)
 
+        results['users'] = round_results['users']
+        results['teamRank'] = round_results['teamRank'] 
+        results['teams'] = round_results['teams']
+        context['results'] = json.dumps(results)
         results['team'] = round_results['teams'][teamId]
         request.session['teamId'] = teamId
         context['username']= username
