@@ -17,3 +17,5 @@ ScopeOfWork.docx
 .fuse_hidden*
 bash.exe.stackdump
 django/manage.sh
+.ebextensions/.elasticbeanstalk/
+requirements.txt
