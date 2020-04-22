@@ -19,3 +19,4 @@ bash.exe.stackdump
 django/manage.sh
 .ebextensions/.elasticbeanstalk/
 requirements.txt
+.ebextensions/
