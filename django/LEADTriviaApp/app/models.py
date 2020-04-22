@@ -862,7 +862,7 @@ def create_question(game_id:int, index:int, question:str, answer:str, choices:li
         ti = TriviaQuestionImage()
         ti.question=q
         ti.index=i
-        ti.file_path=value
+        ti.file_path=value[0]
         ti.is_local=value[1]
         ti.save()
     
@@ -870,7 +870,7 @@ def create_question(game_id:int, index:int, question:str, answer:str, choices:li
         ta = TriviaQuestionAudio()
         ta.question=q
         ta.index=i
-        ta.file_path=value
+        ta.file_path=value[0]
         ta.is_local=value[1]
         ta.save()
     
