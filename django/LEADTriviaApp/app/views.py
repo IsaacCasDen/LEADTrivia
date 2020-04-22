@@ -299,30 +299,8 @@ def show_question(request):
     question = get_question(game_id=gameId, index=ind, round_index = round_index)
     context= {}
     
-    pathImages = "django/LEADTriviaApp/app/static/app/media/images"
-    pathAudio = "django/LEADTriviaApp/app/static/app/media/audio"
-    pathVideo = "django/LEADTriviaApp/app/static/app/media/video"
-    
-    images = os.listdir(pathImages)
-    audio = os.listdir(pathAudio)
-    video = os.listdir(pathVideo)
-    
-    imagesList = []
-    # for item in images:
-    #     imagesList.append(item)
-    
-    audioList = []
-    # for item in audio:
-    #     audioList.append(item)
-
-    videoList = []
-    # for item in video:
-    #     videoList.append(item)
-
-    media = {'images': imagesList, 'audio': audioList, 'video': videoList }
-    context["Media"] = json.dumps(media)
-
     context["Question"] = question["question"]
+    context["Media"] = json.dumps({'videos': question['videos'], 'images': question['images'],'audios': question['audios']})
     context["Answer"] = ''
     context["ActualAnswer"] = question['answer']
     context["groups"] = question["groups"]
