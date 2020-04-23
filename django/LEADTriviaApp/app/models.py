@@ -1354,4 +1354,133 @@ def create_teams(game_id:int,users:list,count:int):
         teams.append(team)
 
     return teams
+
+def save_question_data(game_id:int, data):
+    try:
+        if data['name']=='Rounds':
+            save_rounds(data)
+    except Exception as e:
+        print(e)
+
+
+
+def save_rounds(data):
+    if data['name']=='Rounds':
+        for r in data['deleted']:
+            delete_round(r)
+        for r in data['items']:
+            save_round(r,data['items'][r])
+
+def delete_round(data):
+    for q in data['items']:
+        delete_question(data['items'][q])
+
+def save_round(index,data):
+    if data['name']=='Round':
+        for q in data['deleted']:
+            delete_question(q)
+        for q in data['items']:
+            save_question(q,data['items'][q])
+
+def delete_question(data):
+    if data['id']=='':
+        return
     
+    question = TriviaQuestion.objects.get(id=data['id'])
+    question.delete()
+
+def save_question(index,data):
+    if data['name']=='Question':
+
+        question = None
+        if data['new']:
+            question = TriviaQuestion()
+        else:
+            question=TriviaQuestion.objects.get(id=data['id'])
+
+        for g in data['deleted']:
+            delete_group(g)
+        for g in data['items']:
+            save_group(g,data['items'][g])
+        save_videos(data['videos'])
+        save_audios(data['audios'])
+        save_images(data['images'])
+
+def delete_group(data):
+    group = None
+    if data['id'] == '':
+        return
+    
+    group = TriviaQuestionChoiceGroup.objects.get(id=data['id'])
+    group.delete()
+
+
+def save_group(index,question,data):
+    if data['name']=='Group':
+        group = None
+        if data['new']:
+            group = TriviaQuestionChoiceGroup()
+            group.question=question
+            group.index=index
+            group.save()
+        else:
+            group = TriviaQuestionChoiceGroup.objects.get(id=data['id'])
+            if data['changed']:
+                group.index=index
+                group.save()
+
+        for c in data['deleted']:
+            delete_choice(c)
+        for c in data['items']:
+            save_choice(c,group,data['items'][c])
+
+def delete_choice(data):
+    if data['id'] == '':
+        return
+    
+    choice = TriviaQuestionChoice.objects.get(id=data['id'])
+    choice.delete()
+
+def save_choice(index,group,data):
+    if data['name']=='Choice':
+        choice = None
+        if data['new']:
+            choice = TriviaQuestionChoice()
+            choice.group=group
+        elif data['changed']:
+            choice = TriviaQuestionChoice.objects.get(id=data['id'])
+        
+        if choice!=None:
+            choice.choice=data['value']
+            choice.save()
+        
+
+def save_videos(data):
+    pass
+
+def delete_video(data):
+    pass
+
+def save_video(data):
+    if data['name']=='Video':
+        pass
+
+def save_audios(data):
+    pass
+
+def delete_audio(data):
+    pass
+
+def save_audio(data):
+    if data['name']=='Audio':
+        pass
+
+def save_images(data):
+    pass
+
+def delete_image(data):
+    pass
+
+def save_image(data):
+    if data['name']=='Image':
+        pass
