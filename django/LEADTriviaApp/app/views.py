@@ -625,58 +625,60 @@ def round_results(request):
         return render(request, 'Competition/comp_round_results.html', context)
 
 def final_results(request):
-    mode = request.session['mode']
-    context = {}
-    gameId = request.session.get('gameId','')
+    # mode = request.session['mode']
+    # context = {}
+    # gameId = request.session.get('gameId','')
     
-    if gameId == '':
-        return redirect(index)
+    # if gameId == '':
+    #     return redirect(index)
 
-    game = get_game(gameId)
-    if game.state!=2:
-        return redirect(show_question)
-    game_results = get_game_results(game.id)
-    if game_results==None:
-        return redirect(show_question)
+    # game = get_game(gameId)
+    # if game.state!=2:
+    #     return redirect(show_question)
 
-    results = {}
-    results['round'] = round_results['round']
+    # game_results = get_game_results(game.id)
+    # if game_results==None:
+    #     return redirect(show_question)
+
+    # results = {}
+    # results['round'] = round_results['round']
     
-    data = get_gamestate(gameId)
+    # data = get_gamestate(gameId)
 
-    context['results'] = json.dumps(results)
-    context['game'] = json.dumps(data['Game'])
-    context['errors'] = request.session['errors']
+    # context['results'] = json.dumps(results)
+    # context['game'] = json.dumps(data['Game'])
+    # context['errors'] = request.session['errors']
 
-    if mode == 0:
-        teamId = request.POST.get('teamId',request.session.get('teamId',''))
-        userId = request.session.get('userId','')
-        username = request.session.get('username','')
+    # if mode == 0:
+    #     teamId = request.POST.get('teamId',request.session.get('teamId',''))
+    #     userId = request.session.get('userId','')
+    #     username = request.session.get('username','')
  
-        if userId == '':
-            return redirect(index)
+    #     if userId == '':
+    #         return redirect(index)
 
-        if teamId!='':
-            teamId = int(teamId)
-        else:
-            return redirect(index)
+    #     if teamId!='':
+    #         teamId = int(teamId)
+    #     else:
+    #         return redirect(index)
 
-        results['users'] = round_results['users']
-        results['teamRank'] = round_results['teamRank'] 
-        results['teams'] = round_results['teams']
-        context['results'] = json.dumps(results)
-        results['team'] = round_results['teams'][teamId]
-        request.session['teamId'] = teamId
-        context['username']= username
-        context['userId'] = userId
-        return render(request,'User/final_results.html',context)
-    else:
-        results['users'] = round_results['users']
-        results['teamRank'] = round_results['teamRank'] 
-        results['teams'] = round_results['teams']
-        context['results'] = json.dumps(results)
+    #     results['users'] = round_results['users']
+    #     results['teamRank'] = round_results['teamRank'] 
+    #     results['teams'] = round_results['teams']
+    #     context['results'] = json.dumps(results)
+    #     results['team'] = round_results['teams'][teamId]
+    #     request.session['teamId'] = teamId
+    #     context['username']= username
+    #     context['userId'] = userId
+    #     return render(request,'User/final_results.html',context)
+    # else:
+    #     results['users'] = round_results['users']
+    #     results['teamRank'] = round_results['teamRank'] 
+    #     results['teams'] = round_results['teams']
+    #     context['results'] = json.dumps(results)
         
-        return render(request, 'Competition/comp_final_results.html', context)
+    #     return render(request, 'Competition/comp_final_results.html', context)
+    pass
 
 def __current_question_index__(game_id:int):
     value = {}        
