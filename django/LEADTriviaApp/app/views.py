@@ -297,6 +297,13 @@ def show_question(request):
 
     if gameId == '':
         return redirect(index)
+
+    result = __current_question_index__(gameId)
+    if result['game_finished']:
+        return redirect(final_results)
+    elif result['round_finished']:
+        return redirect(round_results)
+
     state = get_gamestate(gameId)
     ind = game.current_question_index
     round_index = game.current_round
@@ -572,7 +579,7 @@ def round_results(request):
         return redirect(index)
 
     game = get_game(gameId)
-    round_results = get_round_results(game.id,1) #game.current_round
+    round_results = get_round_results(game.id,game.current_round)
     if round_results==None:
         return redirect(show_question)
 
@@ -626,8 +633,10 @@ def final_results(request):
         return redirect(index)
 
     game = get_game(gameId)
-    round_results = get_round_results(game.id,1) #game.current_round
-    if round_results==None:
+    if game.state!=2:
+        return redirect(show_question)
+    game_results = get_game_results(game.id)
+    if game_results==None:
         return redirect(show_question)
 
     results = {}
@@ -669,20 +678,32 @@ def final_results(request):
         
         return render(request, 'Competition/comp_final_results.html', context)
 
-def current_question_index(request):
+def __current_question_index__(game_id:int):
     value = {}        
     value['index']='undefined'
         
+    game = get_game(game_id)
+    value['index']=game.current_question_index
+    value['round_finished'] = False
+    value['game_finished'] = game.state==2
+
+    round_res = get_round_results(game.id,game.current_round)
+    if round_res!=None:
+        value['round_finished'] = round_res['round']['isFinished']
+
+    return value
+
+def current_question_index(request):
+    
     game_id = request.POST.get(GAMEID,'')
     if game_id == '':
         game_id = request.session.get(GAMEID,'')
 
+    value = {}
     if game_id != '':
-        game = get_game(game_id)
-        value['index']=game.current_question_index
-        value['round_finished'] = True
-        value['game_finished'] = False
-
+        value = __current_question_index__(game_id)
+    else:
+        value['error']='Error gameId missing'
 
     return JsonResponse(value)
 
