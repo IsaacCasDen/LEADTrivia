@@ -801,7 +801,7 @@ def get_question(game_id:int=None, round_index:int = None, index:int = None, que
 
     value['images'] = []
     images = TriviaQuestionImage.objects.filter(question__id=question.question.id)
-    for i,media in enumerate(videos):
+    for i,media in enumerate(images):
         _media = {}
         _media['id']=media.id
         _media['file_path']=media.file_path
@@ -810,7 +810,7 @@ def get_question(game_id:int=None, round_index:int = None, index:int = None, que
 
     value['audios'] = []
     audios = TriviaQuestionAudio.objects.filter(question__id=question.question.id)
-    for i,media in enumerate(videos):
+    for i,media in enumerate(audios):
         _media = {}
         _media['id']=media.id
         _media['file_path']=media.file_path
@@ -823,10 +823,10 @@ def create_questions(game_id:int):
     game = get_game(game_id)
 
     create_question(game.id,0,"My mama always said life was like {}. You never know what you're gonna get.","My mama always said life was like a box of chocolates. You never know what you're gonna get.",[["a box of chocolates","peanut brittle","confused elves"]],2,[('https://www.youtube.com/embed/CJh59vZ8ccc?controls=0&amp;start=30;end=40',False)])
-    create_question(game.id,0,"If you got rid of every {} with {}, then you'd have three {} left.","If you got rid of every cop with some sort of drink problem, then you'd have three cops left.",[['cop','moose','priest'],['some sort of drink problem','a pineapple on their head','a car in their garage'],['cops','moose','priests']],1,[('static/app/media/video/ants.mp4',True)],[('static/app/media/image/ShruggingTom.png',True)],[('static/app/media/audio/30 Second Timer With Jeopardy Thinking Music.mp3',True)])
-    create_question(game.id,1,"Which of these is a type of computer?","Apple",[['Apple', 'Nectarine','Orange']],2,[('static/app/media/video/ants.mp4',True)],[('static/app/media/image/ShruggingTom.png',True)],[('static/app/media/audio/30 Second Timer With Jeopardy Thinking Music.mp3',True)])
-    create_question(game.id,1,"What was the name of the first satellite sent to space?","Sputnik 1",[["Sputnik 1","Gallileo 1","Neo 3"]],1,[('static/app/media/video/ants.mp4',True)],[('static/app/media/image/ShruggingTom.png',True)],[('static/app/media/audio/30 Second Timer With Jeopardy Thinking Music.mp3',True)])
-    create_question(game.id,2,"In which U.S. state was Tennessee Williams born?","Mississippi",[["Mississippi","Tenessee", "Alabama"]],1,[('static/app/media/video/ants.mp4',True)],[('static/app/media/image/ShruggingTom.png',True)],[('static/app/media/audio/30 Second Timer With Jeopardy Thinking Music.mp3',True)])
+    create_question(game.id,0,"If you got rid of every {} with {}, then you'd have three {} left.","If you got rid of every cop with some sort of drink problem, then you'd have three cops left.",[['cop','moose','priest'],['some sort of drink problem','a pineapple on their head','a car in their garage'],['cops','moose','priests']],1,[('ants.mp4',True)],[('ShruggingTom.png',True)],[('30 Second Timer With Jeopardy Thinking Music.mp3',True)])
+    create_question(game.id,1,"Which of these is a type of computer?","Apple",[['Apple', 'Nectarine','Orange']],2,[('ants.mp4',True)],[('ShruggingTom.png',True)],[('30 Second Timer With Jeopardy Thinking Music.mp3',True)])
+    create_question(game.id,1,"What was the name of the first satellite sent to space?","Sputnik 1",[["Sputnik 1","Gallileo 1","Neo 3"]],1,[('ants.mp4',True)],[('ShruggingTom.png',True)],[('30 Second Timer With Jeopardy Thinking Music.mp3',True)])
+    create_question(game.id,2,"In which U.S. state was Tennessee Williams born?","Mississippi",[["Mississippi","Tenessee", "Alabama"]],1,[('ants.mp4',True)],[('ShruggingTom.png',True)],[('30 Second Timer With Jeopardy Thinking Music.mp3',True)])
 
 
 def create_question(game_id:int, index:int, question:str, answer:str, choices:list, round_index:int=1,videos:list=[],images:list=[],audios:list=[]):
@@ -862,7 +862,7 @@ def create_question(game_id:int, index:int, question:str, answer:str, choices:li
         ti = TriviaQuestionImage()
         ti.question=q
         ti.index=i
-        ti.file_path=value
+        ti.file_path=value[0]
         ti.is_local=value[1]
         ti.save()
     
@@ -870,7 +870,7 @@ def create_question(game_id:int, index:int, question:str, answer:str, choices:li
         ta = TriviaQuestionAudio()
         ta.question=q
         ta.index=i
-        ta.file_path=value
+        ta.file_path=value[0]
         ta.is_local=value[1]
         ta.save()
     

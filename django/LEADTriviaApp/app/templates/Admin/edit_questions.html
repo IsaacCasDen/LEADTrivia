@@ -1,4 +1,5 @@
 {% extends '../base.html'%}
+
 {% load static %}
 
 {% block content%}
@@ -665,7 +666,7 @@
     }
 
     function onClick_newRound(event) {
-        value = new Round();
+        var value = new Round();
         value.new = true;
         rounds.addItem(value);
         refreshGame();
@@ -709,8 +710,8 @@
         divContent.appendChild(createQuestionText(item[1],item[1].questionText));
         divContent.appendChild(createAnswerText(item[1],item[1].answerText));
         divContent.appendChild(createVideoList(item[1]))
-        divContent.appendChild(createImageList(item[1]))
-        divContent.appendChild(createAudioList(item[1]))
+        // divContent.appendChild(createImageList(item[1]))
+        // divContent.appendChild(createAudioList(item[1]))
         divContent.appendChild(createMediaControls(item[1]))
         divContent.appendChild(ulGroups);
         divContent.appendChild(createQuestionControls());
@@ -788,13 +789,17 @@
 
         var label = document.createElement('div');
         label.innerText="Video";
+        label.classList.add('input-group-text');
 
         var ulVideos = document.createElement('ul');
+        ulVideos.style.borderBottom='solid 1px black';
+
         var items = item.videos.getItems();
-        while (items.length>0) {
+        while (items.length > ulVideos.children.length) {
             for (var i=0; i<items.length; i++) {
                 if (items[i][0]==ulVideos.children.length) {
                     ulVideos.appendChild(createVideoItem(items[i][1]));
+                    break;
                 }
             }
         }
@@ -807,22 +812,69 @@
     function createVideoItem(item) {
         var liVideo = document.createElement('li');
         var div = document.createElement('div');
+        div.classList.add('row');
+
         var divText = document.createElement('div');
+        divText.style.float='left';
+
         var divControls = document.createElement('div');
+        divControls.style.float='right';
+        divControls.style.marginLeft='auto';
+
         var btnDelete = document.createElement('button');
+        var imgDelete = document.createElement('img');
+
+        var labelLocal = document.createElement('label');
         var chkLocal = document.createElement('input');
-        chkLocal.innerText = "Is Remote"
-        chkLocal.value=item.isUrl;
 
-        divText.innerText=item.filePath;
+        btnDelete.appendChild(imgDelete);
 
+        divControls.appendChild(labelLocal);
         divControls.appendChild(chkLocal);
         divControls.appendChild(btnDelete);
         div.appendChild(divText);
         div.appendChild(divControls);
         liVideo.appendChild(div);
+        
+        chkLocal.type='checkbox';
+        chkLocal.id='chk_isurl' + item.id;
+        // chkLocal.style.width='0.75em';
+        // chkLocal.style.height='0.75em';
+        chkLocal.style.scale="1.5";
+        chkLocal.style.marginLeft='0.5em';
+        chkLocal.style.marginRight='0.5em';
+        chkLocal.disabled=true;
+
+        labelLocal.innerText='Is Local';
+        labelLocal.htmlFor=chkLocal.id;
+
+        chkLocal.checked=item.isUrl;
+        divText.innerText=item.filePath;
+        divText.style.marginTop='auto'
+        divText.style.marginBottom='auto';
+        divText.style.marginRight='.25em';
+
+        imgDelete.width=48;
+        imgDelete.height=48;
+        imgDelete.src="{% static "app/images/icon_delete.png" %}";
+        imgDelete.classList.add('nopadding');
+        imgDelete.classList.add('nomargin');
+
+        btnDelete.classList.add('btn');
+        btnDelete.classList.add('nopadding');
+        btnDelete.addEventListener('click', function() {onClick_DeleteVideo(item);});
+        imgDelete.addEventListener('click',function() {onClick_DeleteVideo(item);});
+
+        
 
         return div;
+    }
+
+    function onClick_DeleteVideo(item) {
+        if (item.parent!=undefined) {
+            item.parent.removeItem(item);
+            refreshGame();
+        }
     }
 
     function createImageList(item) {
@@ -888,7 +940,7 @@
     function createQuestionControls(round,index) {
         var div = document.createElement('div');
         
-        input = document.createElement('button');
+        var input = document.createElement('button');
         input.innerText = "New Question";
         input.classList.add('btn');
         input.classList.add('btn-success');
@@ -900,7 +952,7 @@
         return div;
     }
     function onClick_NewQuestion(round,index) {
-        value = new Question();
+        var value = new Question();
         value.new=true;
         value.questionText = '';
         value.answerText = '';

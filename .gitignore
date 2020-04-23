@@ -17,3 +17,7 @@ ScopeOfWork.docx
 .fuse_hidden*
 bash.exe.stackdump
 setagent.sh
+django/manage.sh
+.ebextensions/.elasticbeanstalk/
+requirements.txt
+.ebextensions/

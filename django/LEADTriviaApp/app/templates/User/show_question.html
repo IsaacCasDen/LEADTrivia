@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends '../base.html' %}
 {% load static %}
 {% block content %}
 
@@ -73,16 +73,13 @@
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
 
 <script>
-// context["Question"] = question["Question"]
-// context["Answer"] = question["Answer"]
-// context["Choices"] = question["Choices"]
-// context["QuestionId"] = question["QuestionId"]
+
 var question = "{{Question | safe}}";
 var answer = "{{Answer | safe}}";
 var actualAnswer = "{{ActualAnswer | safe}}";
 var groups = {{groups | safe}};
 var questionId = {{questionId | safe}};
-var media = {{Media | safe}}
+var media = {{Media|safe}};
 var index = undefined;
 
 document.onreadystatechange = function(){
@@ -153,15 +150,31 @@ function init() {
 
   function parseImages(){
     if (media["images"].length == 0) return;
-    var path = "{% static "app/media/images" %}" ; 
+    var _media = media["images"][0];
+    var path;
+    if (_media.is_local){
+      path = "{% static "app/media/images" %}" + "/" + _media['file_path']; 
+
+    }
+    else{
+      path = _media["file_path"];
+    }
     var image = document.getElementById("GameImage");
-    image.src = path + "/" + media['images'][0];
+    image.src = path;
     image.style.display = "inline-block";
   }
 
   function parseAudio(){
-    if (media["audio"].length == 0) return;
-    var path = "{% static "app/media/audio" %}" + "/" + media['audio'][0]; 
+    if (media["audios"].length == 0) return;
+    var _media = media["audios"][0];
+    var path;
+    if (_media.is_local){
+      path = "{% static "app/media/audio" %}" + "/" + _media['file_path']; 
+
+    }
+    else{
+      path = _media["file_path"];
+    }
     var audio = document.getElementById("AudioSource");
     audio.src = path;
     var audioMedia = document.getElementById("AudioMedia");
@@ -171,14 +184,22 @@ function init() {
   }
 
   function parseVideo(){
-    if (media["video"].length == 0) return;
-    var path = "{% static "app/media/video" %}" + "/" + media['video'][0]; 
+    if (media["videos"].length == 0) return;
+    var _media = media["videos"][0];
+    var path;
+    if (_media.is_local){
+      path = "{% static "app/media/video" %}" + "/" + _media['file_path']; 
+
+    }
+    else{
+      path = _media["file_path"];
+    }
+
     var video = document.getElementById("VideoSource");
     video.src = path;
     var videoMedia = document.getElementById("VideoMedia");
     videoMedia.load();
     videoMedia.style.display = "inline-block";
-
     
   }
 
