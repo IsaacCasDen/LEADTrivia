@@ -66,24 +66,26 @@ def index(request):
     _games = []
     for game in games:
         _games.append(game.get_info())
-
-    if len(games)==0:
-        return HttpResponse("No Games Available")
-
-    if mode == 1:
-        return redirect(lobby)    
-
     if request.session['gameId'] == '':
         pass
 
     game_data = get_gamestate(games[len(games)-1].id) 
-    userId = request.session['userId']
+    
+    if len(games)==0:
+        return HttpResponse("No Games Available")
+
     gameId = request.session['gameId']
 
     if gameId != game_data['Game']['Id']:
         gameId = game_data['Game']['Id']
         request.session['gameId']=gameId
         request.session['userId']=''
+
+    if mode == 1:
+        return redirect(lobby)    
+
+    userId = request.session['userId']
+
     if isinstance(userId,int) and isinstance(gameId,int) and  len(request.session['errors'])==0:
         return redirect(lobby)
 
@@ -114,6 +116,8 @@ def lobby(request):
     if gameId != '':
         gameId = int(gameId)
         request.session['gameId'] = gameId
+    else:
+        return redirect(index)
     
     state = get_gamestate(gameId)
     if mode == 0:
@@ -121,14 +125,14 @@ def lobby(request):
         if userId != '':
             userId = int(userId)
             request.session['userId'] = userId
+        else:
+            return redirect(index)
         
         if teamId != '':
             teamId = int(teamId)
             request.session['teamId'] = teamId
 
-        if gameId == '':
-            return redirect(index)
-        elif userId == '' and username == '':
+        if username == '':
             request.session['errors'] = ['Please enter a username']
             return redirect(index)
         elif userId == '':
