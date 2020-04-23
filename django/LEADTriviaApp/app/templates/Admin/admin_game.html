@@ -22,7 +22,7 @@
         if (document.readyState=="complete") {
             init();
             updateButton();
-            //checkCurrentQuestionIndex();
+
         }
     }
 
@@ -43,18 +43,32 @@
     }
 
 
+    
+
     function updateButton(){
         var lquestion = lastQuestion;
         var lround = lastRound;
+        var buttonDiv = document.getElementById("move_forward");
         if (lquestion == true && lround == false){
-            buttonDiv = document.getElementById("move_forward");
             buttonDiv.value = 'Round Results';
             buttonDiv.style.backgroundColor = "green";
+            
+            document.getElementById("move_forward").addEventListener('click', function(evt){
+                buttonDiv.value = 'Next Round';
+                buttonDiv.style.backgroundColor = "orange";           
+                
+            });
+  
         }
+
         if (lquestion == true && lround == true){
-            buttonDiv = document.getElementById("move_forward");
             buttonDiv.value = 'Final Results';
             buttonDiv.style.backgroundColor = "cyan";
+            // document.getElementById("move_forward").addEventListener('click', function(evt){
+            //     buttonDiv.value = 'Next Round';
+            //     buttonDiv.style.backgroundColor = "orange";           
+                
+            // });
         }
     }
 
