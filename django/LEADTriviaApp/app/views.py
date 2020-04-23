@@ -17,7 +17,7 @@ TEAMNAME = 'teamname'
 GAMEID = 'gameId'
 GAMENAME = 'gameName'
 
-MEDIA = static('media')
+# MEDIA = static('media')
 
 def set_session_vars(request):
     request.session['mode'] = 0
@@ -709,21 +709,21 @@ def upload_video(request):
     paths = []
     files = request.FILES.get('file','')
     for f in files:
-        path = get_temp_location(os.path.join(MEDIA,'video','temp'),f) 
+        # path = get_temp_location(os.path.join(MEDIA,'video','temp'),f) 
         paths.append(path)
 
 def upload_audio(request):
     paths = {}
     files = request.FILES.get('file','')
     for f in files:
-        path = get_temp_location(os.path.join(MEDIA,'audio','temp'),f) 
+        # path = get_temp_location(os.path.join(MEDIA,'audio','temp'),f) 
         paths[f]=path
 
 def upload_image(request):
     paths = {}
     files = request.FILES.get('file','')
     for f in files:
-        path = get_temp_location(os.path.join(MEDIA,'images','temp'),f) 
+        # path = get_temp_location(os.path.join(MEDIA,'images','temp'),f) 
         paths[f]=path
 
 def write_temp_file(path,chunks):
