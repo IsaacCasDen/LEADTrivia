@@ -363,7 +363,7 @@ def get_round_results(game_id:int,round_index:int):
     
 def get_game_results(game_id:int):
     
-    game = TriviaGame.objects.get(game_id)
+    game = TriviaGame.objects.get(id = game_id)
     if game==None or game.state!=2:
         return None
 
@@ -384,7 +384,7 @@ def get_game_results(game_id:int):
     for i,key in enumerate(teams.keys()):
         users = []
         value['teams'][key] = {'id':key, 'teamName':teams[key].team.team.team_name,'points':teams[key].points,'rank':teams[key].rank,'questions':{}}
-        _users = TriviaGameRoundResultUser.objects.filter(game__id=game.id, user__team__id=key)
+        _users = TriviaGameResultUser.objects.filter(game__id=game.id, user__team__id=key)
         for user in _users:
             u = [user.rank,{'id':user.user.user.id,'username':user.user.user.user_name,'points':user.points,'rank':user.rank}]
             users.append(tuple(u))
@@ -543,7 +543,7 @@ def compile_stats_teams(game_id:int):
             _result.game=game
             _result.team=team
         
-        answers = get_team_answers(game.id,team.id.round_index)
+        answers = get_team_answers(game.id,team.id)
         _result.points = answers[1]
         result = (team.id,answers[1],_result)
         result_list.append(result)
