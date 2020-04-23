@@ -190,7 +190,7 @@ function init() {
   }
 
   function updateCurrentQuestionIndex() {
-    var query = $.getJSON('current_question_index');
+    var query = $.getJSON('/app/current_question_index');
     query.done(function(data) {
       index = data.index
       if (index==undefined) {
@@ -200,17 +200,14 @@ function init() {
   }
 
   function checkCurrentQuestionIndex() {
-    var query = $.getJSON('current_question_index/');
+    var query = $.getJSON('/app/current_question_index/');
     query.done(function(data) {
-      if (data.index!=index) {
+      if (data.index!=index && index != undefined) {
         document.location.reload();
       }
-      else if (data.round_finished == False){
-        document.location.replace('/app/show_question/');
+      else if (data.round_finished == false){
+        document.location.replace('/app/next_round/');
       }
-      // else if (data.game_finished == true){
-      //   document.location.replace('/app/game_results/')
-      // }
       else {
         setTimeout(checkCurrentQuestionIndex,500)
       }
