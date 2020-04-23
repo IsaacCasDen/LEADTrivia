@@ -79,7 +79,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'dbLeadTrivia',
         'USER': 'LeadAdmin',
-        'PASSWORD': 'LeadAdmin',
+        'PASSWORD': 'LeadAdmin1%',
         'HOST': '127.0.0.1',
         'PORT': '3306',
     }
