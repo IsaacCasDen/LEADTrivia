@@ -125,8 +125,6 @@ def lobby(request):
         if userId != '':
             userId = int(userId)
             request.session['userId'] = userId
-        else:
-            return redirect(index)
         
         if teamId != '':
             teamId = int(teamId)
