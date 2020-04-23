@@ -187,24 +187,23 @@ function init() {
     // Parse youtube path and load it in.
     if (media["videos"].length == 0) return;
     var _media = media["videos"][0];
-    if (!_media.is_local){
-      return;
-    }
     var path;
     if (_media.is_local){
-      path = "{% static "app/media/video" %}" + "/" + _media['file_path']; 
+      path = "{% static "app/media/video" %}" + "/" + _media['file_path'];
+      var video = document.getElementById("VideoSource");
+      video.src = path;
+      var videoMedia = document.getElementById("VideoMedia");
+      videoMedia.load();
+      videoMedia.style.display = "inline-block"; 
 
     }
     else{
       path = _media["file_path"];
-    }
-
-    var video = document.getElementById("VideoSource");
-    video.src = path;
-    var videoMedia = document.getElementById("VideoMedia");
-    videoMedia.load();
-    videoMedia.style.display = "inline-block";
+      var qv = document.getElementById("VideoParent");
+      qv.innerHTML = path;
     
+    
+    }
   }
 
   function showTimeWarning() {
@@ -365,11 +364,13 @@ function createChoices(group){
                 <source type = "audio/mpeg" id = "AudioSource">
               </audio>
             </div>
-            <div style = "align-items: center; display:flex; justify-content: center;" >
-              <video controls controlsList="nodownload" id = "VideoMedia" style = "display: none; max-width: 480; max-height: 480;">
+
+            <div style = "object-fit: cover; width: 480px; height: 480px; align-items: center; display:flex; justify-content: center;" id = "VideoParent" >
+              <video controls controlsList="nodownload" id = "VideoMedia" style = "display: none; max-width: 100%; max-height: 100%; align-items: center;">
                 <source type = "video/mp4" id = "VideoSource" style="display: none;">
               </video>
             </div>
+
           </div>
         </div>
         <div id = "Choices" class ="list-group col-lg-auto"></div>
