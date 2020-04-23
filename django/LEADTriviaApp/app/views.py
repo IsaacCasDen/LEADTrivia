@@ -278,7 +278,16 @@ def update_username(request):
 def next_round(request):
     mode = request.session['mode']
     context = {}
-    context['round']=1
+
+    gameId = request.session.get(GAMEID,'')
+    if gameId == '':
+        return redirect(index)
+
+    game = get_game(gameId)
+    if game  == None:
+        return redirect(index)
+        
+    context['round'] = game.current_round
     
     if mode == 0:
         return render(request,'User/next_round.html',context)
