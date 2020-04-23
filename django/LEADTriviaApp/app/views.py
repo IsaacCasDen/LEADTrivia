@@ -59,7 +59,7 @@ def init_db():
 
 def index(request):
     set_session_vars(request)
-    init_db()
+    # init_db()
     mode = request.session['mode']
 
     games = get_games()
@@ -68,12 +68,11 @@ def index(request):
         _games.append(game.get_info())
     if request.session['gameId'] == '':
         pass
-
-    game_data = get_gamestate(games[len(games)-1].id) 
     
     if len(games)==0:
         return HttpResponse("No Games Available")
 
+    game_data = get_gamestate(games[len(games)-1].id) 
     gameId = request.session['gameId']
 
     if gameId != game_data['Game']['Id']:
@@ -305,6 +304,7 @@ def show_question(request):
     elif result['round_finished']:
         return redirect(round_results)
 
+    game = get_game(gameId)
     state = get_gamestate(gameId)
     ind = game.current_question_index
     round_index = game.current_round

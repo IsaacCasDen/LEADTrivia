@@ -150,7 +150,7 @@
   var results = {{results|safe}};
   var teams = results['teams'];
   var users = results['users'];
-  var totalPositions = results['round']['team_count'];
+  var totalPositions = results['game']['team_count'];
   var teamRank = results['teamRank'];
   var index = undefined;
 
@@ -163,7 +163,7 @@ document.onreadystatechange = function(){
   }
 }
 function init() {
-    setTimeout(checkCurrentQuestionIndex,500);
+    // setTimeout(checkCurrentQuestionIndex,500);
     updateTeamDisplay(teamRank);
     updateUserDisplay(users);
   }
@@ -180,33 +180,33 @@ function init() {
   }
 
 
-  function updateCurrentQuestionIndex() {
-    var query = $.getJSON('current_question_index');
-    query.done(function(data) {
-      index = data.index
-      if (index==undefined) {
-        document.location.href = 'app/';
-      }
-    });
-  }
+  // function updateCurrentQuestionIndex() {
+  //   var query = $.getJSON('current_question_index');
+  //   query.done(function(data) {
+  //     index = data.index
+  //     if (index==undefined) {
+  //       document.location.href = 'app/';
+  //     }
+  //   });
+  // }
 
-  function checkCurrentQuestionIndex() {
-    var query = $.getJSON('current_question_index/');
-    query.done(function(data) {
-      if (data.index!=index) {
-        document.location.reload();
-      }
-      else if (data.round_finished == False){
-        document.location.replace('/app/show_question/');
-      }
-      // else if (data.game_finished == true){
-      //   document.location.replace('/app/game_results/')
-      // }
-      else {
-        setTimeout(checkCurrentQuestionIndex,500)
-      }
-    });
-  }
+  // function checkCurrentQuestionIndex() {
+  //   var query = $.getJSON('/app/current_question_index/');
+  //   query.done(function(data) {
+  //     if (data.index!=index) {
+  //       document.location.reload();
+  //     }
+  //     else if (data.round_finished == False){
+  //       document.location.replace('/app/show_question/');
+  //     }
+  //     // else if (data.game_finished == true){
+  //     //   document.location.replace('/app/game_results/')
+  //     // }
+  //     else {
+  //       setTimeout(checkCurrentQuestionIndex,500)
+  //     }
+  //   });
+  // }
 
 
   function updateUserDisplay(users){
