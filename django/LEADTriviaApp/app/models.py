@@ -363,15 +363,18 @@ def get_round_results(game_id:int,round_index:int):
     
 def get_game_results(game_id:int):
     
+    game = TriviaGame.objects.get(game_id)
+    if game==None or game.state!=2:
+        return None
+
     value = {} 
-    teams = {item.team.id:item for item in TriviaGameRoundResultTeam.objects.filter(game__id=game.id)}
+    teams = {item.team.id:item for item in TriviaGameResultTeam.objects.filter(game__id=game.id)}
 
 
-    value['round'] = {}
-    value['round']['id']=game_round.id
-    value['round']['index']=game_round.round_index
-    value['round']['isFinished']=game_round.is_finished
-    value['round']['team_count']=len(teams)
+    value['game'] = {}
+    value['game']['id']=game.id
+    value['game']['isFinished']=game.state==2
+    value['game']['team_count']=len(teams)
 
     
     value['teams'] = {}
@@ -381,7 +384,7 @@ def get_game_results(game_id:int):
     for i,key in enumerate(teams.keys()):
         users = []
         value['teams'][key] = {'id':key, 'teamName':teams[key].team.team.team_name,'points':teams[key].points,'rank':teams[key].rank,'questions':{}}
-        _users = TriviaGameRoundResultUser.objects.filter(game_round=game_round.id, user__team__id=key)
+        _users = TriviaGameRoundResultUser.objects.filter(game__id=game.id, user__team__id=key)
         for user in _users:
             u = [user.rank,{'id':user.user.user.id,'username':user.user.user.user_name,'points':user.points,'rank':user.rank}]
             users.append(tuple(u))
@@ -394,7 +397,7 @@ def get_game_results(game_id:int):
         value['teams'][key]['users']=tuple(users)
 
 
-        answers = TriviaGameTeamAnswer.objects.filter(game__id=game_id,team__id=key,question__round_index=round_index)
+        answers = TriviaGameTeamAnswer.objects.filter(game__id=game_id,team__id=key)
         questions = {}
         for answer in answers:
             questions[answer.question.id] = {'Id':answer.question.id,'Index':answer.question.index,'IsCorrect':answer.is_correct()}
