@@ -1,11 +1,14 @@
+
+import LEADTriviaApp
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts  import redirect
+from pathlib import Path
 import sys
 import os
 import random
 import json
-import os
+import string
 
 from .models import *
 # Create your views here.
@@ -17,7 +20,8 @@ TEAMNAME = 'teamname'
 GAMEID = 'gameId'
 GAMENAME = 'gameName'
 
-# MEDIA = static('media')
+APP_ROOT = os.path.abspath(LEADTriviaApp.__path__[0])
+MEDIA = os.path.join(str(Path(APP_ROOT).parent),'app','static','app','media')
 
 def set_session_vars(request):
     request.session['mode'] = 0
@@ -736,31 +740,36 @@ def admin_save_questions(request):
     if data == '':
         return JsonResponse(value)
 
+    save_question_data(data)
+    result = {'saved':True}
+    return JsonResponse(result)
+
 def upload_video(request):
-    paths = []
-    files = request.FILES.get('file','')
-    for f in files:
-        # path = get_temp_location(os.path.join(MEDIA,'video','temp'),f) 
-        paths.append(path)
+    _file = request.FILES.get('files','')
+    path = get_temp_location(os.path.join(MEDIA,'video','temp'),_file.name) 
+    write_temp_file(path,_file.chunks())
+    return JsonResponse({'path':path})
 
 def upload_audio(request):
-    paths = {}
-    files = request.FILES.get('file','')
-    for f in files:
-        # path = get_temp_location(os.path.join(MEDIA,'audio','temp'),f) 
-        paths[f]=path
+    _file = request.FILES.get('file','')
+    path = get_temp_location(os.path.join(MEDIA,'audio','temp'),_file.name) 
+    write_temp_file(path,_file.chunks())
+    return JsonResponse({'path':path})
 
 def upload_image(request):
-    paths = {}
-    files = request.FILES.get('file','')
-    for f in files:
-        # path = get_temp_location(os.path.join(MEDIA,'images','temp'),f) 
-        paths[f]=path
+    _file = request.FILES.get('file','')
+    path = get_temp_location(os.path.join(MEDIA,'images','temp'),_file.name) 
+    write_temp_file(path,_file.chunks())
+    return JsonResponse({'path':path})
+
 
 def write_temp_file(path,chunks):
-    with open(path,'wb+') as f:
-        for chunk in chunks:
-            f.write(chunk)
+    try:
+        with open(path,'wb+') as f:
+            for chunk in chunks:
+                f.write(chunk)
+    except Exception as e:
+        print(e)
 
 def get_temp_location(root,filename)->str:
     path = ''
@@ -770,8 +779,14 @@ def get_temp_location(root,filename)->str:
 
     while path=='' or os.path.exists(root + path):
         N=random.randint(5,8)
-        # path = ''.join(random.choices(string.ascii_uppercase + string.digits,k=N))
+        path = ''.join(random.choices(string.ascii_uppercase,k=N))
     
-    return path + filename
+    path = os.path.join(root,path)
+    if not os.path.exists(path):
+        os.mkdir(path)
+    
+    path = os.path.join(path,filename)
+
+    return path
 
     
