@@ -109,7 +109,6 @@ def lobby(request):
     userId = request.POST.get('userId', request.session.get('userId', ''))
     gameId = request.POST.get('gameId', request.session.get('gameId', ''))
     teamId = request.POST.get('teamId', request.session.get('teamId', ''))
-    request.session['gameId'] = gameId
     request.session['errors'] = []
 
 
@@ -291,11 +290,13 @@ def show_question(request):
     mode = request.session['mode']
 
     set_session_vars(request)
-    game = get_games()[0]
-    gameId = game.id
-   # gameId = request.session.get(GAMEID,'')
+    gameId = request.POST.get('gameId', request.session.get('gameId', ''))
 
-    if gameId == '':
+
+    if gameId != '':
+        gameId = int(gameId)
+        request.session['gameId'] = gameId
+    else:
         return redirect(index)
 
     result = __current_question_index__(gameId)
