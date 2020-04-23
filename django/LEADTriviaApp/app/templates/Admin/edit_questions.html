@@ -666,7 +666,7 @@
     }
 
     function onClick_newRound(event) {
-        value = new Round();
+        var value = new Round();
         value.new = true;
         rounds.addItem(value);
         refreshGame();
@@ -826,6 +826,15 @@
 
         var labelLocal = document.createElement('label');
         var chkLocal = document.createElement('input');
+
+        btnDelete.appendChild(imgDelete);
+
+        divControls.appendChild(labelLocal);
+        divControls.appendChild(chkLocal);
+        divControls.appendChild(btnDelete);
+        div.appendChild(divText);
+        div.appendChild(divControls);
+        liVideo.appendChild(div);
         
         chkLocal.type='checkbox';
         chkLocal.id='chk_isurl' + item.id;
@@ -854,16 +863,9 @@
         btnDelete.classList.add('btn');
         btnDelete.classList.add('nopadding');
         btnDelete.addEventListener('click', function() {onClick_DeleteVideo(item);});
-        // imgDelete.addEventListener('click',function() {onClick_DeleteVideo(item)});
+        imgDelete.addEventListener('click',function() {onClick_DeleteVideo(item);});
 
-        btnDelete.appendChild(imgDelete);
-
-        divControls.appendChild(labelLocal);
-        divControls.appendChild(chkLocal);
-        divControls.appendChild(btnDelete);
-        div.appendChild(divText);
-        div.appendChild(divControls);
-        liVideo.appendChild(div);
+        
 
         return div;
     }
@@ -938,7 +940,7 @@
     function createQuestionControls(round,index) {
         var div = document.createElement('div');
         
-        input = document.createElement('button');
+        var input = document.createElement('button');
         input.innerText = "New Question";
         input.classList.add('btn');
         input.classList.add('btn-success');
@@ -950,7 +952,7 @@
         return div;
     }
     function onClick_NewQuestion(round,index) {
-        value = new Question();
+        var value = new Question();
         value.new=true;
         value.questionText = '';
         value.answerText = '';
