@@ -343,6 +343,7 @@
             super(id);
             this.name="Image";
             this.filePath=filePath;
+            this.tempPath='';
             this.isUrl=isUrl;
         }
     }
@@ -359,6 +360,7 @@
             super(id);
             this.name="Audio";
             this.filePath=filePath;
+            this.tempPath='';
             this.isUrl=isUrl;
         }
     }
@@ -368,6 +370,7 @@
             super(id);
             this.name="Video";
             this.filePath=filePath;
+            this.tempPath='';
             this.isUrl=isUrl;
         }
     }
@@ -582,7 +585,7 @@
         input.classList.add('btn');
         input.classList.add('grid-item');
         input.classList.add('nopadding');
-        input.onclick = function() { alert('Delete'); }
+        input.onclick = function() { onClick_DeleteItem(item); }
 
         var img = document.createElement('img');
         img.width=48;
@@ -608,11 +611,19 @@
     function onClick_IncItemIndex(item) {
         if (item!=undefined && item.parent && item.parent instanceof Parent) {
             item.parent.incIndex(item);
+            refreshGame();
         }
     }
     function onClick_DecItemIndex(item) {
         if (item!=undefined && item.parent && item.parent instanceof Parent) {
             item.parent.decIndex(item);
+            refreshGame();
+        }
+    }
+    function onClick_DeleteItem(item) {
+        if (item!=undefined && item.parent) {
+            item.parent.removeItem(item);
+            refreshGame();
         }
     }
 
@@ -848,7 +859,15 @@
         labelLocal.htmlFor=chkLocal.id;
 
         chkLocal.checked=item.isUrl;
-        divText.innerText=item.filePath;
+        
+        if (item.filePath=='') {
+            var path = item.tempPath
+            path = path.substring(path.lastIndexOf('/')+1)
+            divText.innerText=path + ' (Temp)';
+        } else {
+            divText.innerText=item.filePath;
+        }
+
         divText.style.marginTop='auto'
         divText.style.marginBottom='auto';
         divText.style.marginRight='.25em';
@@ -935,7 +954,13 @@
         labelLocal.htmlFor=chkLocal.id;
 
         chkLocal.checked=item.isUrl;
-        divText.innerText=item.filePath;
+        if (item.filePath=='') {
+            var path = item.tempPath
+            path = path.substring(path.lastIndexOf('/')+1)
+            divText.innerText=path + ' (Temp)';
+        } else {
+            divText.innerText=item.filePath;
+        }
         divText.style.marginTop='auto'
         divText.style.marginBottom='auto';
         divText.style.marginRight='.25em';
@@ -1021,7 +1046,13 @@
         labelLocal.htmlFor=chkLocal.id;
 
         chkLocal.checked=item.isUrl;
-        divText.innerText=item.filePath;
+        if (item.filePath=='') {
+            var path = item.tempPath
+            path = path.substring(path.lastIndexOf('/')+1)
+            divText.innerText=path + ' (Temp)';
+        } else {
+            divText.innerText=item.filePath;
+        }
         divText.style.marginTop='auto'
         divText.style.marginBottom='auto';
         divText.style.marginRight='.25em';
@@ -1083,6 +1114,27 @@
             data.append('file',source.files[0]);
             var request = new XMLHttpRequest();
             request.open('post','/app/upload_image');
+            request.onreadystatechange = function() {
+                if (request.readyState===4) {
+                    value = JSON.parse(request.response);
+                    if ('path' in value) {
+                        parent = item.images;
+                        if (parent.count>0) {
+                            _item = parent.getItems()[0][1];
+                            parent.removeItem(_item);
+                            _item = new ImageFile('','',false);
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        } else {
+                            _item = new ImageFile('','',false);
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        }
+                        refreshGame();
+                    }
+                        
+                }
+            }
             request.send(data);
         }
     }
@@ -1094,6 +1146,27 @@
             data.append('file',source.files[0]);
             var request = new XMLHttpRequest();
             request.open('post','/app/upload_audio');
+            request.onreadystatechange = function() {
+                if (request.readyState===4) {
+                    value = JSON.parse(request.response);
+                    if ('path' in value) {
+                        parent = item.audios;
+                        if (parent.count>0) {
+                            _item = parent.getItems()[0][1];
+                            parent.removeItem(_item);
+                            _item = new AudioFile('','',false);
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        } else {
+                            _item = new AudioFile('','',false);
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        }
+                        refreshGame();
+                    }
+                        
+                }
+            }
             request.send(data);
         }
     }
@@ -1105,6 +1178,27 @@
             data.append('file',source.files[0]);
             var request = new XMLHttpRequest();
             request.open('post','/app/upload_video');
+            request.onreadystatechange = function() {
+                if (request.readyState===4) {
+                    value = JSON.parse(request.response);
+                    if ('path' in value) {
+                        parent = item.images;
+                        if (parent.count>0) {
+                            _item = parent.getItems()[0][1];
+                            parent.removeItem(_item);
+                            _item = new VideoFile('','',false);
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        } else {
+                            _item = new VideoFile('','',false);
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        }
+                        refreshGame();
+                    }
+                        
+                }
+            }
             request.send(data);
         }
     }
@@ -1301,6 +1395,7 @@
 
     function onSuccess(data,text,object) {
         alert('Questions Saved');
+        document.location.reload();
     }
 
     function getCookie(name) {
