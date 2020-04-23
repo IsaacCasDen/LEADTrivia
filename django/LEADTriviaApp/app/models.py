@@ -768,7 +768,7 @@ def submit_user_choice(game_id:int,question_id:int,group_id:int,choice_id:int,us
         choice.user = user
         choice.group = group
         choice.question=TriviaGameQuestion.objects.get(id=question_id)
-        choice.answer = TriviaQuestionChoice.objects.get(id=choice_id)
+        choice.choice = TriviaQuestionChoice.objects.get(id=choice_id)
         choice.game=game
 
     choice.save()
