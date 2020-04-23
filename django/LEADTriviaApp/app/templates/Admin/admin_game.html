@@ -8,15 +8,16 @@
 </style>
 
 <script>
-    var name = {{name|safe}}
-    var currentQuestionIndex = {{currentQuestionIndex|safe}}
-    var currentRound = {{currentRound|safe}}
-    var currentQuestion = {{currentQuestion|safe}}
-    var currentAnswer = {{currentAnswer|safe}}
-    var lastQuestion = {{lastQuestion|safe}}
-    var lastRound = {{lastRound|safe}}
-    var countRemaining = {{countRemaining|safe}}
-    var roundsRemaining = {{roundsRemaining|safe}}
+    var name = {{name|safe}};
+    var currentQuestionIndex = {{currentQuestionIndex|safe}};
+    var currentRound = {{currentRound|safe}};
+    var currentQuestion = {{currentQuestion|safe}};
+    var currentAnswer = {{currentAnswer|safe}};
+    var lastQuestion = {{lastQuestion|safe}};
+    var lastRound = {{lastRound|safe}};
+    var countRemaining = {{countRemaining|safe}};
+    var roundsRemaining = {{roundsRemaining|safe}};
+    var roundFinished = {{roundFinished | safe}};
 
     document.onreadystatechange = function() {
         if (document.readyState=="complete") {
@@ -49,28 +50,35 @@
         var lquestion = lastQuestion;
         var lround = lastRound;
         var buttonDiv = document.getElementById("move_forward");
-        if (lquestion == true && lround == false){
-            buttonDiv.value = 'Round Results';
-            buttonDiv.style.backgroundColor = "green";
-            
-            document.getElementById("move_forward").addEventListener('click', function(evt){
-                buttonDiv.value = 'Next Round';
-                buttonDiv.style.backgroundColor = "orange";           
-                
-            });
-  
-        }
+        var buttonDivBack = document.getElementById("move_back");
 
-        if (lquestion == true && lround == true){
-            buttonDiv.value = 'Final Results';
-            buttonDiv.style.backgroundColor = "cyan";
-            // document.getElementById("move_forward").addEventListener('click', function(evt){
-            //     buttonDiv.value = 'Next Round';
-            //     buttonDiv.style.backgroundColor = "orange";           
-                
-            // });
+        if (roundFinished){
+            if (lround){
+                buttonDiv.style.backgroundColor = "black";
+                buttonDiv.value = 'Game Finished';
+                buttonDiv.disabled = true;
+                buttonDivBack.disabled = true;
+
+            }
+            else{
+                buttonDiv.style.backgroundColor = "orange"; 
+                buttonDiv.value = 'Next Round';
+               }
+
+        }
+        else{
+            if (lquestion){
+                if (lround){
+                    buttonDiv.value = 'Final Results';
+                    buttonDiv.style.backgroundColor = "cyan"; 
+                }else{
+                    buttonDiv.value = 'Round Results';
+                    buttonDiv.style.backgroundColor = "green";
+                }
+            }
         }
     }
+        
 
 
 
@@ -107,7 +115,7 @@
         </div>
         <div id="divControls">
             <div id="divCurrentQuestion">
-                <input type="submit" type="button" value="Previous Question" formaction="admin_prev_question/" class="btn btn-secondary">
+                <input type="submit" type="button" value="Previous Question" formaction="admin_prev_question/" class="btn btn-secondary" id = "move_back">
                 <input type="submit" type="button" value="Next Question" formaction="admin_next_question/" class="btn btn-primary" id = "move_forward">
             </div>
         </div>
