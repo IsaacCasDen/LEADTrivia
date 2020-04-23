@@ -16,6 +16,9 @@ urlpatterns = [
     path('current_question_index/', views.current_question_index, name='current_question_index'),
     path('save_game/', views.save_game,name='save_game'),
     path('admin_save_questions/', views.admin_save_questions, name = "admin_save_questions"),
+    path('upload_video',views.upload_video,name='upload_video'),
+    path('upload_audio',views.upload_audio,name='upload_audio'),
+    path('upload_image',views.upload_image,name='upload_image'),
 
     #------------------USER
     path('lobby/',views.lobby,name='lobby'),

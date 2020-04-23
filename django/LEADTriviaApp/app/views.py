@@ -17,6 +17,8 @@ TEAMNAME = 'teamname'
 GAMEID = 'gameId'
 GAMENAME = 'gameName'
 
+# MEDIA = static('media')
+
 def set_session_vars(request):
     request.session['mode'] = 0
 
@@ -706,3 +708,43 @@ def admin_save_questions(request):
     
     if data == '':
         return JsonResponse(value)
+
+def upload_video(request):
+    paths = []
+    files = request.FILES.get('file','')
+    for f in files:
+        # path = get_temp_location(os.path.join(MEDIA,'video','temp'),f) 
+        paths.append(path)
+
+def upload_audio(request):
+    paths = {}
+    files = request.FILES.get('file','')
+    for f in files:
+        # path = get_temp_location(os.path.join(MEDIA,'audio','temp'),f) 
+        paths[f]=path
+
+def upload_image(request):
+    paths = {}
+    files = request.FILES.get('file','')
+    for f in files:
+        # path = get_temp_location(os.path.join(MEDIA,'images','temp'),f) 
+        paths[f]=path
+
+def write_temp_file(path,chunks):
+    with open(path,'wb+') as f:
+        for chunk in chunks:
+            f.write(chunk)
+
+def get_temp_location(root,filename)->str:
+    path = ''
+
+    if not os.path.exists(root):
+        os.mkdir(root)
+
+    while path=='' or os.path.exists(root + path):
+        N=random.randint(5,8)
+        # path = ''.join(random.choices(string.ascii_uppercase + string.digits,k=N))
+    
+    return path + filename
+
+    
