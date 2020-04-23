@@ -45,10 +45,16 @@
 
     function updateButton(){
         var lquestion = lastQuestion;
-        if (lquestion == true){
+        var lround = lastRound;
+        if (lquestion == true && lround == false){
             buttonDiv = document.getElementById("move_forward");
             buttonDiv.value = 'Round Results';
             buttonDiv.style.backgroundColor = "green";
+        }
+        if (lquestion == true && lround == true){
+            buttonDiv = document.getElementById("move_forward");
+            buttonDiv.value = 'Final Results';
+            buttonDiv.style.backgroundColor = "cyan";
         }
     }
 
