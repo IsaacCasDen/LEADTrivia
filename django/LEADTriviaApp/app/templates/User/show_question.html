@@ -132,7 +132,7 @@ function init() {
 
       }
       else if (data.game_finished == true){
-        document.location.replace('/app/game_results/')
+        document.location.replace('/app/final_results/')
       }
       else {
         setTimeout(checkCurrentQuestionIndex,500)
@@ -184,8 +184,12 @@ function init() {
   }
 
   function parseVideo(){
+    // Parse youtube path and load it in.
     if (media["videos"].length == 0) return;
     var _media = media["videos"][0];
+    if (!_media.is_local){
+      return;
+    }
     var path;
     if (_media.is_local){
       path = "{% static "app/media/video" %}" + "/" + _media['file_path']; 
@@ -361,9 +365,11 @@ function createChoices(group){
                 <source type = "audio/mpeg" id = "AudioSource">
               </audio>
             </div>
-            <video controls controlsList="nodownload" id = "VideoMedia" style = "display: none; max-width: 480; max-height: 480;">
-              <source type = "video/mp4" id = "VideoSource">
-            </video>
+            <div style = "align-items: center; display:flex; justify-content: center;" >
+              <video controls controlsList="nodownload" id = "VideoMedia" style = "display: none; max-width: 480; max-height: 480;">
+                <source type = "video/mp4" id = "VideoSource" style="display: none;">
+              </video>
+            </div>
           </div>
         </div>
         <div id = "Choices" class ="list-group col-lg-auto"></div>
