@@ -1356,52 +1356,77 @@ def create_teams(game_id:int,users:list,count:int):
     return teams
 
 def save_question_data(game_id:int, data):
+
+    game = TriviaGame.objects.get(id=game_id)
+    if game == None:
+        return
+
     try:
         if data['name']=='Rounds':
-            save_rounds(data)
+            save_rounds(game,data)
     except Exception as e:
         print(e)
 
 
 
-def save_rounds(data):
+def save_rounds(game:TriviaGame,data):
     if data['name']=='Rounds':
         for r in data['deleted']:
             delete_round(r)
         for r in data['items']:
             save_round(r,data['items'][r])
 
-def delete_round(data):
+def delete_round(game:TriviaGame,data):
     for q in data['items']:
         delete_question(data['items'][q])
 
-def save_round(index,data):
+def save_round(game:TriviaGame,index,data):
     if data['name']=='Round':
         for q in data['deleted']:
             delete_question(q)
         for q in data['items']:
-            save_question(q,data['items'][q])
+            save_question(game,index,q,data['items'][q])
 
 def delete_question(data):
-    if data['id']=='':
-        return
-    
-    question = TriviaQuestion.objects.get(id=data['id'])
-    question.delete()
+    if 'id' in data and data['id']!='':
+        question = TriviaQuestion.objects.get(id=data['id'])
+        if question != None:
+            question.delete()
 
-def save_question(index,data):
+def remove_question(game:TriviaGame,data):
+    if 'id' in data and data['id']!='':
+        tq = TriviaGameQuestion.objects.get(id=data['id'])
+        if tq != None:
+            tq.delete()
+
+def save_question(game:TriviaGame,round_index,index,data):
     if data['name']=='Question':
-
-        question = None
+        tg_question = None
+        has_update = False
         if data['new']:
-            question = TriviaQuestion()
+            tg_question = TriviaGameQuestion()
+            tg_question.question = TriviaQuestion()
+            has_update=True
         else:
             question=TriviaQuestion.objects.get(id=data['id'])
+
+        if data['changed']:
+            has_update=True
+        
+        if has_update:
+            tg_question.index=index
+            tg_question.question.question=data['question']
+            tg_question.question.answer=data['answer']
+            tg_question.round_index=round_index
+            tg_question.index=index
+            tg_question.question.save()
+            tg_question.save()
 
         for g in data['deleted']:
             delete_group(g)
         for g in data['items']:
-            save_group(g,data['items'][g])
+            save_group(g,question,data['items'][g])
+
         save_videos(data['videos'])
         save_audios(data['audios'])
         save_images(data['images'])
