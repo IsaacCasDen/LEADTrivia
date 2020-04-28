@@ -21,3 +21,6 @@ django/manage.sh
 .ebextensions/.elasticbeanstalk/
 requirements.txt
 .ebextensions/
+django/LEADTriviaApp/app/static/app/media/video/temp/
+django/LEADTriviaApp/app/static/app/media/audio/temp/
+django/LEADTriviaApp/app/static/app/media/images/temp/

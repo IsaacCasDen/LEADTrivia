@@ -271,6 +271,7 @@
                     break;
                 } else {
                     this.items[i-1]=this.items[i]
+                    this.items[i-1].changed=true;
                 }
             }
             this.count--;
@@ -285,6 +286,8 @@
                 if (this.items[i] == item) {
                     this.items[i] = this.items[i+1];
                     this.items[i+1] = item;
+                    this.items[i].changed=true;
+                    this.items[i+1].changed=true;
                     value=true;
                 }
             }
@@ -299,6 +302,8 @@
                     value=true;
                     this.items[i] = this.items[i-1];
                     this.items[i-1] = item;
+                    this.items[i].changed=true;
+                    this.items[i-1].changed=true;
                 }
             }
             // if (value) item.changed=true;
@@ -343,6 +348,7 @@
             super(id);
             this.name="Image";
             this.filePath=filePath;
+            this.tempPath='';
             this.isUrl=isUrl;
         }
     }
@@ -359,6 +365,7 @@
             super(id);
             this.name="Audio";
             this.filePath=filePath;
+            this.tempPath='';
             this.isUrl=isUrl;
         }
     }
@@ -368,6 +375,7 @@
             super(id);
             this.name="Video";
             this.filePath=filePath;
+            this.tempPath='';
             this.isUrl=isUrl;
         }
     }
@@ -383,6 +391,7 @@
         constructor(id,questionText,answerText) {
             super(id);
             this.name = "Question";
+            this.remove=false;
             this.questionText=questionText;
             this.answerText=answerText;
             this.videos = new VideoFiles();
@@ -542,47 +551,61 @@
         // var elements = document.getElementsByName();
     }
 
-    function createDraggable(item,text) {
+    class ControlHeader {
+        constructor(inc,dec,del,rem) {
+            this.inc=inc;
+            this.dec=dec;
+            this.del=del;
+            this.rem=rem;
+        }
+    }
+
+    function createDraggable(item,text,hasRemove) {
         var div = document.createElement('div');
         div.classList.add('input-group');
         div.classList.add('input-group-text');
 
+
         var divIcon = document.createElement('div');
-        var btnUp = document.createElement('button');
-        var imgUp = document.createElement('img');
-        // btnUp.type="image";
-        imgUp.src="{% static "app/images/uparrow.png" %}";
-        btnUp.addEventListener('click',function() {onClick_DecItemIndex(item)})
-
-        var btnDown = document.createElement('button');
-        var imgDown = document.createElement('img');
-        // btnDown.type="image";
-        imgDown.src="{% static "app/images/downarrow.png" %}";
-        btnDown.addEventListener('click',function() {onClick_IncItemIndex(item)})
-
-        
-        btnUp.appendChild(imgUp);
-        btnDown.appendChild(imgDown);
         divIcon.classList.add('arrowContainer');
         divIcon.classList.add('border');
-        imgUp.classList.add('arrow');
-        imgDown.classList.add('arrow');
+
+
+        var btnUp = document.createElement('button');
         btnUp.classList.add('arrow');
         btnUp.classList.add('btn');
+        btnUp.addEventListener('click',function() {onClick_DecItemIndex(item)})
+
+
+        var imgUp = document.createElement('img');
+        imgUp.classList.add('arrow');
+        imgDown.classList.add('arrow');
+        imgUp.src="{% static "app/images/uparrow.png" %}";
+        
+
+        var btnDown = document.createElement('button');
+        btnDown.addEventListener('click',function() {onClick_IncItemIndex(item)})
         btnDown.classList.add('arrow');
         btnDown.classList.add('btn');
 
-        var title = document.createElement('div');
 
-        title.innerText=text;
+        var imgDown = document.createElement('img');
+        imgDown.src="{% static "app/images/downarrow.png" %}";
+
 
         var divControls = document.createElement('div');
+        
+        
+        var title = document.createElement('div');
+        title.innerText=text;
+
         
         var input = document.createElement('button');
         input.classList.add('btn');
         input.classList.add('grid-item');
         input.classList.add('nopadding');
-        input.onclick = function() { alert('Delete'); }
+        input.onclick = function() { onClick_DeleteItem(item); }
+
 
         var img = document.createElement('img');
         img.width=48;
@@ -591,11 +614,14 @@
         img.classList.add('nopadding');
         img.classList.add('nomargin');
 
-        input.appendChild(img);
 
+        btnUp.appendChild(imgUp);
+        btnDown.appendChild(imgDown);
+        input.appendChild(img);
         divControls.appendChild(input);
         divControls.style.float="right";
         divControls.style.width="auto";
+
 
         divIcon.appendChild(btnUp);
         divIcon.appendChild(btnDown);        
@@ -608,11 +634,19 @@
     function onClick_IncItemIndex(item) {
         if (item!=undefined && item.parent && item.parent instanceof Parent) {
             item.parent.incIndex(item);
+            refreshGame();
         }
     }
     function onClick_DecItemIndex(item) {
         if (item!=undefined && item.parent && item.parent instanceof Parent) {
             item.parent.decIndex(item);
+            refreshGame();
+        }
+    }
+    function onClick_DeleteItem(item) {
+        if (item!=undefined && item.parent) {
+            item.parent.removeItem(item);
+            refreshGame();
         }
     }
 
@@ -848,7 +882,15 @@
         labelLocal.htmlFor=chkLocal.id;
 
         chkLocal.checked=item.isUrl;
-        divText.innerText=item.filePath;
+        
+        if (item.filePath=='') {
+            var path = item.tempPath
+            path = path.substring(path.lastIndexOf('/')+1)
+            divText.innerText=path + ' (Temp)';
+        } else {
+            divText.innerText=item.filePath;
+        }
+
         divText.style.marginTop='auto'
         divText.style.marginBottom='auto';
         divText.style.marginRight='.25em';
@@ -935,7 +977,13 @@
         labelLocal.htmlFor=chkLocal.id;
 
         chkLocal.checked=item.isUrl;
-        divText.innerText=item.filePath;
+        if (item.filePath=='') {
+            var path = item.tempPath
+            path = path.substring(path.lastIndexOf('/')+1)
+            divText.innerText=path + ' (Temp)';
+        } else {
+            divText.innerText=item.filePath;
+        }
         divText.style.marginTop='auto'
         divText.style.marginBottom='auto';
         divText.style.marginRight='.25em';
@@ -1021,7 +1069,13 @@
         labelLocal.htmlFor=chkLocal.id;
 
         chkLocal.checked=item.isUrl;
-        divText.innerText=item.filePath;
+        if (item.filePath=='') {
+            var path = item.tempPath
+            path = path.substring(path.lastIndexOf('/')+1)
+            divText.innerText=path + ' (Temp)';
+        } else {
+            divText.innerText=item.filePath;
+        }
         divText.style.marginTop='auto'
         divText.style.marginBottom='auto';
         divText.style.marginRight='.25em';
@@ -1083,6 +1137,27 @@
             data.append('file',source.files[0]);
             var request = new XMLHttpRequest();
             request.open('post','/app/upload_image');
+            request.onreadystatechange = function() {
+                if (request.readyState===4) {
+                    value = JSON.parse(request.response);
+                    if ('path' in value) {
+                        parent = item.images;
+                        if (parent.count>0) {
+                            _item = parent.getItems()[0][1];
+                            parent.removeItem(_item);
+                            _item = new ImageFile('','',false);
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        } else {
+                            _item = new ImageFile('','',false);
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        }
+                        refreshGame();
+                    }
+                        
+                }
+            }
             request.send(data);
         }
     }
@@ -1094,6 +1169,27 @@
             data.append('file',source.files[0]);
             var request = new XMLHttpRequest();
             request.open('post','/app/upload_audio');
+            request.onreadystatechange = function() {
+                if (request.readyState===4) {
+                    value = JSON.parse(request.response);
+                    if ('path' in value) {
+                        parent = item.audios;
+                        if (parent.count>0) {
+                            _item = parent.getItems()[0][1];
+                            parent.removeItem(_item);
+                            _item = new AudioFile('','',false);
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        } else {
+                            _item = new AudioFile('','',false);
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        }
+                        refreshGame();
+                    }
+                        
+                }
+            }
             request.send(data);
         }
     }
@@ -1105,6 +1201,27 @@
             data.append('file',source.files[0]);
             var request = new XMLHttpRequest();
             request.open('post','/app/upload_video');
+            request.onreadystatechange = function() {
+                if (request.readyState===4) {
+                    value = JSON.parse(request.response);
+                    if ('path' in value) {
+                        parent = item.images;
+                        if (parent.count>0) {
+                            _item = parent.getItems()[0][1];
+                            parent.removeItem(_item);
+                            _item = new VideoFile('','',false);
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        } else {
+                            _item = new VideoFile('','',false);
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        }
+                        refreshGame();
+                    }
+                        
+                }
+            }
             request.send(data);
         }
     }
@@ -1301,6 +1418,7 @@
 
     function onSuccess(data,text,object) {
         alert('Questions Saved');
+        document.location.reload();
     }
 
     function getCookie(name) {
