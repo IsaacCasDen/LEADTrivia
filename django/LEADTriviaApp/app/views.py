@@ -732,9 +732,11 @@ def admin_save_questions(request):
     value = {}
     value['result'] = False
 
-    gameId = request.POST.get('gameId','')
-    if gameId == '':
+    game_id = request.POST.get('gameId','')
+    if game_id == '':
         return JsonResponse(value)
+    else:
+        game_id=int(game_id)
 
     _data = request.POST.get('data','')
     if _data == '':
@@ -749,27 +751,42 @@ def admin_save_questions(request):
     if data == '':
         return JsonResponse(value)
 
-    save_question_data(data)
-    result = {'saved':True}
+    save_question_data(game_id,data)
+    result = {'saved':True} 
     return JsonResponse(result)
 
 def upload_video(request):
-    _file = request.FILES.get('files','')
-    path = get_temp_location(os.path.join(MEDIA,'video','temp'),_file.name) 
-    write_temp_file(path,_file.chunks())
-    return JsonResponse({'path':path})
+    _file = request.FILES.get('file','')
+    if _file == '':
+        return JsonResponse({'path':''})
 
+    if _file.content_type not in 'video/mp4':
+        return
+    path = get_temp_location(os.path.join(MEDIA,'video'),'temp',_file.name) 
+    write_temp_file(path[0],_file.chunks())
+    return JsonResponse({'path':path[1]})
+        
 def upload_audio(request):
     _file = request.FILES.get('file','')
-    path = get_temp_location(os.path.join(MEDIA,'audio','temp'),_file.name) 
-    write_temp_file(path,_file.chunks())
-    return JsonResponse({'path':path})
+    if _file == '':
+        return JsonResponse({'path':''})
+
+    if _file.content_type not in 'video/mp4':
+        return
+    path = get_temp_location(os.path.join(MEDIA,'audio'),'temp',_file.name) 
+    write_temp_file(path[0],_file.chunks())
+    return JsonResponse({'path':path[1]})
 
 def upload_image(request):
     _file = request.FILES.get('file','')
-    path = get_temp_location(os.path.join(MEDIA,'images','temp'),_file.name) 
-    write_temp_file(path,_file.chunks())
-    return JsonResponse({'path':path})
+    if _file == '':
+        return JsonResponse({'path':''})
+
+    if _file.content_type not in 'video/mp4':
+        return
+    path = get_temp_location(os.path.join(MEDIA,'images'),'temp',_file.name) 
+    write_temp_file(path[0],_file.chunks())
+    return JsonResponse({'path':path[1]})
 
 
 def write_temp_file(path,chunks):
@@ -780,22 +797,27 @@ def write_temp_file(path,chunks):
     except Exception as e:
         print(e)
 
-def get_temp_location(root,filename)->str:
+def get_temp_location(root,folder,filename)->str:
     path = ''
-
+    rel_path = ''
     if not os.path.exists(root):
         os.mkdir(root)
 
-    while path=='' or os.path.exists(root + path):
+    path = os.path.join(root,folder)
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    while rel_path=='' or os.path.exists(os.path.join(path,rel_path)):
         N=random.randint(5,8)
-        path = ''.join(random.choices(string.ascii_uppercase,k=N))
+        rel_path = ''.join(random.choices(string.ascii_uppercase,k=N))
     
-    path = os.path.join(root,path)
+    path = os.path.join(path,rel_path)
     if not os.path.exists(path):
         os.mkdir(path)
     
+    rel_path = os.path.join(rel_path,filename)
     path = os.path.join(path,filename)
 
-    return path
+    return (path,rel_path)
 
     
