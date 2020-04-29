@@ -12,7 +12,9 @@
       float: left;
     }
    
-    .isChoice{}
+    .isChoice{
+
+    }
 
 
     #Submit{
@@ -32,10 +34,10 @@
     }
 
     .text{
-      float:left;
-      margin-right: 0.5em;
-      margin-top: 0.5em;
-      padding:0.15em;
+      /* float:left; */
+      /* margin-right: 0.5em; */
+      /* margin-top: 0.5em; */
+      /* padding:0.15em; */
     }
     select {
       background-color: beige;
@@ -279,16 +281,15 @@ function createQuestionDiv(text){
   divChoices.id="divFIB";
   parentElement.insertBefore(divChoices, document.getElementById("Submit"));
   var questArray = question.split("{}");
-  
+  var span = document.createElement('span');
   for (var i = 0; i<questArray.length; i++){
-    var newDiv = document.createElement('p');
-    // newDiv.id = questArray[i];
-    newDiv.classList.add("text");
-    newDiv.innerText = questArray[i];
-    divChoices.appendChild(newDiv);
-    if (i < groups.length){ divChoices.appendChild(createChoices(groups[i])); }
-
+    span.innerHTML += questArray[i];
+    if (i < groups.length){
+      var html = createChoices(groups[i]).outerHTML;
+      span.innerHTML += html
+     }
   }
+  divChoices.appendChild(span);
 }
 function createChoices(group){
   var optionSelect = document.createElement("select"); 
