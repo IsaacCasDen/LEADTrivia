@@ -24,7 +24,7 @@ APP_ROOT = os.path.abspath(LEADTriviaApp.__path__[0])
 MEDIA = os.path.join(str(Path(APP_ROOT).parent),'app','static','app','media')
 
 def set_session_vars(request):
-    request.session['mode'] = 0
+    request.session['mode'] = 1
 
     if 'gameId' not in request.session.keys():
         request.session['gameId'] = ''

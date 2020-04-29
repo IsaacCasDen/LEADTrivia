@@ -73,10 +73,7 @@
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
 
 <script>
-// context["Question"] = question["Question"]
-// context["Answer"] = question["Answer"]
-// context["Choices"] = question["Choices"]
-// context["QuestionId"] = question["QuestionId"]
+
 var question = "{{Question | safe}}";
 var answer = "{{Answer | safe}}";
 var actualAnswer = "{{ActualAnswer | safe}}";
@@ -134,7 +131,7 @@ function init() {
 
       }
       else if (data.game_finished == true){
-        document.location.replace('/app/game_results/')
+        document.location.replace('/app/final_results/')
       }
       else {
         setTimeout(checkCurrentQuestionIndex,500)
@@ -152,15 +149,31 @@ function init() {
 
   function parseImages(){
     if (media["images"].length == 0) return;
-    var path = "{% static "app/media/images" %}" ; 
+    var _media = media["images"][0];
+    var path;
+    if (_media.is_local){
+      path = "{% static "app/media/images" %}" + "/" + _media['file_path']; 
+
+    }
+    else{
+      path = _media["file_path"];
+    }
     var image = document.getElementById("GameImage");
-    image.src = path + "/" + media['images'][0];
+    image.src = path;
     image.style.display = "inline-block";
   }
 
   function parseAudio(){
-    if (media["audio"].length == 0) return;
-    var path = "{% static "app/media/audio" %}" + "/" + media['audio'][0]; 
+    if (media["audios"].length == 0) return;
+    var _media = media["audios"][0];
+    var path;
+    if (_media.is_local){
+      path = "{% static "app/media/audio" %}" + "/" + _media['file_path']; 
+
+    }
+    else{
+      path = _media["file_path"];
+    }
     var audio = document.getElementById("AudioSource");
     audio.src = path;
     var audioMedia = document.getElementById("AudioMedia");
@@ -170,15 +183,26 @@ function init() {
   }
 
   function parseVideo(){
-    if (media["video"].length == 0) return;
-    var path = "{% static "app/media/video" %}" + "/" + media['video'][0]; 
-    var video = document.getElementById("VideoSource");
-    video.src = path;
-    var videoMedia = document.getElementById("VideoMedia");
-    videoMedia.load();
-    videoMedia.style.display = "inline-block";
+    // Parse youtube path and load it in.
+    if (media["videos"].length == 0) return;
+    var _media = media["videos"][0];
+    var path;
+    if (_media.is_local){
+      path = "{% static "app/media/video" %}" + "/" + _media['file_path'];
+      var video = document.getElementById("VideoSource");
+      video.src = path;
+      var videoMedia = document.getElementById("VideoMedia");
+      videoMedia.load();
+      videoMedia.style.display = "inline-block"; 
 
+    }
+    else{
+      path = _media["file_path"];
+      var qv = document.getElementById("VideoParent");
+      qv.innerHTML = path;
     
+    
+    }
   }
 
   function showTimeWarning() {
@@ -224,9 +248,6 @@ function initMultipleChoice(group){
     input.id="idInput" + input.value;
     
     container.appendChild(label);
-
-    // div.appendChild(input)  
-    // div.appendChild(label)
     choicesDiv.appendChild(container);
  }
 }
@@ -324,19 +345,25 @@ function createChoices(group){
           <input type="hidden" id = "inputQuestionId" name="questionId" />
         </div>
         <div>
+
           <div id = "Media" style="width: auto;">
             <div style ="align-items: center; display:flex; justify-content: center;" >
               <img id = "GameImage" src = "" style="display: none; width: auto; height: auto; max-width: 500; max-height: 500px; object-fit: contain; "/>
             </div>
+
             <div style = "align-items: center; display:flex; justify-content: center;">
               <audio controls controlsList="nodownload" id = "AudioMedia" style = "display: none;">
                 <source type = "audio/mpeg" id = "AudioSource">
               </audio>
             </div>
-            <video controls controlsList="nodownload" id = "VideoMedia" style = "display: none; max-width: 480; max-height: 480;">
-              <source type = "video/mp4" id = "VideoSource">
-            </video>
+
+            <div style = "object-fit: cover; width: 1080px; height: 720px; align-items: center; display:flex; justify-content: center;" id = "VideoParent" >
+              <video controls controlsList="nodownload" id = "VideoMedia" style = "display: none; max-width: 100%; max-height: 100%; align-items: center;">
+                <source type = "video/mp4" id = "VideoSource" style="display: none;">
+              </video>
+            </div>
           </div>
+
         </div>
         <div id = "Choices" class ="list-group col-lg-auto"></div>
         <div style="clear: both;" ></div>
