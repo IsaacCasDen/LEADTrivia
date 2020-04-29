@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import LEADTriviaApp
 from django.core.mail import send_mail
 from django.db import models, transaction
 from django.db.models import CASCADE, SET_NULL
@@ -7,6 +8,12 @@ from django.utils import timezone
 from threading import Lock
 import random
 import secrets
+
+import os,string,sys
+from pathlib import Path
+
+APP_ROOT = os.path.abspath(LEADTriviaApp.__path__[0])
+MEDIA = os.path.join(str(Path(APP_ROOT).parent),'app','static','app','media')
 
 #test
 class User(models.Model):
@@ -965,7 +972,7 @@ def get_question(game_id:int=None, round_index:int = None, index:int = None, que
 def create_questions(game_id:int):
     game = get_game(game_id)
 
-    create_question(game.id,0,"My mama always said life was like {}. You never know what you're gonna get.","My mama always said life was like a box of chocolates. You never know what you're gonna get.",[["a box of chocolates","peanut brittle","confused elves"]],2,[('https://www.youtube.com/embed/CJh59vZ8ccc?controls=0&amp;start=30;end=40',False)])
+    create_question(game.id,0,"My mama always said life was like {}. You never know what you're gonna get.","My mama always said life was like a box of chocolates. You never know what you're gonna get.",[["a box of chocolates","peanut brittle","confused elves"]],2,[('<iframe width="560" height="315" src="https://www.youtube.com/embed/CJh59vZ8ccc?controls=0&amp;start=30;end=40" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>',False)])
     create_question(game.id,0,"If you got rid of every {} with {}, then you'd have three {} left.","If you got rid of every cop with some sort of drink problem, then you'd have three cops left.",[['cop','moose','priest'],['some sort of drink problem','a pineapple on their head','a car in their garage'],['cops','moose','priests']],1,[('ants.mp4',True)],[('ShruggingTom.png',True)],[('30 Second Timer With Jeopardy Thinking Music.mp3',True)])
     create_question(game.id,1,"Which of these is a type of computer?","Apple",[['Apple', 'Nectarine','Orange']],2,[('ants.mp4',True)],[('ShruggingTom.png',True)],[('30 Second Timer With Jeopardy Thinking Music.mp3',True)])
     create_question(game.id,1,"What was the name of the first satellite sent to space?","Sputnik 1",[["Sputnik 1","Gallileo 1","Neo 3"]],1,[('ants.mp4',True)],[('ShruggingTom.png',True)],[('30 Second Timer With Jeopardy Thinking Music.mp3',True)])
@@ -1374,7 +1381,7 @@ def save_rounds(game:TriviaGame,data):
         for r in data['deleted']:
             delete_round(r)
         for r in data['items']:
-            save_round(r,data['items'][r])
+            save_round(game,r,data['items'][r])
 
 def delete_round(game:TriviaGame,data):
     for q in data['items']:
@@ -1408,7 +1415,11 @@ def save_question(game:TriviaGame,round_index,index,data):
             tg_question.question = TriviaQuestion()
             has_update=True
         else:
-            question=TriviaQuestion.objects.get(id=data['id'])
+            tg_question = TriviaGameQuestion.objects.filter(game=game,question__id=data['id'])
+            if len(tg_question)>0:
+                tg_question=tg_question[0]
+            else:
+                return
 
         if data['changed']:
             has_update=True
@@ -1421,15 +1432,16 @@ def save_question(game:TriviaGame,round_index,index,data):
             tg_question.index=index
             tg_question.question.save()
             tg_question.save()
+            
 
         for g in data['deleted']:
             delete_group(g)
         for g in data['items']:
-            save_group(g,question,data['items'][g])
+            save_group(g,tg_question.question,data['items'][g])
 
-        save_videos(data['videos'])
-        save_audios(data['audios'])
-        save_images(data['images'])
+        save_videos(tg_question.question, data['videos'])
+        save_audios(tg_question.question, data['audios'])
+        save_images(tg_question.question, data['images'])
 
 def delete_group(data):
     group = None
@@ -1480,17 +1492,58 @@ def save_choice(index,group,data):
             choice.save()
         
 
-def save_videos(data):
-    pass
+def save_videos(question,data):
+    if data['name']=='Videos':
+        for item in data['deleted']:
+            delete_video(item)
+        for index in data['items']:
+            save_video(question,int(index),data['items'][index])
 
 def delete_video(data):
-    pass
-
-def save_video(data):
     if data['name']=='Video':
-        pass
+        if data['isLocal']:
+            video = None
+            path = os.path.join(MEDIA,'video')
+            if data['new']:
+                path = os.path.join(path,'temp',data['tempPath'])
+                os.remove(path)
+            
+        if data['id'].is_digit():
+            video = TriviaQuestionVideo.objects.get(id=data['id'])
+            if video==None:
+                return
+            path = os.path.join(path,video.file_path)
+            os.remove(path)
+            video.delete()
 
-def save_audios(data):
+def save_video(question,index,data):
+    if data['name']=='Video':
+        video = None
+        if data['new']:
+            video = TriviaQuestionVideo()
+            video.question=question
+            if data['isLocal']:
+                file_name = data['tempPath'][data['tempPath'].rindex(os.path.sep)]
+                rel_dir = os.path.join('question' + str(question.id),file_name)
+                old_path = os.path.join(MEDIA,'video','temp',data['tempPath'])
+                new_path = os.path.join(MEDIA,'video',rel_dir)
+                os.replace(old_path,new_path)
+                video.file_path=rel_dir
+                video.is_local = False
+            else:
+                video.file_path = data['tempPath']
+                video.is_local = False
+            video.index=index
+            video.save()
+            
+        elif data['changed']:
+            video = TriviaQuestionVideo.objects.get(id=data['id'])
+            video.file_path=data['filePath']
+            video.index = index
+            video.is_local=data['isLocal'].lower()=='true'
+            video.save()
+
+def save_audios(question,data):
     pass
 
 def delete_audio(data):
@@ -1500,7 +1553,7 @@ def save_audio(data):
     if data['name']=='Audio':
         pass
 
-def save_images(data):
+def save_images(question,data):
     pass
 
 def delete_image(data):
