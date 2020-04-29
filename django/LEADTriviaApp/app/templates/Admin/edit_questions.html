@@ -109,8 +109,45 @@
         width: 100%;
     }
 
+    .media-item {
+        display: grid;
+        grid-template-columns: auto 10em;
+        gap: 10px;
+        padding: 10px;
+        width: 100%;
+    }
+
     .row {
         width: 100%;
+    }
+
+    .modal {
+    margin-left:auto;
+    margin-right:auto;
+    position: fixed;
+    width: fit-content;
+    height:fit-content;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+    background-color: #fefefe;
+    padding: 1em;
+    border: 1em solid #888;
+    width:fit-content;
+    height: fit-content;
+    }
+    .close {
+    color:#aaa;
+    float:right;
+    font-size: 18em;
+    font-weight: bold;
+    }
+
+    .close:hover, close:focus {
+    color:black;
+    text-decoration: none;
+    cursor: pointer;
     }
 
     .question {
@@ -344,12 +381,12 @@
     }
 
     class ImageFile extends RecordItem {
-        constructor(id,filePath,isUrl) {
+        constructor(id,filePath,isLocal) {
             super(id);
             this.name="Image";
             this.filePath=filePath;
             this.tempPath='';
-            this.isUrl=isUrl;
+            this.isLocal=isLocal;
         }
     }
 
@@ -361,22 +398,22 @@
     }
 
     class AudioFile extends RecordItem {
-        constructor(id,filePath,isUrl) {
+        constructor(id,filePath,isLocal) {
             super(id);
             this.name="Audio";
             this.filePath=filePath;
             this.tempPath='';
-            this.isUrl=isUrl;
+            this.isLocal=isLocal;
         }
     }
 
     class VideoFile extends RecordItem {
-        constructor(id,filePath,isUrl) {
+        constructor(id,filePath,isLocal) {
             super(id);
             this.name="Video";
             this.filePath=filePath;
             this.tempPath='';
-            this.isUrl=isUrl;
+            this.isLocal=isLocal;
         }
     }
 
@@ -485,39 +522,6 @@
         });
     }
 
-    // function parseQuestions() {
-    //     gameRounds = questions[0];
-    //     gameRounds.forEach(roundIndex => {
-    //         data['Rounds'].push(roundIndex);
-    //         gameQuestions = questions[1][roundIndex];
-    //         gameQuestions.forEach(question => {
-    //             var q = {};
-    //             q.id=question.id;
-    //             q.question = question.question;
-    //             q.index = question.index;
-    //             data['Questions'][q.id]=q;
-
-    //             question.groups.forEach(group => {
-    //                 var g = {};
-    //                 g.questionId = q.id;
-    //                 g.id=group.id;
-    //                 g.index=group.index;
-    //                 data['Groups'][g.id]=g;
-
-    //                 group.choices.forEach(choice=> {
-    //                     var c = {}
-    //                     c.groupId = g.id;
-    //                     c.id=choice.id;
-    //                     c.value=choice.value
-    //                     data['Choices'][c.id]=c;
-    //                 });
-    //             })
-    //         })
-
-    //     });
-        
-    // }
-
     document.onreadystatechange = function() {
         if (document.readyState=="complete") {
             init();
@@ -579,7 +583,6 @@
 
         var imgUp = document.createElement('img');
         imgUp.classList.add('arrow');
-        imgDown.classList.add('arrow');
         imgUp.src="{% static "app/images/uparrow.png" %}";
         
 
@@ -590,6 +593,7 @@
 
 
         var imgDown = document.createElement('img');
+        imgDown.classList.add('arrow');
         imgDown.src="{% static "app/images/downarrow.png" %}";
 
 
@@ -846,7 +850,7 @@
     function createVideoItem(item) {
         var liVideo = document.createElement('li');
         var div = document.createElement('div');
-        div.classList.add('row');
+        div.classList.add('media-item')
 
         var divText = document.createElement('div');
         divText.style.float='left';
@@ -872,7 +876,7 @@
         btnDelete.appendChild(imgDelete);
         
         chkLocal.type='checkbox';
-        chkLocal.id='chk_isurl' + item.id;
+        chkLocal.id='chk_isLocal' + item.id;
         chkLocal.style.scale="1.5";
         chkLocal.style.marginLeft='0.5em';
         chkLocal.style.marginRight='0.5em';
@@ -881,12 +885,16 @@
         labelLocal.innerText='Is Local';
         labelLocal.htmlFor=chkLocal.id;
 
-        chkLocal.checked=item.isUrl;
+        chkLocal.checked=item.isLocal;
         
         if (item.filePath=='') {
             var path = item.tempPath
-            path = path.substring(path.lastIndexOf('/')+1)
-            divText.innerText=path + ' (Temp)';
+            if (item.isLocal) {
+                path = path.substring(path.lastIndexOf('/')+1)
+                divText.innerText=path + ' (Temp)';
+            } else {
+                divText.innerText=path + ' (Temp)';
+            }
         } else {
             divText.innerText=item.filePath;
         }
@@ -941,7 +949,7 @@
     function createImageItem(item) {
         var liImage = document.createElement('li');
         var div = document.createElement('div');
-        div.classList.add('row');
+        div.classList.add('media-item');
 
         var divText = document.createElement('div');
         divText.style.float='left';
@@ -967,7 +975,7 @@
         btnDelete.appendChild(imgDelete);
         
         chkLocal.type='checkbox';
-        chkLocal.id='chk_isurl' + item.id;
+        chkLocal.id='chk_isLocal' + item.id;
         chkLocal.style.scale="1.5";
         chkLocal.style.marginLeft='0.5em';
         chkLocal.style.marginRight='0.5em';
@@ -976,11 +984,15 @@
         labelLocal.innerText='Is Local';
         labelLocal.htmlFor=chkLocal.id;
 
-        chkLocal.checked=item.isUrl;
+        chkLocal.checked=item.isLocal;
         if (item.filePath=='') {
             var path = item.tempPath
-            path = path.substring(path.lastIndexOf('/')+1)
-            divText.innerText=path + ' (Temp)';
+            if (item.isLocal) {
+                path = path.substring(path.lastIndexOf('/')+1)
+                divText.innerText=path + ' (Temp)';
+            } else {
+                divText.innerText=path + ' (Temp)';
+            }
         } else {
             divText.innerText=item.filePath;
         }
@@ -1033,7 +1045,7 @@
     function createAudioItem(item) {
         var liAudio = document.createElement('li');
         var div = document.createElement('div');
-        div.classList.add('row');
+        div.classList.add('media-item');
 
         var divText = document.createElement('div');
         divText.style.float='left';
@@ -1059,7 +1071,7 @@
         btnDelete.appendChild(imgDelete);
         
         chkLocal.type='checkbox';
-        chkLocal.id='chk_isurl' + item.id;
+        chkLocal.id='chk_isLocal' + item.id;
         chkLocal.style.scale="1.5";
         chkLocal.style.marginLeft='0.5em';
         chkLocal.style.marginRight='0.5em';
@@ -1068,11 +1080,15 @@
         labelLocal.innerText='Is Local';
         labelLocal.htmlFor=chkLocal.id;
 
-        chkLocal.checked=item.isUrl;
+        chkLocal.checked=item.isLocal;
         if (item.filePath=='') {
             var path = item.tempPath
-            path = path.substring(path.lastIndexOf('/')+1)
-            divText.innerText=path + ' (Temp)';
+            if (item.isLocal) {
+                path = path.substring(path.lastIndexOf('/')+1)
+                divText.innerText=path + ' (Temp)';
+            } else {
+                divText.innerText=path + ' (Temp)';
+            }
         } else {
             divText.innerText=item.filePath;
         }
@@ -1099,35 +1115,206 @@
 
     function createMediaControls(item) {
         var div = document.createElement('div');
+        div.style.display='inline-block';
+        div.style.clear='both';
 
-        var btnAddVideo = document.createElement('input');
-        div.appendChild(btnAddVideo);
-        btnAddVideo.type='file';
-        btnAddVideo.innerText = 'Add Video';
-        btnAddVideo.classList.add('btn');
-        btnAddVideo.classList.add('btn-secondary');
-        btnAddVideo.onchange = function(event) {onClick_AddImage(btnAddVideo,item);};
-
-        var btnAddAudio = document.createElement('input');
-        div.appendChild(btnAddAudio);
-        btnAddAudio.type='file';
-        btnAddAudio.innerText = 'Add Audio';
-        btnAddAudio.classList.add('btn');
-        btnAddAudio.classList.add('btn-secondary');
-        btnAddAudio.onchange = function(event) {onClick_AddImage(btnAddAudio,item);};
-
-        var btnAddImage = document.createElement('input');
-        div.appendChild(btnAddImage);
-        btnAddImage.type='file';
-        btnAddImage.innerText = 'Add Image';
-        btnAddImage.classList.add('btn');
-        btnAddImage.classList.add('btn-secondary');
-        btnAddImage.onchange = function(event) {onClick_AddImage(btnAddImage,item);};
+        div.appendChild(createVideoControl(item));
+        div.appendChild(createAudioControl(item));
+        div.appendChild(createImageControl(item));
 
         return div;
+
+        //<iframe width="560" height="315" src="https://www.youtube.com/embed/CJh59vZ8ccc?controls=0&amp;start=30" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+    }
+    
+    function createVideoControl(item) {
+        let mainDiv, buttonUrl, textUrl, buttonUpload;
+
+        [mainDiv,buttonUrl, buttonOk,textUrl,buttonUpload] = createMediaControl('Set Video','Upload Video','Use Video Url');
+
+        buttonUpload.onchange = function(event) {onClick_VideoUpload(buttonUpload,item);};
+        buttonOk.addEventListener('click',function() {
+            onClick_VideoUrl(textUrl,item);
+        });
+        buttonUpload.addEventListener('change',function(event) {
+            onClick_VideoUpload(buttonUpload,item);
+        });
+
+        return mainDiv;
+    }
+    function createAudioControl(item) {
+        let mainDiv, buttonUrl, textUrl, buttonUpload;
+
+        [mainDiv,buttonUrl, buttonOk,textUrl,buttonUpload] = createMediaControl('Set Audio','Upload Audio','Use Audio Url');
+        buttonOk.addEventListener('click',function() {
+            onClick_AudioUpload(textUrl,item);
+            textUrl.value='';
+        });
+        buttonUpload.addEventListener('change',function(event) {
+            onClick_AudioUpload(buttonUpload,item);
+        });
+
+        return mainDiv;
+    }
+    function createImageControl(item) {
+        let mainDiv, buttonUrl, textUrl, buttonUpload;
+
+        [mainDiv,buttonUrl, buttonOk,textUrl,buttonUpload] = createMediaControl('Set Image','Upload Image','Use Image Url');
+        buttonOk.addEventListener('click',function() {
+            onClick_ImageUpload(textUrl,item);
+            textUrl.value='';
+        });
+        buttonUpload.addEventListener('change',function(event) {
+            onClick_ImageUpload(buttonUpload,item);
+        });
+
+        return mainDiv;
     }
 
-    function onClick_AddImage(source,item) {
+    function createMediaControl(labelText, uploadLabel, urlLabel) {
+        var mainDiv = document.createElement('div');
+        mainDiv.classList.add('form-group');
+        mainDiv.classList.add('border');
+        mainDiv.style.float='left';
+        mainDiv.style.margin='0.25em';
+        mainDiv.style.marginRight='0.25em';
+        mainDiv.style.marginLeft='0em';
+
+        var label = document.createElement('label');
+        label.innerText=labelText;
+        label.style.float='left';
+        label.style.clear='both';
+        label.style.margin='0';
+        label.style.padding='0.25em';
+        label.style.paddingLeft='0.5em';
+        label.style.paddingRight='0.5em';
+        label.style.backgroundColor='lightblue';
+        label.style.borderBottom='solid 1px lightgray'
+
+        var controls = document.createElement('div');
+        controls.style.display='flex';
+        controls.style.justifyContent='center';
+        controls.style.alignItems='center';
+
+        var buttonUpload = document.createElement('input');
+        buttonUpload.type='file';
+        buttonUpload.hidden=true;
+
+        var divUpload = document.createElement('label');
+        divUpload.innerText=uploadLabel;
+        divUpload.style.float='left';
+
+        divUpload.appendChild(buttonUpload)
+        divUpload.classList.add('btn');
+        divUpload.classList.add('btn-secondary');
+
+        // var divUrl = document.createElement('div');
+        // divUrl.classList.add('border');
+        // divUrl.style.padding='0.5em';
+        // divUrl.style.float='left';
+        
+        var textUrl = document.createElement('input');
+        textUrl.type='text';
+        textUrl.classList.add('form-control')
+
+        var buttonUrl = document.createElement('button');
+        buttonUrl.innerText = urlLabel;
+        buttonUrl.classList.add('btn');
+        buttonUrl.classList.add('btn-secondary');
+        buttonUrl.style.float='left';
+        buttonUrl.style.clear='both';
+
+        let modal, buttonOk;
+
+        [modal,buttonOk] = createModal(urlLabel,textUrl);
+        
+        buttonUrl.addEventListener('click', function(event) {
+            modal.style.display = 'block';
+        });
+
+        controls.appendChild(divUpload);
+        controls.appendChild(buttonUrl);
+
+        mainDiv.appendChild(modal);
+        mainDiv.appendChild(label);
+        mainDiv.appendChild(controls);
+
+        return [mainDiv,buttonUrl,buttonOk,textUrl,buttonUpload];
+    }
+
+    function createModal(urlLabel,textUrl) {
+        var modal = document.createElement('div');
+        modal.classList.add('modal');
+        modal.id='modalParent';
+        modal.style.display='None';
+        
+        var divContainer = document.createElement('div');
+        divContainer.classList.add('modal-content');
+
+        var label = document.createElement('label');
+        label.innerText = urlLabel;
+
+        var div1 = document.createElement('div');
+        div1.classList.add('form-group');
+        div1.appendChild(label);
+        div1.appendChild(textUrl);
+
+        var buttonOk = document.createElement('button');
+        buttonOk.classList.add('btn');
+        buttonOk.classList.add('btn-primary');
+        buttonOk.classList.add('form-control');
+        buttonOk.innerText='Ok';
+        buttonOk.addEventListener('click',function() {
+            modal.style.display='None';
+        })
+
+        var btnCancel = document.createElement('button')
+        btnCancel.classList.add('btn');
+        btnCancel.classList.add('btn-secondary');
+        btnCancel.classList.add('form-control');
+        btnCancel.innerText='Cancel';
+        btnCancel.addEventListener('click', function() {
+            modal.style.display='None';
+        });
+
+        var div2=document.createElement('div');
+        div2.classList.add('form-group');
+
+        div2.appendChild(buttonOk);
+        div2.appendChild(btnCancel);
+
+        divContainer.appendChild(div1);
+        divContainer.appendChild(div2);
+        modal.appendChild(divContainer)
+        return [modal,buttonOk];
+    }
+
+    function onClick_ImageUrl(source,item) {
+        var url = source.value;
+        parent = item.videos;
+        if (parent.count>0) {
+            _item = parent.getItems()[0][1]
+            if (_item.tempPath == '' || _item.isLocal) {
+                parent.removeItem(_item);
+                _item = new ImageFile('','',false);
+                _item.new=true;
+                _item.tempPath = url;
+                parent.addItem(_item);
+            } else {
+                _item.tempPath = url;
+            }
+        } else {
+            _item = new ImageFile('','',false);
+            _item.new=true;
+            _item.tempPath = url;
+            parent.addItem(_item);
+        }
+        source.value='';
+        refreshGame()
+    }
+
+    function onClick_ImageUpload(source,item) {
         if (source!=undefined && item!=undefined) {
             var data = new FormData();
             var div = document.createElement('div');
@@ -1145,11 +1332,13 @@
                         if (parent.count>0) {
                             _item = parent.getItems()[0][1];
                             parent.removeItem(_item);
-                            _item = new ImageFile('','',false);
+                            _item = new ImageFile('','',true);
+                            _item.new=true;
                             _item.tempPath = value.path;
                             parent.addItem(_item);
                         } else {
-                            _item = new ImageFile('','',false);
+                            _item = new ImageFile('','',true);
+                            _item.new=true;
                             _item.tempPath = value.path;
                             parent.addItem(_item);
                         }
@@ -1162,10 +1351,37 @@
         }
     }
 
-    function onClick_AddAudio(source,item) {
+    function onClick_AudioUrl(source,item) {
+        var url = source.value;
+        parent = item.videos;
+        if (parent.count>0) {
+            _item = parent.getItems()[0][1]
+            if (_item.tempPath == '' || _item.isLocal) {
+                parent.removeItem(_item);
+                _item = new AudioFile('','',false);
+                _item.new=true;
+                _item.tempPath = url;
+                parent.addItem(_item);
+            } else {
+                _item.tempPath = url;
+            }
+        } else {
+            _item = new AudioFile('','',false);
+            _item.new=true;
+            _item.tempPath = url;
+            parent.addItem(_item);
+        }
+        source.value='';
+        refreshGame()
+    }
+
+    function onClick_AudioUpload(source,item) {
         if (source!=undefined && item!=undefined) {
             var data = new FormData();
-            data.append("X-CSRFToken", getCookie('csrftoken'));
+            var div = document.createElement('div');
+            div.innerHTML='{% csrf_token %}'
+            var input = div.firstChild;
+            data.append("csrfmiddlewaretoken", input.value);
             data.append('file',source.files[0]);
             var request = new XMLHttpRequest();
             request.open('post','/app/upload_audio');
@@ -1177,11 +1393,13 @@
                         if (parent.count>0) {
                             _item = parent.getItems()[0][1];
                             parent.removeItem(_item);
-                            _item = new AudioFile('','',false);
+                            _item = new AudioFile('','',true);
+                            _item.new=true;
                             _item.tempPath = value.path;
                             parent.addItem(_item);
                         } else {
-                            _item = new AudioFile('','',false);
+                            _item = new AudioFile('','',true);
+                            _item.new=true;
                             _item.tempPath = value.path;
                             parent.addItem(_item);
                         }
@@ -1194,10 +1412,37 @@
         }
     }
 
-    function onClick_AddVideo(source,item) {
+    function onClick_VideoUrl(source,item) {
+        var url = source.value;
+        parent = item.videos;
+        if (parent.count>0) {
+            _item = parent.getItems()[0][1]
+            if (_item.tempPath == '' || _item.isLocal) {
+                parent.removeItem(_item);
+                _item = new VideoFile('','',false);
+                _item.new=true;
+                _item.tempPath = url;
+                parent.addItem(_item);
+            } else {
+                _item.tempPath = url;
+            }
+        } else {
+            _item = new VideoFile('','',false);
+            _item.new=true;
+            _item.tempPath = url;
+            parent.addItem(_item);
+        }
+        source.value='';
+        refreshGame()
+    }
+
+    function onClick_VideoUpload(source,item) {
         if (source!=undefined && item!=undefined) {
             var data = new FormData();
-            data.append("X-CSRFToken", getCookie('csrftoken'));
+            var div = document.createElement('div');
+            div.innerHTML='{% csrf_token %}'
+            var input = div.firstChild;
+            data.append("csrfmiddlewaretoken", input.value);
             data.append('file',source.files[0]);
             var request = new XMLHttpRequest();
             request.open('post','/app/upload_video');
@@ -1205,15 +1450,17 @@
                 if (request.readyState===4) {
                     value = JSON.parse(request.response);
                     if ('path' in value) {
-                        parent = item.images;
+                        parent = item.videos;
                         if (parent.count>0) {
                             _item = parent.getItems()[0][1];
                             parent.removeItem(_item);
-                            _item = new VideoFile('','',false);
+                            _item = new VideoFile('','',true);
+                            _item.new=true;
                             _item.tempPath = value.path;
                             parent.addItem(_item);
                         } else {
-                            _item = new VideoFile('','',false);
+                            _item = new VideoFile('','',true);
+                            _item.new=true;
                             _item.tempPath = value.path;
                             parent.addItem(_item);
                         }
