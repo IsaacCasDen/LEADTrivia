@@ -187,9 +187,9 @@
   }
 
   function init() {
-    initClock(calcTimeRemaining(game['StartTime']['date'],game['StartTime']['time']));
+    initClock(calcTimeRemaining(game['start_time']['date'],game['start_time']['time']));
     initTeam(teamname);
-    initUsers(username,users);
+    initUsers(users);
     
   }
 
@@ -211,7 +211,7 @@
     }
 
   function initTeam(name) {
-    var formTeam = document.getElementById("formTeam");
+    var formLeave = document.getElementById("formLeave");
     var team_info = document.getElementById('team_info');
     var team_name=document.getElementById("team_name");
     var btnEditTeamName = document.getElementById("btnEditTeamName");
@@ -221,7 +221,7 @@
     var btnLeaveTeam = document.getElementById("btnLeave");
 
     btnLeaveTeam.onclick = function() {
-      formTeam.submit();
+      formLeave.submit();
     }
 
     team_name.innerText=name
@@ -240,19 +240,21 @@
     }
   }
 
-  function initUsers(user,users) {
+  function initUsers(users) {
     var team_users=document.getElementById("team_users");
   
     for (var i=0; i<users.length; i++) {
-      element=users[i];
+      let isUser, username;
+      isUser=users[i]['isUser'];
+      username=users[i]['username'];
       input=document.createElement('input');
-      input.value=element;
+      input.value=username;
       input.type="button";
       input.classList.add("user");
       input.classList.add("list-group-item");
       input.classList.add("btn");
 
-      if (element===user) {
+      if (isUser) {
         input.id="btnUser";
         input.onclick = function() {
           modalChangeUserName.style.display="block";
