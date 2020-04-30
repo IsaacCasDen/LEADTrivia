@@ -1169,6 +1169,8 @@ def get_orphan(game_id:int,user_id:int):
     
     return None
 
+
+
 def get_orphans(game_id:int):
     orphans = OrphanUser.objects.filter(game__id=game_id)
     orphans = [orphan for orphan in orphans]
@@ -1257,6 +1259,40 @@ def get_game_round(game_id:int,round_ind:int) -> TriviaGameRound:
 #         game['Teams'][team.team.id] =
     
 #     return game
+
+def add_orphan(game_id:int,user_id:int) -> OrphanUser:
+    game = TriviaGame.objects.filter(id=game_id)
+    user = User.objects.filter(id=user_id)
+    if len(game)>0 and len(user)>0:
+        game = game[0]
+        user = user[0]
+    else:
+        return False
+    
+    orphan = OrphanUser.objects.filter(game__id=game_id,user__id=user_id)
+    if len(orphan)>0:
+        return True
+
+    orphan = OrphanUser()
+    orphan.game=game
+    orphan.user=user
+    orphan.save()
+    return orphan
+
+def remove_orphan(game_id:int,user_id:int) -> bool:
+    game = TriviaGame.objects.filter(id=game_id)
+    user = User.objects.filter(id=user_id)
+    if len(game)>0 and len(user)>0:
+        game = game[0]
+        user = user[0]
+    else:
+        return False
+    
+    orphan = OrphanUser.objects.filter(game__id=game_id,user__id=user_id)
+    for o in orphan:
+        o.delete()
+
+    return True
 
 def add_teammember(game_id:int, team_id:int, user_id:int) -> bool:
     game = TriviaGame.objects.filter(id=game_id)
