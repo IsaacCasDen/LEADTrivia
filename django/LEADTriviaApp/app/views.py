@@ -288,15 +288,18 @@ def update_username(request):
     session = validate_session(request)
     new_username = request.POST.get('new_username','')
     response = {'status':'', 'username':''}
-
-    if new_username != '':
-        if not change_username(gameId,userId,new_username):
-            response['status']='Username already taken'
-        else:
-            request.session['username']=new_username
-            response['status']='okay'
-            response['username']=new_username
-
+    
+    if session.has_user:
+        if new_username != '':
+            if not change_username(session.user.id,new_username):
+                response['status']='Username already taken'
+            else:
+                request.session['username']=new_username
+                response['status']='okay'
+                response['username']=new_username
+    else:
+        response['status'] = 'invalid'
+        
     return JsonResponse(response)
 
 def next_round(request):
