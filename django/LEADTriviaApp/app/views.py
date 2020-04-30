@@ -96,13 +96,22 @@ def validate_session(request)->SessionState:
         user = TeamMember.objects.filter(user__id=userId,game__id=gameId)
         if len(user)>0:
             session_state.has_user = True
-            session_state.user=user[0]
+            session_state.user=user[0].user
         else:
             user = OrphanUser.objects.filter(user__id=userId,game__id=gameId)
             if len(user)>0:
                 session_state.has_user = True
                 session_state.is_orphan = True
-                session_state.user=user[0]
+                session_state.user=user[0].user
+            else:
+                user = User.objects.filter(id=userId)
+                if len(user)>0:
+                    user = add_orphan(gameId,userId)
+                    if user!=None:
+                        session_state.has_user=True
+                        session_state.is_orphan=True
+                        session_state.user=user.user
+
 
     if teamId != '':
         teamId = int(teamId)
@@ -137,8 +146,8 @@ def index(request):
         context['gamename'] = session.game.name
 
     if session.has_user:
-        context['userId'] = session.user.user.id
-        context['username'] = session.user.user.user_name
+        context['userId'] = session.user.id
+        context['username'] = session.user.user_name
 
     if session.has_team:
         context['teamId'] = session.team.team.id
@@ -170,18 +179,18 @@ def lobby(request):
     if session.has_user and session.has_team:
         return redirect(team)
     elif session.has_user:
-        context['userId'] = session.user.user.id
-        context['username'] = session.user.user.user_name
+        context['userId'] = session.user.id
+        context['username'] = session.user.user_name
     elif not session.has_user:
-        user1 = 'User'
-        user2 = len(User.objects.all())
+        name1 = 'User '
+        name2 = len(User.objects.all())
         
-        temp_username = user1 + str(user2)
-        user = create_user(session.game.id,temp_username)
+        temp_name = name1 + str(name2)
+        user = create_user(session.game.id,temp_name)
         while user==None:
-            user2 += 1
-            temp_username = user1 + str(user2)
-            user = create_user(session.game.id,temp_username)
+            name2 += 1
+            temp_name = name1 + str(name2)
+            user = create_user(session.game.id,temp_name)
         
         orphan = add_orphan(session.game.id,user.id)
 
@@ -206,82 +215,62 @@ def lobby(request):
         return render(request, 'Competition/comp_lobby.html',context)
        
 def team(request):
-    mode = request.session['mode']
     init_session_vars(request)
-    context = {}
+    session = validate_session(request)
 
-    if mode == 1:
-        return redirect(lobby)
-
-    gameId = request.session.get('gameId','')
-    teamId = request.POST.get('teamId')
-    if teamId == '':
-        teamId = request.session.get('teamId','')
-    userId = request.session.get('userId','')
-    username = request.session.get('username','')
-
-    if gameId == '' or userId == '':
+    if not session.has_game:
         return redirect(index)
     
-    team=None
-
-    if teamId!='':
-        teamId = int(teamId)
+    mode = request.session['mode']
     
-        team = get_team(gameId,teamId)
-        if team==None:
-            teamId = ''
+    if mode == 1 or (mode == 0 and not session.has_user):
+        return redirect(lobby)
+
+    context = {}
+
+    if not session.has_team:
+        name1 = 'Team '
+        name2 = len(Team.objects.all())
+        temp_name = name1 + str(name2)
+        team = create_team(session.game.id,temp_name)
+        
+        while team == None:
+            name2 += 1
+            temp_name = name1 + str(name2)
+            team = create_team(session.game.id,temp_name)
+        
+        add_teammember(session.game.id,team.id,session.user.id)
+        session.team = team
+        session.has_team = True
+        request.session['teamId']=team.id
+        request.session['teamname']=team.team.team_name
+    else:
+        team = get_team(session.game.id,session.team.id)
+
+    users = [{'isUser':user.id==session.user.id,'username':user.user_name} for user in get_users(session.game.id,session.team.id)]
 
     data = None
-    users = None
 
-    if teamId == '':
-        data = get_gamestate(gameId)
-        team = create_team(gameId,"Team {}".format(len(data['Teams'].keys())))
-        if team==None:
-            request.session['errors']=['Error creating team']
-            return redirect(index)
-        else:
-            teamId=team.id
-            add_teammember(gameId,teamId,userId)
-            data = get_gamestate(gameId)
-            users = data['Teams'][teamId]['members']
-    else:
-        data = get_gamestate(gameId)
-        users = data['Teams'][teamId]['members']
-        if teamId not in data['Teams'].keys():
-            request.session['teamId'] = ''
-            redirect(lobby)
-        if username not in users:
-            if add_teammember(gameId,teamId,userId):
-                data = get_gamestate(gameId)
-                users = data['Teams'][teamId]['members']
-            else:
-                return redirect(lobby)
-    team = get_team(gameId,teamId)
-    request.session['teamId'] = teamId
-    context['game'] = json.dumps(data['Game'])
-    context[TEAMNAME] = team.team.team_name
+    context[TEAMNAME] = session.team.team.team_name
     context['users'] = json.dumps(users)
-    context['username']= username
+    context['username']= session.user.user_name
     context['errors'] = request.session['errors']
+    context['game'] = json.dumps(session.game.get_info())
     
-    if mode == 0:
-        return render(request,'User/team.html',context)
-    else:
-        return render(request, 'Competition/comp_team.html',context)
+    return render(request,'User/team.html',context)
     
 def leave_team(request):
     init_session_vars(request)
-    gameId = request.session.get(GAMEID,'')
-    userId = request.session.get(USERID,'')
-    teamId = request.session.get(TEAMID,'')
-    
-    if gameId == '' or userId == '' or teamId == '':
+    session = validate_session(request)
+
+    if not session.has_game:
         return redirect(index)
+    elif not session.has_user or not session.has_team:
+        return redirect(lobby)
     
-    if remove_teammember(gameId,teamId,userId):
+    if remove_teammember(session.game.id,session.team.id,session.user.id):
         request.session[TEAMID]=''
+        request.session[TEAMNAME]=''
         return redirect(lobby)
     
     return redirect(team)
@@ -360,7 +349,7 @@ def show_question(request):
     question = get_question(game_id=gameId, index=ind, round_index = round_index)
     context= {}
     
-    context["Question"] = question["question"]
+    context["Question"] = question["question"].replace("'",'"')
     context["Media"] = json.dumps({'videos': question['videos'], 'images': question['images'],'audios': question['audios']})
     context["Answer"] = ''
     context["ActualAnswer"] = question['answer']
@@ -626,44 +615,44 @@ def edit_questions(request):
     return render(request,'Admin/edit_questions.html',context)
 
 def round_results(request):
+    init_session_vars(request)
+    session = validate_session(request)
     mode = request.session['mode']
+
     context = {}
-    gameId = request.session.get('gameId','')
     
-    if gameId == '':
+    if not session.has_game:
         return redirect(index)
 
-    game = get_game(gameId)
-    round_results = get_round_results(game.id,game.current_round)
+    round_results = get_round_results(session.game.id,session.game.current_round)
     if round_results==None:
         return redirect(show_question)
 
     results = {}
     results['round'] = round_results['round']
     
-    data = get_gamestate(gameId)
+    data = get_gamestate(session.game.id)
 
     context['results'] = json.dumps(results)
     context['game'] = json.dumps(data['Game'])
     context['errors'] = request.session['errors']
 
     if mode == 0:
-        teamId = request.POST.get('teamId',request.session.get('teamId',''))
-        userId = request.session.get('userId','')
-        username = request.session.get('username','')
- 
-        if userId == '':
+        if not session.has_user:
             return redirect(index)
 
-        if teamId!='':
-            teamId = int(teamId)
-        else:
-            return redirect(index)
+        if not session.has_team:
+            return redirect
 
-        results['team'] = round_results['teams'][teamId]
-        request.session['teamId'] = teamId
-        context['username']= username
-        context['userId'] = userId
+        round_results = get_round_results(session.game.id,session.game.current_round)
+
+        if session.team.id not in round_results['teams']:
+            pass
+
+        results['team'] = round_results['teams'][session.team.id]
+        results['teamname'] = session.team.team.team_name
+        context['username']= session.user.user_name
+        context['userId'] = session.user.id
         results['users'] = round_results['users']
         results['teamRank'] = round_results['teamRank'] 
         results['teams'] = round_results['teams']
@@ -796,7 +785,7 @@ def upload_video(request):
     if _file == '':
         return JsonResponse({'path':''})
 
-    if _file.content_type not in 'video/mp4':
+    if _file.content_type not in ['video/mp4']:
         return
     path = get_temp_location(os.path.join(MEDIA,'video'),'temp',_file.name) 
     write_temp_file(path[0],_file.chunks())
@@ -807,7 +796,7 @@ def upload_audio(request):
     if _file == '':
         return JsonResponse({'path':''})
 
-    if _file.content_type not in 'video/mp4':
+    if _file.content_type not in ['audio/mpeg']:
         return
     path = get_temp_location(os.path.join(MEDIA,'audio'),'temp',_file.name) 
     write_temp_file(path[0],_file.chunks())
@@ -818,7 +807,7 @@ def upload_image(request):
     if _file == '':
         return JsonResponse({'path':''})
 
-    if _file.content_type not in 'video/mp4':
+    if _file.content_type not in ['image/jpeg','image/jpg']:
         return
     path = get_temp_location(os.path.join(MEDIA,'images'),'temp',_file.name) 
     write_temp_file(path[0],_file.chunks())
