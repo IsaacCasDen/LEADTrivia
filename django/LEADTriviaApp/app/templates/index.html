@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<script>
+    var games = {{games|safe}};
+    var lastGameId={{gameId|safe}};
+    var lastGameName = "{{gamename|safe}}";
+    var lastUserId={{userId|safe}};
+    var lastUserName = "{{username|safe}}";
+    var lastTeamId={{teamId|safe}};
+    var lastTeamName = "{{teamname|safe}}";
+    var errors = {{errors|safe}};
+
+    document.onreadystatechange=function() {
+        if (document.readyState=="complete") {
+            init();
+        }
+    }
+
+    function init() {
+        showGames()
+    }
+
+    function showGames() {
+        var divGames = document.getElementById('divGames');
+        
+        var list = document.createElement('ul');
+        list.style.listStyleType='none';
+        list.classList.add('list');
+
+        for (var i=0; i<games.length; i++) list.append(createGame(games[i]));
+        
+        divGames.appendChild(list);
+    }
+
+    function parseGameState(state) {
+            switch (state) {
+                case 0:
+                    return 'Waiting';
+                case 1:
+                    return 'Started';
+                case 2:
+                    return 'Finished';
+                default:
+                    return 'Undefined';
+            }
+        }
+
+    function createGame(game) {
+        var li = document.createElement('li');
+        // li.style.clear='both';
+        li.classList.add('border');
+        li.classList.add('list');
+        li.style.float='left';
+        li.style.margin='0.5em';
+
+        if (game['state']==2) {
+            li.style.backgroundColor='lightgray';
+        }
+
+        var divContent = document.createElement('div');
+        var label = document.createElement('label');
+        label.style.cursor='pointer';
+        label.style.padding='0.25em';
+        label.innerText = game['name'];
+        label.style.backgroundColor='lightblue';
+        label.style.width='100%';
+        label.style.borderBottom = 'solid lightgray 1px';
+
+        var ul = document.createElement('ul');
+
+        ul.appendChild(createField('Status:',parseGameState(game['state'])));
+        ul.appendChild(createField('Current Round:',game['current_round']));
+        ul.appendChild(createField('Current Question:',game['current_question_index']+1));
+        ul.appendChild(createField('Start Date:',game['start_time']['date']));
+        ul.appendChild(createField('Start Time:',game['start_time']['time']));
+        ul.appendChild(createField('Is Cancelled:',game['is_cancelled']));
+        ul.appendChild(createField('Teams:',game['team_count']));
+        ul.appendChild(createField('Players:',game['user_count']));
+
+        var controls = document.createElement('div');
+        controls.style.clear='both';
+        controls.style.width='100%';
+        controls.style.alignItems='center';
+        controls.style.justifyContent='center';
+        controls.style.display='flex';
+
+        var btnJoin = document.createElement('button');
+        btnJoin.classList.add('btn');
+        btnJoin.classList.add('btn-primary');
+        btnJoin.style.margin='0.5em';
+        btnJoin.innerText = 'Join Game';
+        btnJoin.addEventListener('click',function() {
+            joinGame(game,true);
+        });
+        
+        var btnCompetition = document.createElement('button');
+        btnCompetition.classList.add('btn');
+        btnCompetition.classList.add('btn-success');
+        btnCompetition.style.margin='0.5em';
+        btnCompetition.innerText = 'View Game';
+        btnCompetition.addEventListener('click',function() {
+            joinGame(game,false);
+        });
+
+        controls.appendChild(btnJoin);
+        controls.appendChild(btnCompetition);
+
+        divContent.appendChild(label);
+        divContent.appendChild(ul);
+        divContent.appendChild(controls);
+        
+        li.appendChild(divContent);
+
+        return li
+    }
+
+    function joinGame(game,is_player) {
+        if (game!=undefined) {
+            var form = document.createElement('form');
+            form.action='/app/lobby/';
+            form.method='POST';
+
+            var div = document.createElement('div');
+            div.innerHTML='{%csrf_token%}';
+            var input_gameId = document.createElement('input');
+            input_gameId.type='hidden';
+            input_gameId.name='gameId';
+            input_gameId.value=game.id;
+            div.appendChild(input_gameId);
+
+            var input_mode = document.createElement('input');
+            input_mode.type='hidden';
+            input_mode.name='mode';
+            if (is_player)
+                input_mode.value=0;
+            else
+                input_mode.value=1
+            div.appendChild(input_mode);
+
+            form.appendChild(div);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    function createField(label,value) {
+        var li = document.createElement('li');
+        li.style.listStyleType='none';
+        // li.style.clear='both';
+
+        // li.classList.add('list-item');
+
+        var divContent = document.createElement('div');
+        divContent.style.clear='both';
+        divContent.style.width='auto';
+        divContent.style.padding='0.1em';
+
+        var divLabel = document.createElement('label');
+        divLabel.style.float='left';
+        divLabel.innerText=label;
+
+        var divValue = document.createElement('div');
+        divValue.style.float='left';
+        divValue.style.marginLeft = '0.5em';
+        divValue.innerText = value;
+
+        divContent.appendChild(divLabel);
+        divContent.appendChild(divValue);
+
+        li.appendChild(divContent);
+        return li;
+    }
+
+    // function init() {
+        // attachGameId(data['Game']['Id']);
+        // var teamIds = Object.keys(data['Teams']);
+        // showErrors(errors);
+
+        // if (username === null || username == "None" || username == "null" || username == "") {
+        //     generateUserName(teamIds);
+        // } else {
+        //     var user = document.getElementsByName("username");
+        //     if (user.length>0) user = user[0];
+        //     user.value = username;
+        // }
+
+        // initGames();
+    // }
+    // function attachGameId(id) {
+    //     var form = document.getElementById('formUser');
+    //     const hiddenField = document.createElement('input');
+    //     hiddenField.type = 'hidden';
+    //     hiddenField.name = 'gameId';
+    //     hiddenField.value = id;
+    //     form.appendChild(hiddenField);
+    // }
+
+    // function initGames() {
+    //     var divGames = document.getElementById('divGames');
+    //     for (i in games) {
+    //         divGames.appendChild(createGameDiv(games[i]))
+    //     }
+    // }
+    // function createGameForm(game) {
+    //     var child = document.createElement('div');
+
+
+    //     var name = document.createElement('div');
+    //     name.innerText = game.name
+    // }
+    
+    // function generateUserName(teamIds){
+    //     var user = document.getElementsByName("username");
+    //     if (user.length>0) user = user[0];
+    //     else return;
+
+    //     var count = data ['Orphans'].length;
+    //     teamIds.forEach(element => {
+    //         count += data ['Teams'][element]["members"].length;
+    //     });
+    //     user.value = "User " + count;
+
+    // }
+
+    // function showErrors(errors) {
+    //     var listError = document.getElementById("ulErrors");
+
+    //     errors.forEach(element=> {
+    //         var item = document.createElement("li");
+    //         item.innerText=element;
+    //         listError.appendChild(item);
+    //     });
+    // }
+
+    // function validateForm() {
+    //     var user = document.getElementById('userId');
+    //     if (user.value.length > 0) return true;
+    //     else return false;
+
+    // }
+</script>
+<body>
+    <div>
+        <div>Welcome to LEAD Trivia!</div>
+        <div id='divGames'>
+        </div>
+        <ul id="ulErrors"></ul>
+
+    </div>
+</body>
+{% endblock %}
