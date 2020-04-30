@@ -1040,7 +1040,7 @@ createuser_lock = Lock()
 def create_user(game_id:int, username:str):
     if createuser_lock.acquire():
         try:
-            if not is_username_available(game_id,username):
+            if not is_username_available(username):
                 return None
 
             game = TriviaGame.objects.filter(id=game_id)[0]
@@ -1059,13 +1059,17 @@ def create_user(game_id:int, username:str):
             createuser_lock.release()
 
 usernamechange_lock = Lock()
-def change_username(game_id:int,user_id:int,value:str):
+def change_username(user_id:int,value:str):
     if usernamechange_lock.acquire():
         try:
             if not is_username_available(value):
                 return None
 
-            user = get_user(user_id)['user']
+            user = User.objects.filter(id=user_id)
+            if len(user)>0:
+                user=user[0]
+            else:
+                user=None
 
             if user == None:
                 return False

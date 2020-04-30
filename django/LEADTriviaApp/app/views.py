@@ -61,12 +61,25 @@ def validate_session(request)->SessionState:
 
     session_state = SessionState()
 
-    
+    gameId = request.POST.get('gameId','')
+    userId = request.POST.get('userId','')
+    teamId = request.POST.get('teamId','')
 
-    gameId = request.POST.get('gameId',request.session.get('gameId',''))
-    userId = request.POST.get('userId',request.session.get('userId',''))
-    teamId = request.POST.get('teamId',request.session.get('teamId',''))
-    
+    if gameId == '':
+        gameId = request.session.get('gameId','')
+    else:
+        request.session['gameId'] = gameId
+
+    if userId == '':
+        userId = request.session.get('userId','')
+    else:
+        request.session['userId'] = userId
+
+    if teamId == '':
+        teamId = request.session.get('teamId','')
+    else:
+        request.session['teamId'] = teamId
+
     if gameId == '':
         return session_state
 
