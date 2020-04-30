@@ -29,6 +29,7 @@ class SessionState():
         self.has_game=False
         self.game = None
 
+        self.is_orphan = False
         self.has_user=False
         self.user = None
 
@@ -81,6 +82,12 @@ def validate_session(request)->SessionState:
         if len(user)>0:
             session_state.has_user = True
             session_state.user=user[0]
+        else:
+            user = OrphanUser.objects.filter(user__id=userId,game__id=gameId)
+            if len(user)>0:
+                session_state.has_user = True
+                session_state.is_orphan = True
+                session_state.user=user[0]
 
     if teamId != '':
         teamId = int(teamId)
@@ -151,9 +158,23 @@ def lobby(request):
         context['userId'] = session.user.user.id
         context['username'] = session.user.user.user_name
     elif not session.has_user:
+        user1 = 'User'
+        user2 = len(User.objects.all())
+        
+        temp_username = user1 + str(user2)
+        user = create_user(session.game.id,temp_username)
+        while user==None:
+            user2 += 1
+            temp_username = user1 + str(user2)
+            user = create_user(session.game.id,temp_username)
+        
+        orphan = add_orphan(session.game.id,user.id)
+
+        session.has_user=True
+        session.is_orphan=True
+        session.user=user
         
 
-    context['errors'] = request.session['errors']
     
    
     #----------------------------------------------------------User Name
