@@ -1062,10 +1062,10 @@ usernamechange_lock = Lock()
 def change_username(game_id:int,user_id:int,value:str):
     if usernamechange_lock.acquire():
         try:
-            if not is_username_available(game_id,value):
+            if not is_username_available(value):
                 return None
 
-            user = get_user(game_id,user_id)['user']
+            user = get_user(user_id)['user']
 
             if user == None:
                 return False
@@ -1075,25 +1075,29 @@ def change_username(game_id:int,user_id:int,value:str):
                 return user
         finally:
             usernamechange_lock.release()
-    
-def is_username_available(game_id:int,name:str):
-    usernames = [user.user.user_name for user in get_orphans(game_id)]
-    if name in usernames:
-        return False
-    
-    usernames =  [[user.user_name for user in get_users(game_id,team.id)] for team in get_teams(game_id)]
-    usernames = [y for x in usernames for y in x]
-    if name in usernames:
-        return False
-    
-    return True
 
-def is_teamname_available(game_id:int,name:str):
-    teamnames = [team.team.team_name for team in get_teams(game_id)]
-    if name in teamnames:
-        return False
+usernameavailable_lock = Lock()
+def is_username_available(name:str):
     
-    return True
+    if usernameavailable_lock.acquire():
+        usernames = [user.user_name for user in User.objects.all()]
+        if name in usernames:
+            return False
+    
+        return True
+    
+    return False
+
+teamnameavailable_lock = Lock()
+def is_teamname_available(game_id:int,name:str):
+    if teamnameavailable_lock.acquire():
+        teamnames = [team.team.team_name for team in get_teams(game_id)]
+        if name in teamnames:
+            return False
+        
+        return True
+    
+    return False
 
 teamnamechange_lock = Lock()
 def change_teamname(game_id:int,team_id:int,value:str):
