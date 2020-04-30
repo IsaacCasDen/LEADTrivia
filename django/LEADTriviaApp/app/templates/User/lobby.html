@@ -193,12 +193,12 @@
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
 
 <script>
-    {% comment %} // var game={{game|safe}}; 
-    // var teams={{teams|safe}};
-    // var orphans={{orphans|safe}};
-    // var gameId = {{gameId|safe}};
-    // var timeremaining = 0;
-    // var timerEvents = [[40,showTimeWarning]];{% endcomment %}
+    var game={{game|safe}}; 
+    var teams={{teams|safe}};
+    var orphans={{orphans|safe}};
+    var gameId = {{gameId|safe}};
+    var timeremaining = 0;
+    var timerEvents = [[40,showTimeWarning]];
     var username = "{{username|safe}}";
 
 
@@ -210,10 +210,10 @@
     }
 
     function init() {
-        // timeremaining = calcTimeRemaining(game['StartTime']['date'], game['StartTime']['time']);
-        // initClock(timeremaining);
-        // initTeams();
-        // initTitlesAndSizes();
+        timeremaining = calcTimeRemaining(game['StartTime']['date'], game['StartTime']['time']);
+        initClock(timeremaining);
+        initTeams();
+        initTitlesAndSizes();
         username_modal();
         
     }
@@ -266,16 +266,16 @@
 
 
     function initTitlesAndSizes() {
-        // var title = document.getElementById('divTitle');
-        // title.innerText = game.Name;
+        var title = document.getElementById('divTitle');
+        title.innerText = game.Name;
 
-        // var clock = document.getElementById('clock');
-        // clock.style.height = title.clientHeight;
+        var clock = document.getElementById('clock');
+        clock.style.height = title.clientHeight;
 
-        // var userInfo = document.getElementById('userInfo');
-        // var btnNewTeam = document.getElementById('btnNewTeam');
+        var userInfo = document.getElementById('userInfo');
+        var btnNewTeam = document.getElementById('btnNewTeam');
 
-        // btnNewTeam.style.height = userInfo.clientHeight;
+        btnNewTeam.style.height = userInfo.clientHeight;
     }
 
     function calcTimeRemaining(date,time) {
