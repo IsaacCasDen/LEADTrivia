@@ -101,6 +101,8 @@ class TriviaGame(models.Model):
         value['current_question_index'] = self.current_question_index
         value['start_time'] = self.get_starttime()
         value['is_cancelled'] = self.is_cancelled
+        value['team_count'] = len(TriviaGameTeam.objects.filter(game__id=self.id))
+        value['user_count'] = len(TeamMember.objects.filter(game__id=self.id))
         return value
 
     def get_starttime(self):
@@ -972,7 +974,7 @@ def get_question(game_id:int=None, round_index:int = None, index:int = None, que
 def create_questions(game_id:int):
     game = get_game(game_id)
 
-    create_question(game.id,0,"My mama always said life was like {}. You never know what you're gonna get.","My mama always said life was like a box of chocolates. You never know what you're gonna get.",[["a box of chocolates","peanut brittle","confused elves"]],2,[('<iframe src="https://www.youtube.com/embed/CJh59vZ8ccc?controls=0&start=30;end=40" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe> ',False)])
+    create_question(game.id,0,"My mama always said life was like {}. You never know what you're gonna get.","My mama always said life was like a box of chocolates. You never know what you're gonna get.",[["a box of chocolates","peanut brittle","confused elves"]],2,[('<iframe src="https://www.youtube.com/embed/CJh59vZ8ccc?controls=0&start=30;end=40" frameborder="0" allow="ac',False)])
     create_question(game.id,0,"If you got rid of every {} with {}, then you'd have three {} left.","If you got rid of every cop with some sort of drink problem, then you'd have three cops left.",[['cop','moose','priest'],['some sort of drink problem','a pineapple on their head','a car in their garage'],['cops','moose','priests']],1,[('ants.mp4',True)],[('ShruggingTom.png',True)],[('30 Second Timer With Jeopardy Thinking Music.mp3',True)])
     create_question(game.id,1,"Which of these is a type of computer?","Apple",[['Apple', 'Nectarine','Orange']],2,[('ants.mp4',True)],[('ShruggingTom.png',True)],[('30 Second Timer With Jeopardy Thinking Music.mp3',True)])
     create_question(game.id,1,"What was the name of the first satellite sent to space?","Sputnik 1",[["Sputnik 1","Gallileo 1","Neo 3"]],1,[('ants.mp4',True)],[('ShruggingTom.png',True)],[('30 Second Timer With Jeopardy Thinking Music.mp3',True)])
@@ -1188,8 +1190,6 @@ def get_teams(game_id:int):
     teams = [team for team in TriviaGameTeam.objects.filter(game__id=game_id)]
     return teams
 
-
-
 def get_gamestate(game_id:int):
     game = get_game(game_id)
 
@@ -1214,7 +1214,12 @@ def get_gamestate(game_id:int):
     return result
 
 def get_game(game_id:int) -> TriviaGame:
-    game = TriviaGame.objects.get(id=game_id)
+    game = TriviaGame.objects.filter(id=game_id)
+    if len(game)>0:
+        game = game[0]
+    else:
+        game=None
+
     return game
 
 def get_games(only_open:bool=True) -> list:
@@ -1507,13 +1512,15 @@ def delete_video(data):
             if data['new']:
                 path = os.path.join(path,'temp',data['tempPath'])
                 os.remove(path)
-            
-        if data['id'].is_digit():
+        
+        if str(data['id']).isdigit():
             video = TriviaQuestionVideo.objects.get(id=data['id'])
             if video==None:
                 return
-            path = os.path.join(path,video.file_path)
-            os.remove(path)
+            if video.is_local:
+                path = os.path.join(path,video.file_path)
+                os.remove(path)
+
             video.delete()
 
 def save_video(question,index,data):
@@ -1523,13 +1530,17 @@ def save_video(question,index,data):
             video = TriviaQuestionVideo()
             video.question=question
             if data['isLocal']:
-                file_name = data['tempPath'][data['tempPath'].rindex(os.path.sep)]
-                rel_dir = os.path.join('question' + str(question.id),file_name)
+                file_name = data['tempPath'][data['tempPath'].rindex(os.path.sep)+1:]
+                folder = 'question' + str(question.id)
+                rel_dir = os.path.join(folder,file_name)
                 old_path = os.path.join(MEDIA,'video','temp',data['tempPath'])
-                new_path = os.path.join(MEDIA,'video',rel_dir)
+                new_path = os.path.join(MEDIA,'video',folder)
+                if not os.path.exists(new_path):
+                    os.mkdir(new_path)
+                new_path = os.path.join(new_path,file_name)
                 os.replace(old_path,new_path)
                 video.file_path=rel_dir
-                video.is_local = False
+                video.is_local = True
             else:
                 video.file_path = data['tempPath']
                 video.is_local = False
