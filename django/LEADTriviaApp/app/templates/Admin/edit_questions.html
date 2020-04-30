@@ -478,7 +478,9 @@
     }
 
     var game = {{game|safe}};
+    var game;
     var questions = {{questions|safe}};
+    var questions;
     var data = {'Rounds':[],'Questions':{},'Groups':{},'Choices':{}};
     var rounds;
 
@@ -711,7 +713,6 @@
     }
     
     function createQuestions(round,items) {
-
         var ulQuestions = document.createElement('ul');
         var hasControls = false;
         while (items.length>ulQuestions.children.length) {
@@ -752,7 +753,7 @@
         divContent.appendChild(createAudioList(item[1]))
         divContent.appendChild(createMediaControls(item[1]))
         divContent.appendChild(ulGroups);
-        divContent.appendChild(createQuestionControls());
+        divContent.appendChild(createQuestionControls(round,questionIndex+1));
 
         return liQuestion;
     }
@@ -1146,7 +1147,7 @@
 
         [mainDiv,buttonUrl, buttonOk,textUrl,buttonUpload] = createMediaControl('Set Audio','Upload Audio','Use Audio Url');
         buttonOk.addEventListener('click',function() {
-            onClick_AudioUpload(textUrl,item);
+            onClick_AudioUrl(textUrl,item);
             textUrl.value='';
         });
         buttonUpload.addEventListener('change',function(event) {
@@ -1160,7 +1161,7 @@
 
         [mainDiv,buttonUrl, buttonOk,textUrl,buttonUpload] = createMediaControl('Set Image','Upload Image','Use Image Url');
         buttonOk.addEventListener('click',function() {
-            onClick_ImageUpload(textUrl,item);
+            onClick_ImageUrl(textUrl,item);
             textUrl.value='';
         });
         buttonUpload.addEventListener('change',function(event) {
@@ -1290,7 +1291,7 @@
 
     function onClick_ImageUrl(source,item) {
         var url = source.value;
-        parent = item.videos;
+        parent = item.images;
         if (parent.count>0) {
             _item = parent.getItems()[0][1]
             if (_item.tempPath == '' || _item.isLocal) {
@@ -1351,7 +1352,7 @@
 
     function onClick_AudioUrl(source,item) {
         var url = source.value;
-        parent = item.videos;
+        parent = item.audios;
         if (parent.count>0) {
             _item = parent.getItems()[0][1]
             if (_item.tempPath == '' || _item.isLocal) {
@@ -1478,7 +1479,9 @@
         input.innerText = "New Question";
         input.classList.add('btn');
         input.classList.add('btn-success');
-        input.addEventListener('click',function() {onClick_NewQuestion(round,index)})
+        input.addEventListener('click',function() {
+            onClick_NewQuestion(round,index)
+        });
 
 
         div.appendChild(input);
