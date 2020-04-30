@@ -1,4 +1,4 @@
-{% extends 'base.html'%}
+{% extends '../base.html' %}
 {% load static %}
 
 {% block content%}
@@ -8,15 +8,22 @@
 </style>
 
 <script>
-    var name = {{name|safe}}
-    var currentQuestionIndex = {{currentQuestionIndex|safe}}
-    var currentRound = {{currentRound|safe}}
-    var currentQuestion = {{currentQuestion|safe}}
-    var currentAnswer = {{currentAnswer|safe}}
+    var name = {{name|safe}};
+    var currentQuestionIndex = {{currentQuestionIndex|safe}};
+    var currentRound = {{currentRound|safe}};
+    var currentQuestion = {{currentQuestion|safe}};
+    var currentAnswer = {{currentAnswer|safe}};
+    var lastQuestion = {{lastQuestion|safe}};
+    var lastRound = {{lastRound|safe}};
+    var countRemaining = {{countRemaining|safe}};
+    var roundsRemaining = {{roundsRemaining|safe}};
+    var roundFinished = {{roundFinished | safe}};
 
     document.onreadystatechange = function() {
         if (document.readyState=="complete") {
             init();
+            updateButton();
+
         }
     }
 
@@ -29,13 +36,53 @@
         var divAnswer = document.getElementById('divCurrentAnswerText');
 
         divName.innerText = name;
-        divRemaining.innerText = '?';
+        divRemaining.innerText = countRemaining;
         divRound.innerText = currentRound
         divCurrentIndex.innerText = currentQuestionIndex
         divQuestion.innerText = currentQuestion;
         divAnswer.innerText = currentAnswer;
     }
+
+    function updateButton(){
+        var lquestion = lastQuestion;
+        var lround = lastRound;
+        var buttonDiv = document.getElementById("move_forward");
+        var buttonDivBack = document.getElementById("move_back");
+
+        if (roundFinished){
+            if (lround){
+                buttonDiv.style.backgroundColor = "black";
+                buttonDiv.value = 'Game Finished';
+                buttonDiv.disabled = true;
+                buttonDivBack.disabled = true;
+
+            }
+            else{
+                buttonDiv.style.backgroundColor = "orange"; 
+                buttonDiv.value = 'Next Round';
+               }
+
+        }
+        else{
+            if (lquestion){
+                if (lround){
+                    buttonDiv.value = 'Final Results';
+                    buttonDiv.style.backgroundColor = "cyan"; 
+                }else{
+                    buttonDiv.value = 'Round Results';
+                    buttonDiv.style.backgroundColor = "green";
+                }
+            }
+        }
+    }
+        
+
+
+
+
 </script>
+
+
 
 <body>
     <form id="formAdminGame" method="POST">
@@ -65,8 +112,8 @@
         </div>
         <div id="divControls">
             <div id="divCurrentQuestion">
-                <input type="submit" type="button" value="Previous Question" formaction="admin_prev_question/" class="btn btn-secondary">
-                <input type="submit" type="button" value="Next Question" formaction="admin_next_question/" class="btn btn-primary">
+                <input type="submit" type="button" value="Previous Question" formaction="admin_prev_question/" class="btn btn-secondary" id = "move_back">
+                <input type="submit" type="button" value="Next Question" formaction="admin_next_question/" class="btn btn-primary" id = "move_forward">
             </div>
         </div>
     </form>

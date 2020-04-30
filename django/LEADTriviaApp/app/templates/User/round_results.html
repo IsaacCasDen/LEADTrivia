@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends '../base.html' %}
 {% load static %}
 {% block content %}
 
@@ -14,6 +14,13 @@
         display: block;
         width: 100%;
         clear: both;
+        
+    }
+
+    #questions{
+      overflow-x:hidden;
+      overflow-y:hidden;
+      height:775px;
     }
 
     .text{
@@ -38,7 +45,7 @@
         float: left;
         padding: .5em;
         border-right: grey solid 0.1em;
-        height: 60%;
+        height: 90%;
    
     }
 
@@ -120,17 +127,19 @@
     }  
 </style>
   
-<script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
+<!-- <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script> -->
 
 <script>
   
-  var teamname = "{{teamname|safe}}";
-  var users = {{users|safe}};
   var username ="{{username|safe}}";
+  var userId = {{userId | safe}};
   var game = {{game|safe}};
-  var totalPositions = {{totalPositions|safe}}
   var results = {{results|safe}}
-
+  var users = results['team']['users']
+  var teamname = results['teamname']
+  var totalPositions = results['round']['team_count']
+  var teamPosition = results ['team']['rank']
+  var questions = results['team']['questions']
 
 document.onreadystatechange = function(){
   if (document.readyState == "complete"){
@@ -139,10 +148,10 @@ document.onreadystatechange = function(){
 }
 function init() {
     initTeam(teamname);
-    initUsers(username, users);
-    createRank(results['Team']['Rank'], totalPositions);
+    initUsers(userId, users);
+    createRank(teamPosition, totalPositions);
     check();
-    initClock(300);
+    setTimeout(checkCurrentQuestionIndex,10000);
   }
 
   function timeup() {
@@ -164,26 +173,41 @@ function init() {
 
   function initUsers(user, users){
     var WorstPlayer =document.getElementById("WorstPlayer");
-    WorstPlayer.innerText=results['Min']['Name'];
+    WorstPlayer.innerText=users[users.length-1][1]['username']; 
 
     var BestPlayer=document.getElementById("BestPlayer");
-    BestPlayer.innerText=results['Max']['Name'];
+    BestPlayer.innerText=users[0][1]['username'];
 
   }
 
   function createRank(teamPositions, totalPositions){
     var TeamRank =document.getElementById("TeamRank");
-    TeamRank.innerText = results['Team']['Rank'];
+    TeamRank.innerText = teamPosition;
     var TotalPositions =document.getElementById("TotalPositions");
     TotalPositions.innerText = totalPositions;
 
   }
 
+  function checkCurrentQuestionIndex() {
+    var query = $.getJSON('/app/current_question_index/');
+    query.done(function(data) {
+      if (!data.round_finished){
+        document.location.replace('/app/show_question/')
+      }
+      else if (data.game_finished == true){
+        document.location.replace('/app/final_results/')
+      }
+      else {
+        setTimeout(checkCurrentQuestionIndex,500)
+      }
+    });
+  }
+
   function check(){
-    var questions = document.getElementById("questions");
-    var keys = Object.keys(results['Team']['Questions']);    
+    var q = document.getElementById("questions");
+    var keys = Object.keys(questions);    
     keys.forEach(element => {
-      var questionCheck = results['Team']['Questions'][element];
+      var questionCheck = questions[element];
       var _question = document.createElement("div");
       var _answer = document.createElement("div");
       var _host = document.createElement("div")
@@ -194,7 +218,7 @@ function init() {
       _host.classList.add("questionContainer");
       _host.appendChild(_question);
       _host.appendChild(_answer);
-      questions.appendChild(_host);
+      q.appendChild(_host);
       
     });
   }
@@ -204,11 +228,11 @@ function init() {
     <div class="container">
         <div id = "TopDiv">
             {% csrf_token %}
-            <article id="clock" class="clock">
+            <!-- <article id="clock" class="clock">
                 <div class="minutes"></div>
                 <div class="timesep">:</div>
                 <div class="seconds"></div>
-            </article>
+            </article> -->
             <div id=teamDiv>
                 <div id="teamInfo">
                 </div>

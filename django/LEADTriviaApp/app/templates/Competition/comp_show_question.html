@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends '../base.html' %}
 {% load static %}
 {% block content %}
 
@@ -31,6 +31,7 @@
       clear: both;
     }
 
+
     .text{
       float:left;
       margin-right: 0.5em;
@@ -46,9 +47,8 @@
     }
 
     .container {
-      float:left;
+      float:center;
       clear: both;
-      width:25em;
     }
 
     .label {
@@ -73,15 +73,13 @@
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
 
 <script>
-// context["Question"] = question["Question"]
-// context["Answer"] = question["Answer"]
-// context["Choices"] = question["Choices"]
-// context["QuestionId"] = question["QuestionId"]
+
 var question = "{{Question | safe}}";
 var answer = "{{Answer | safe}}";
 var actualAnswer = "{{ActualAnswer | safe}}";
 var groups = {{groups | safe}};
 var questionId = {{questionId | safe}};
+var media = {{Media | safe}}
 var index = undefined;
 
 document.onreadystatechange = function(){
@@ -92,18 +90,20 @@ document.onreadystatechange = function(){
 
 function init() {
     updateCurrentQuestionIndex(index)
-    initClock(5);
+    initClock(200);
     initQuestion();
+    parseImages();
+    parseAudio();
+    parseVideo();
   }
 
   function timeup() {
 
     var answerDiv=document.getElementById("Answer");
-    document.getElementById("btnSubmit").disabled = true;
     var elements = document.getElementsByClassName("isChoice");
     elements = Array.from(elements);
     elements.forEach(element => {
-      element.disabled = true;
+      //element.disabled = true;
     }); 
     answerDiv.innerText = actualAnswer;
     setTimeout(checkCurrentQuestionIndex,5000); //Add Delay
@@ -111,7 +111,7 @@ function init() {
   }
 
   function updateCurrentQuestionIndex() {
-    var query = $.getJSON('current_question_index');
+    var query = $.getJSON('/app/current_question_index');
     query.done(function(data) {
       index = data.index
       if (index==undefined) {
@@ -121,10 +121,17 @@ function init() {
   }
 
   function checkCurrentQuestionIndex() {
-    var query = $.getJSON('current_question_index/');
+    var query = $.getJSON('/app/current_question_index/');
     query.done(function(data) {
-      if (data.index!=index) {
+      if (data.index!=index || data.round_finished == false) {
         document.location.reload();
+      }
+      else if (data.round_finished == true){
+        document.location.replace('/app/round_results/')
+
+      }
+      else if (data.game_finished == true){
+        document.location.replace('/app/final_results/')
       }
       else {
         setTimeout(checkCurrentQuestionIndex,500)
@@ -138,6 +145,64 @@ function init() {
     var divSeconds = document.getElementsByClassName("seconds")[0];
     initLocalClock(time,[10,showTimeWarning],divHours,divMinutes,divSeconds);
     setAction(timeup);//incriment question action
+  }
+
+  function parseImages(){
+    if (media["images"].length == 0) return;
+    var _media = media["images"][0];
+    var path;
+    if (_media.is_local){
+      path = "{% static "app/media/images" %}" + "/" + _media['file_path']; 
+
+    }
+    else{
+      path = _media["file_path"];
+    }
+    var image = document.getElementById("GameImage");
+    image.src = path;
+    image.style.display = "inline-block";
+  }
+
+  function parseAudio(){
+    if (media["audios"].length == 0) return;
+    var _media = media["audios"][0];
+    var path;
+    if (_media.is_local){
+      path = "{% static "app/media/audio" %}" + "/" + _media['file_path']; 
+
+    }
+    else{
+      path = _media["file_path"];
+    }
+    var audio = document.getElementById("AudioSource");
+    audio.src = path;
+    var audioMedia = document.getElementById("AudioMedia");
+    audioMedia.load();
+    audioMedia.style.display = "inline-block";
+
+  }
+
+  function parseVideo(){
+    // Parse youtube path and load it in.
+    if (media["videos"].length == 0) return;
+    var _media = media["videos"][0];
+    var path;
+    if (_media.is_local){
+      path = "{% static "app/media/video" %}" + "/" + _media['file_path'];
+      var video = document.getElementById("VideoSource");
+      video.src = path;
+      var videoMedia = document.getElementById("VideoMedia");
+      videoMedia.load();
+      videoMedia.style.display = "inline-block"; 
+
+    }
+    else{
+      path = _media["file_path"];
+      var qv = document.getElementById("VideoParent");
+      qv.innerHTML = path;
+    
+    
+    }
   }
 
   function showTimeWarning() {
@@ -179,19 +244,10 @@ function initMultipleChoice(group){
     label.innerText = element['value'];
     
     input=document.createElement('input');
-    input.classList.add("choice")
     input.classList.add("isChoice");
-    input.classList.add('form-check-input')
-    input.value = element['id'];
-    input.type = "radio";
-    input.name = "option_" + group.id;
     input.id="idInput" + input.value;
     
-    container.appendChild(input);
     container.appendChild(label);
-
-    // div.appendChild(input)  
-    // div.appendChild(label)
     choicesDiv.appendChild(container);
  }
 }
@@ -206,7 +262,7 @@ function createQuestionDiv(text){
   questionDiv.innerText = "Fill in the Blank Question"; // Hard coded for now!
   var divChoices = document.getElementById('Choices');
   var parentElement = divChoices.parentElement;
-  questionDiv.innerText = "Please fill in the blanks!";
+  questionDiv.innerText = "Please fill in the blanks! - COMPETITION";
   answerDiv.innerText = "";
   parentElement.removeChild(divChoices);
   divChoices = document.createElement('div');
@@ -225,15 +281,15 @@ function createQuestionDiv(text){
   }
 }
 function createChoices(group){
-  var optionSelect = document.createElement("select"); 
-  optionSelect.name = "option_" + group.id;
-  // optionSelect.classList.add("form-control");
+  var optionSelect = document.createElement("ul"); 
+  optionSelect.style.listStyleType = "none";
   optionSelect.classList.add("text");
+  optionSelect.classList.add("list-group");
   optionSelect.classList.add("isChoice");
     for (c in group.choices){
-      var _choices = document.createElement('option');
+      var _choices = document.createElement('li');
       _choices.innerText = group.choices[c].value;
-      _choices.value = group.choices[c].id;
+      _choices.classList.add("list-group-item");
       optionSelect.appendChild(_choices);
 
       }
@@ -288,11 +344,31 @@ function createChoices(group){
           <div id="Question">PlaceHolder Question</div>
           <input type="hidden" id = "inputQuestionId" name="questionId" />
         </div>
+        <div>
+
+          <div id = "Media" style="width: auto;">
+            <div style ="object-fit: cover; max-width: 100%; max-height: 50%; align-items: center; display:flex; justify-content: center;" >
+              <img id = "GameImage" src = "" style="display: none; width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; "/>
+            </div>
+
+            <div style = "object-fit: cover; max-width: 100%; align-items: center; display:flex; justify-content: center;">
+              <audio controls controlsList="nodownload" id = "AudioMedia" style = "display: none;">
+                <source type = "audio/mpeg" id = "AudioSource">
+              </audio>
+            </div>
+
+            <div style = "object-fit: cover; max-width: 100%; max-height: 50%; align-items: center; display:flex; justify-content: center;" id = "VideoParent" >
+              <video controls controlsList="nodownload" id = "VideoMedia" style = "display: none; max-width: 100%; max-height: 100%; align-items: center;">
+                <source type = "video/mp4" id = "VideoSource" style="display: none;">
+              </video>
+            </div>
+          </div>
+
+        </div>
         <div id = "Choices" class ="list-group col-lg-auto"></div>
         <div style="clear: both;" ></div>
       </form>
       <div id = "Answer">PlaceHolder Answer</div>
-      <button id="btnSubmit" class="btn btn-primary" onclick="onBtnSubmitClicked()">Submit</button>
       </div>
     </div>
   </div>

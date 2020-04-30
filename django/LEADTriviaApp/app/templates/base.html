@@ -1,17 +1,18 @@
 {% load static %}
 
 <html lang="en">
-    <header>
+    <head>
         <title>LEADTrivia</title>
         <link rel="stylesheet" href="{% static "app/styles/bootstrap.min.css" %}">
         <link rel="stylesheet" href="{% static "app/styles/app.css" %}">
         <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.css">
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
         <script src="{% static "app/scripts/app.js" %}"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.js"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    </header>
+        <script src="{% static "app/scripts/jquery.min.js" %}"></script>
+        <script src="{% static "app/scripts/jquery-ui.min.js" %}"></script>
+    </head>
+    <header></header>
     {% block content %}
     {% endblock %}
-    <footer>
-    </footer>
+    <footer></footer>
 </html>

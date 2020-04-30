@@ -1,3 +1,67 @@
 body {
     padding: 1em;
+    font-size: xx-large;
+}
+
+div {
+    font-size: xx-large;
+}
+
+p {
+    font-size: xx-large;
+}
+
+label {
+    font-size: xx-large;
+}
+
+input {
+    font-size: xx-large;
+}
+
+input[type=submit] {
+    font-size: xx-large;
+}
+
+input[type=text] {
+    font-size: xx-large;
+}
+
+input[type=radio] {
+    font-size: xx-large;
+    width:0.75em;
+    height:0.75em;
+    margin:0.25em;
+}
+
+input[type=number] {
+    font-size: xx-large;
+}
+
+input[type=checkbox] {
+    font-size: xx-large;
+}
+
+input[type=date] {
+    font-size: xx-large;
+}
+
+input[type=time] {
+    font-size: xx-large;
+}
+
+input[type=button] {
+    font-size: xx-large;
+}
+
+button {
+    font-size: xx-large;
+}
+
+button[type=button] {
+    font-size: xx-large;
+}
+
+fieldset {
+    font-size: xx-large;
 }

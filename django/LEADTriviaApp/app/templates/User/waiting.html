@@ -1,0 +1,43 @@
+{% extends '../base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<style>
+
+</style>
+
+<script>
+
+    document.onreadystatechange = function(){
+        if (document.readyState == "complete"){
+            init();
+        }
+    }
+    function init() {
+        setTimeout(checkCurrentQuestionIndex,500);
+    }
+
+    function checkCurrentQuestionIndex() {
+    var query = $.getJSON('/app/current_question_index/');
+    query.done(function(data) {
+      if (!data.round_finished){
+        document.location.replace('/app/show_question/')
+      }
+      else if (data.game_finished == true){
+        document.location.replace('/app/final_results/')
+      }
+      else {
+        setTimeout(checkCurrentQuestionIndex,500)
+      }
+    });
+  }
+</script>
+
+<body>
+    <div>
+        <h1>No results to display for your team this round</h1>
+        <h2>Waiting for next round to start</h2>
+    </div>
+</body>

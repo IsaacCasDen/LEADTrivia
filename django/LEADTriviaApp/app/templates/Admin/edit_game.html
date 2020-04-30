@@ -1,4 +1,4 @@
-{% extends 'base.html'%}
+{% extends '../base.html'%}
 {% load static %}
 
 {% block content%}
@@ -7,6 +7,10 @@
 
     form {
         padding: 1em;
+    }
+
+    #divState {
+        height:auto;
     }
 
     .btn {
@@ -89,9 +93,9 @@
                 <label for="divState" class="col-form-label">Game State:&nbsp;</label>
                 <div id="divState" class="form-control col-sm-5">
                     <fieldset>
-                        <input id="inputClosed" type="radio" required name="state" value=0 />Closed
-                        <input id="inputOpen" type="radio" required name="state" value=1 />Open
-                        <input id="inputFinished" type="radio" required name="state" value=2 />Finished
+                        <label for="inputClosed"><input id="inputClosed" type="radio" required name="state" value=0 />Closed</label>
+                        <label for="inputOpen"><input id="inputOpen" type="radio" required name="state" value=1 />Open</label>
+                        <label for="inputFinished"><input id="inputFinished" type="radio" required name="state" value=2 />Finished</label>
                     </fieldset>
                 </div>
             </div>

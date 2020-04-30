@@ -1,0 +1,1717 @@
+{% extends '../base.html'%}
+
+{% load static %}
+
+{% block content%}
+
+{% csrf_token %}
+
+<style>
+    #divData {
+        height: 80%;
+        width: 95%;
+        padding: 0.5em;
+        margin: 0.5em;
+        border-color: black;
+        border-width: 1px;
+        border-style: solid;
+        overflow-y: auto;
+    }
+    #divRounds {
+    }
+    #divControls {
+        height:20%;
+        margin: 0.5em;
+        padding: 0.5em;
+    }
+
+    .border {
+        border-color: gray;
+        border-style: solid;
+        border-width: 2px;
+    }
+    .divRound {
+        margin-left:1em;
+        clear: both;
+    }
+
+    ul {
+        list-style-type: none;
+    }
+
+    .list-group-horizontal {
+        overflow-x: auto;
+    }
+
+    .divQuestion {
+        margin-left:0.5em;
+        display: block;
+        clear: both;
+    }
+
+    .arrowContainer {
+        float: left;
+        margin: 0em .25em 0em 0em;
+        /* padding: .05em; */
+        height: auto;
+        width: auto;
+        background-color: #ffffff;
+    }
+
+    .arrow {
+        object-fit:fill;
+        float: left;
+        clear: both;
+        height: 1em;
+        width: 2em;
+        margin: .05em;
+        padding: 0em;
+    }
+
+    .item {
+        float:left;
+    }
+
+    .block {
+        height:fit-content;
+    }
+
+    .index {
+        width:auto;
+    }
+
+    .textblock {
+        width:95%;
+        min-height: auto;
+    }
+
+    .nopadding {
+        padding: 0;
+    }
+
+    .nomargin {
+        margin:0;
+    }
+
+    .btn {
+        margin:.5em;
+    }
+    .btn img {
+        margin: 0;
+        padding: 0;
+    }
+
+    .choice-container {
+        display:grid;
+        grid-template-columns: auto 2em;
+        gap: 10px;
+        padding: 10px;
+        width: 100%;
+    }
+
+    .media-item {
+        display: grid;
+        grid-template-columns: auto 10em;
+        gap: 10px;
+        padding: 10px;
+        width: 100%;
+    }
+
+    .row {
+        width: 100%;
+    }
+
+    .modal {
+    margin-left:auto;
+    margin-right:auto;
+    position: fixed;
+    width: fit-content;
+    height:fit-content;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+    background-color: #fefefe;
+    padding: 1em;
+    border: 1em solid #888;
+    width:fit-content;
+    height: fit-content;
+    }
+    .close {
+    color:#aaa;
+    float:right;
+    font-size: 18em;
+    font-weight: bold;
+    }
+
+    .close:hover, close:focus {
+    color:black;
+    text-decoration: none;
+    cursor: pointer;
+    }
+
+    .question {
+    }
+
+
+    .slides {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        width: 300px;
+    }
+    .slide {
+        padding: 15px;
+        background-color: #2F2F2F;
+        margin: 0 0 15px;
+        text-align: center;
+        color: #FFF;
+        border: 2px solid #444;
+    }
+
+    .slide-placeholder {
+        background: #DADADA;
+        position: relative;
+    }
+    .slide-placeholder:after {
+        content: " ";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 15px;
+        background-color: #FFF;
+    }
+
+    .slide2 {
+        height: 30px;
+    }
+    .slide3 {
+        height: 50px;
+    }
+    .slide4 {
+        height: 90px;
+    }
+    .slide5 {
+        height: 35px;
+    }
+</style>
+
+<script>
+
+    class RecordItem {
+        constructor(id) {
+            this.id=id;
+            this.name = "";
+            this.changed=false;
+            this.deleted=false;
+            this.new = false;
+        }
+    }
+
+    class Parent extends RecordItem {
+        constructor(id) {
+            super(id);
+            this.items = {};
+            this.count=0;
+            this.deleted = [];
+        }
+
+        getItems() {
+            var items = []
+
+            Object.keys(this.items).forEach(key => {
+                items.push([parseInt(key),this.items[key]]);
+            })
+
+            return items;
+        }
+
+        getValues() {
+            var values = []
+            var keys = Object.keys(this.items);
+            keys.forEach(key=> {
+                values.push(this.items[key]);
+            });
+
+            return values;
+        }
+
+        addItem(item) {
+            var keys = Object.keys(this.items);
+            keys.forEach(key=>{
+                if (this.items[key]===item) return key;
+            });
+            this.items[this.count]=item;
+            // item.changed=true;
+            item.parent=this;
+            this.count++;
+            return this.count-1;
+        }
+        setItem(pos,item) {
+            if (pos<0) return;
+            this.count++;
+            if (!(pos in this.items))  {
+                this.items[pos]=item;
+                if (!item.parent || item.parent != this)
+                    item.parent=this;
+                else if (item.parent instanceof Parent) {
+                    parent.removeItem(item);
+                }
+
+                item.parent=this;
+            } else {
+                for (var i=this.count-1; i>pos; i++) {
+                    this.items[i]=this.items[i-1];
+                    this.items[i].changed=true;
+                }
+                this.items[pos]=item;
+            }
+            // item.changed=true;
+        }
+        removeItem(item) {
+            if (this.count==0) return false;
+
+            var hasItem = false;
+            var key;
+            var keys = Object.keys(this.items);
+            
+            for (var i=0; i<keys.length; i++) {
+                key=keys[i];
+                var obj = this.items[key];
+                if (this.items[key]===item) {
+                    hasItem=true;
+                    break;
+                }
+            };
+
+            if (!hasItem) return false;
+            key = parseInt(key);
+            if (this.count==1) {
+                this.items = {};
+                this.count=0;
+                item.deleted=true;
+                this.deleted.push(item)
+                return true;
+            } else if (key+1>=this.count) {
+                delete this.items[key];
+                item.deleted=true;
+                this.count--;
+                this.deleted.push(item)
+                return true;
+            }
+            
+            for (var i=key+1;i<this.count;i++) {
+                if (i+1==this.count) {
+                    this.items[i-1]=this.items[i]
+                    delete this.items[i];
+                    break;
+                } else {
+                    this.items[i-1]=this.items[i]
+                    this.items[i-1].changed=true;
+                }
+            }
+            this.count--;
+            item.deleted=true;
+            this.deleted.push(item)
+            return true;
+        }
+
+        incIndex(item) {
+            var value = false;
+            for (var i=0; i<this.count-1; i++) {
+                if (this.items[i] == item) {
+                    this.items[i] = this.items[i+1];
+                    this.items[i+1] = item;
+                    this.items[i].changed=true;
+                    this.items[i+1].changed=true;
+                    value=true;
+                }
+            }
+            // if (value) item.changed=true;
+            return value;
+        }
+
+        decIndex(item) {
+            var value=false;
+            for (var i=1; i<this.count; i++) {
+                if (this.items[i]==item) {
+                    value=true;
+                    this.items[i] = this.items[i-1];
+                    this.items[i-1] = item;
+                    this.items[i].changed=true;
+                    this.items[i-1].changed=true;
+                }
+            }
+            // if (value) item.changed=true;
+            return value;
+        }
+
+        getIndex(item) {
+            var value = undefined;
+            this.items.forEach(key => {
+                if (this.item[key]==item) return key;
+            });
+            return undefined;
+        }
+    }
+
+    class Rounds extends Parent {
+        constructor() {
+            super();
+            this.name = "Rounds";
+        }
+
+        
+    }
+    class Round extends Parent {
+        constructor() {
+            super();
+            this.name = "Round";
+        }
+
+        
+    }
+    
+    class ImageFiles extends Parent {
+        constructor() {
+            super();
+            this.name = "Images";
+        }
+    }
+
+    class ImageFile extends RecordItem {
+        constructor(id,filePath,isLocal) {
+            super(id);
+            this.name="Image";
+            this.filePath=filePath;
+            this.tempPath='';
+            this.isLocal=isLocal;
+        }
+    }
+
+    class AudioFiles extends Parent {
+        constructor() {
+            super();
+            this.name = "Audios";
+        }
+    }
+
+    class AudioFile extends RecordItem {
+        constructor(id,filePath,isLocal) {
+            super(id);
+            this.name="Audio";
+            this.filePath=filePath;
+            this.tempPath='';
+            this.isLocal=isLocal;
+        }
+    }
+
+    class VideoFile extends RecordItem {
+        constructor(id,filePath,isLocal) {
+            super(id);
+            this.name="Video";
+            this.filePath=filePath;
+            this.tempPath='';
+            this.isLocal=isLocal;
+        }
+    }
+
+    class VideoFiles extends Parent {
+        constructor() {
+            super();
+            this.name = "Videos";
+        }
+    }
+
+    class Question extends Parent {
+        constructor(id,questionText,answerText) {
+            super(id);
+            this.name = "Question";
+            this.remove=false;
+            this.questionText=questionText;
+            this.answerText=answerText;
+            this.videos = new VideoFiles();
+            this.videos.parent = this;
+
+            this.audios = new AudioFiles();
+            this.audios.parent = this;
+
+            this.images = new ImageFiles();
+            this.images.parent = this;
+
+        }
+        setQuestionText(value) {
+            if (this.questionText!=value) {
+                this.questionText=value;
+                this.changed=true;
+            }
+        }
+        setAnswerText(value) {
+            if (this.answerText!=value) {
+                this.answerText=value;
+                this.changed=true;
+            }
+        }
+    }
+
+    class Group extends Parent {
+        constructor(id) {
+            super(id);
+            this.name = "Group";
+            this.id=id;
+        }
+    }
+
+    class Choice extends RecordItem {
+        constructor(id,value) {
+            super(id);
+            this.name = "Choice";
+            this.value=value;
+        }
+        setValue(value) {
+            if (this.value!=value) {
+                this.value=value;
+                this.changed=true;
+            }
+        }
+    }
+
+    var game = {{game|safe}};
+    var game;
+    var questions = {{questions|safe}};
+    var questions;
+    var data = {'Rounds':[],'Questions':{},'Groups':{},'Choices':{}};
+    var rounds;
+
+    function parseQuestions() {
+        this.rounds = new Rounds();
+        questions[0].forEach(roundKey => {
+            round = new Round();
+            var index = rounds.addItem(round);
+            var gameQuestions = questions[1][roundKey];
+            gameQuestions.forEach(q => {
+                question = new Question(q.id,q.question,q.answer);
+                round.setItem(q.index,question);
+                q.groups.forEach(g => {
+                    group = new Group(g.id);
+                    question.setItem(g.index,group);
+                    g.choices.forEach(c => {
+                        choice = new Choice(c.id,c.value);
+                        group.addItem(choice);
+                    }); 
+                });
+
+                // videos = new VideoFiles();
+                q.videos.forEach(m => {
+                    media = new VideoFile(m.id,m.file_path,m.is_local);
+                    question.videos.addItem(media);
+                });
+
+                // images = new ImageFiles();
+                q.images.forEach(m => {
+                    media = new ImageFile(m.id,m.file_path,m.is_local);
+                    question.images.addItem(media);
+                });
+
+                // audios = new AudioFiles();
+                q.audios.forEach(m => {
+                    media = new AudioFile(m.id,m.file_path,m.is_local);
+                    question.audios.addItem(media);
+                });
+            });
+
+        });
+    }
+
+    document.onreadystatechange = function() {
+        if (document.readyState=="complete") {
+            init();
+        }
+    }
+    
+    function init() {
+        parseQuestions();
+        createRounds();
+        attachEvents();
+    }
+
+    function reloadGame() {
+        parseQuestions();
+        refreshGame();        
+    }
+    function refreshGame() {
+        var ulRounds = document.getElementById('ulRounds');
+        while (ulRounds.firstChild) ulRounds.removeChild(ulRounds.lastChild);
+        createRounds();
+    }
+
+    function attachEvents() {
+        // attachReordering();
+        attachTextChangedListeners();
+    }
+
+
+
+    function attachTextChangedListeners() {
+        // var elements = document.getElementsByName();
+    }
+
+    class ControlHeader {
+        constructor(inc,dec,del,rem) {
+            this.inc=inc;
+            this.dec=dec;
+            this.del=del;
+            this.rem=rem;
+        }
+    }
+
+    function createDraggable(item,text,hasRemove) {
+        var div = document.createElement('div');
+        div.classList.add('input-group');
+        div.classList.add('input-group-text');
+
+
+        var divIcon = document.createElement('div');
+        divIcon.classList.add('arrowContainer');
+        divIcon.classList.add('border');
+
+
+        var btnUp = document.createElement('button');
+        btnUp.classList.add('arrow');
+        btnUp.classList.add('btn');
+        btnUp.addEventListener('click',function() {onClick_DecItemIndex(item)})
+
+
+        var imgUp = document.createElement('img');
+        imgUp.classList.add('arrow');
+        imgUp.src="{% static "app/images/uparrow.png" %}";
+        
+
+        var btnDown = document.createElement('button');
+        btnDown.addEventListener('click',function() {onClick_IncItemIndex(item)})
+        btnDown.classList.add('arrow');
+        btnDown.classList.add('btn');
+
+
+        var imgDown = document.createElement('img');
+        imgDown.classList.add('arrow');
+        imgDown.src="{% static "app/images/downarrow.png" %}";
+
+
+        var divControls = document.createElement('div');
+        
+        
+        var title = document.createElement('div');
+        title.innerText=text;
+
+        
+        var input = document.createElement('button');
+        input.classList.add('btn');
+        input.classList.add('grid-item');
+        input.classList.add('nopadding');
+        input.onclick = function() { onClick_DeleteItem(item); }
+
+
+        var img = document.createElement('img');
+        img.width=48;
+        img.height=48;
+        img.src="{% static "app/images/icon_delete.png" %}";
+        img.classList.add('nopadding');
+        img.classList.add('nomargin');
+
+
+        btnUp.appendChild(imgUp);
+        btnDown.appendChild(imgDown);
+        input.appendChild(img);
+        divControls.appendChild(input);
+        divControls.style.float="right";
+        divControls.style.width="auto";
+
+
+        divIcon.appendChild(btnUp);
+        divIcon.appendChild(btnDown);        
+        div.appendChild(divIcon);
+        div.appendChild(title);
+        div.appendChild(divControls);
+        return div;
+    }
+
+    function onClick_IncItemIndex(item) {
+        if (item!=undefined && item.parent && item.parent instanceof Parent) {
+            item.parent.incIndex(item);
+            refreshGame();
+        }
+    }
+    function onClick_DecItemIndex(item) {
+        if (item!=undefined && item.parent && item.parent instanceof Parent) {
+            item.parent.decIndex(item);
+            refreshGame();
+        }
+    }
+    function onClick_DeleteItem(item) {
+        if (item!=undefined && item.parent) {
+            item.parent.removeItem(item);
+            refreshGame();
+        }
+    }
+
+    function createRounds() {
+        // return;
+        var ulRounds = document.getElementById('ulRounds');
+        items = rounds.getItems();
+        var hasControls = false;
+        while (items.length>ulRounds.children.length) {
+            for (var i=0; i<items.length; i++) {
+                var item = items[i];
+                if (item[0] == ulRounds.children.length) {
+                    var round = createRound(item);
+                    ulRounds.appendChild(round);
+                    hasControls=true;
+                    break;
+                }
+            }
+        }
+        if (!hasControls) {
+            ulRounds.appendChild(createRoundControls())
+        }
+    }
+
+    function createRound(item) {
+        var liRound = document.createElement('li');
+        liRound.classList.add("divRound");
+        liRound.classList.add("form-group");
+
+        var divRoundTitle = createDraggable(item[1],'Round ' + item[0]);
+        var ulQuestions = createQuestions(item[1],item[1].getItems());
+
+        liRound.appendChild(divRoundTitle);
+        liRound.appendChild(ulQuestions);
+        liRound.appendChild(createRoundControls());
+
+        return liRound;
+    }
+
+    function createRoundControls() {
+        var div = document.createElement('div');
+        var input = document.createElement('button');
+        input.innerText = "New Round";
+        input.classList.add('btn');
+        input.classList.add('btn-success');
+        input.onclick=onClick_newRound;
+
+        div.appendChild(input);
+
+        return div;
+    }
+
+    function onClick_newRound(event) {
+        var value = new Round();
+        value.new = true;
+        rounds.addItem(value);
+        refreshGame();
+    }
+    
+    function createQuestions(round,items) {
+        var ulQuestions = document.createElement('ul');
+        var hasControls = false;
+        while (items.length>ulQuestions.children.length) {
+            for (var i=0; i<items.length; i++) {
+                var item = items[i];
+                if (item[0] == ulQuestions.children.length) {
+                    var question = createQuestion(round,item[0],item);
+                    ulQuestions.appendChild(question);
+                    hasControls=true;
+                    break;
+                }
+            };
+        }
+        if (!hasControls) {
+            ulQuestions.appendChild(createQuestionControls(round,0));
+        }
+
+        return ulQuestions;
+
+    }
+
+    function createQuestion(round,questionIndex,item) {
+        var liQuestion = document.createElement('li');
+        liQuestion.classList.add('divQuestion');
+        liQuestion.classList.add('form-group');
+
+        var divTitle = createDraggable(item[1],'Question ' + item[0]);
+        var divContent = document.createElement('div');
+        var ulGroups = createGroups(item[1],item[1].getItems())
+
+        liQuestion.appendChild(divTitle);
+        liQuestion.appendChild(divContent);
+
+        divContent.appendChild(createQuestionText(item[1],item[1].questionText));
+        divContent.appendChild(createAnswerText(item[1],item[1].answerText));
+        divContent.appendChild(createVideoList(item[1]))
+        divContent.appendChild(createImageList(item[1]))
+        divContent.appendChild(createAudioList(item[1]))
+        divContent.appendChild(createMediaControls(item[1]))
+        divContent.appendChild(ulGroups);
+        divContent.appendChild(createQuestionControls(round,questionIndex+1));
+
+        return liQuestion;
+    }
+    function createQuestionText(question,text) {
+        var label,input,div;
+        
+        div = document.createElement('div');
+        div.classList.add('form-group');
+        div.classList.add('input-group');
+        div.classList.add('block');
+
+        label = document.createElement('label');
+        label.classList.add("input-group");
+        label.classList.add("item");
+        label.classList.add("input-group-text");
+
+        input = document.createElement('textarea');
+        input.classList.add('question');
+        input.classList.add('item');
+        input.classList.add('textblock');
+        input.classList.add("form-control");
+        input.classList.add("form-control-lg");
+
+        label.innerText = 'Question';
+        input.innerText = text;
+        input.addEventListener('change',function() {onChange_QuestionText(question,input)});
+        div.appendChild(label);
+        div.appendChild(input);
+
+        return div;
+    }
+
+    function onChange_QuestionText(question,source) {
+        question.setQuestionText(source.value);
+    }
+    function onChange_AnswerText(question,source) {
+        question.setAnswerText(source.value);
+    }
+
+    function createAnswerText(question,text) {
+        var label,input,div;
+        
+        div = document.createElement('div');
+        div.classList.add('form-group');
+        div.classList.add('input-group');
+        div.classList.add('block');
+
+        label = document.createElement('label');
+        label.classList.add("item");
+        label.classList.add("input-group");
+        label.classList.add("input-group-text");
+
+        input = document.createElement('textarea');
+        input.classList.add('question');
+        input.classList.add('item');
+        input.classList.add('textblock');
+        input.classList.add("form-control");
+        input.classList.add("form-control-lg");
+
+        label.innerText = 'Answer';
+        input.innerText = text;
+        input.addEventListener('change',function() {onChange_AnswerText(question,input)});
+
+        div.appendChild(label);
+        div.appendChild(input);
+
+        return div;
+    }
+
+    function createVideoList(item) {
+        var div = document.createElement('div');
+
+        var label = document.createElement('div');
+        label.innerText="Video";
+        label.classList.add('input-group-text');
+
+        var ulVideos = document.createElement('ul');
+        ulVideos.style.borderBottom='solid 1px black';
+
+        var items = item.videos.getItems();
+        while (items.length > ulVideos.children.length) {
+            for (var i=0; i<items.length; i++) {
+                if (items[i][0]==ulVideos.children.length) {
+                    ulVideos.appendChild(createVideoItem(items[i][1]));
+                    break;
+                }
+            }
+        }
+
+        div.appendChild(label);
+        div.appendChild(ulVideos);
+
+        return div;
+    }
+    function createVideoItem(item) {
+        var liVideo = document.createElement('li');
+        var div = document.createElement('div');
+        div.classList.add('media-item')
+
+        var divText = document.createElement('div');
+        divText.style.float='left';
+
+        var divControls = document.createElement('div');
+        divControls.style.float='right';
+        divControls.style.marginLeft='auto';
+
+        var labelLocal = document.createElement('label');
+        var chkLocal = document.createElement('input');
+
+        var imgDelete = document.createElement('img');
+        imgDelete.width=48;
+        imgDelete.height=48;
+        imgDelete.src="{% static "app/images/icon_delete.png" %}";
+        imgDelete.classList.add('nopadding');
+        imgDelete.classList.add('nomargin');
+
+        var btnDelete = document.createElement('button');
+        btnDelete.classList.add('btn');
+        btnDelete.classList.add('nopadding');
+        btnDelete.addEventListener('click', function() {onClick_DeleteVideo(item);});
+        btnDelete.appendChild(imgDelete);
+        
+        chkLocal.type='checkbox';
+        chkLocal.id='chk_isLocal' + item.id;
+        chkLocal.style.scale="1.5";
+        chkLocal.style.marginLeft='0.5em';
+        chkLocal.style.marginRight='0.5em';
+        chkLocal.disabled=true;
+
+        labelLocal.innerText='Is Local';
+        labelLocal.htmlFor=chkLocal.id;
+
+        chkLocal.checked=item.isLocal;
+        
+        if (item.filePath=='') {
+            var path = item.tempPath
+            if (item.isLocal) {
+                path = path.substring(path.lastIndexOf('/')+1)
+                divText.innerText=path + ' (Temp)';
+            } else {
+                divText.innerText=path + ' (Temp)';
+            }
+        } else {
+            divText.innerText=item.filePath;
+        }
+
+        divText.style.marginTop='auto'
+        divText.style.marginBottom='auto';
+        divText.style.marginRight='.25em';
+
+        divControls.appendChild(labelLocal);
+        divControls.appendChild(chkLocal);
+        divControls.appendChild(btnDelete);
+        div.appendChild(divText);
+        div.appendChild(divControls);
+        liVideo.appendChild(div);
+
+        return liVideo;
+    }
+
+    function onClick_DeleteVideo(item) {
+        if (item.parent!=undefined) {
+            item.parent.removeItem(item);
+            refreshGame();
+        }
+    }
+    
+
+    function createImageList(item) {
+        var div = document.createElement('div');
+
+        var label = document.createElement('div');
+        label.innerText="Image";
+        label.classList.add('input-group-text');
+
+        var ulImages = document.createElement('ul');
+        ulImages.style.borderBottom='solid 1px black';
+
+        var items = item.images.getItems();
+        while (items.length > ulImages.children.length) {
+            for (var i=0; i<items.length; i++) {
+                if (items[i][0]==ulImages.children.length) {
+                    ulImages.appendChild(createImageItem(items[i][1]));
+                    break;
+                }
+            }
+        }
+
+        div.appendChild(label);
+        div.appendChild(ulImages);
+
+        return div;
+    }
+    function createImageItem(item) {
+        var liImage = document.createElement('li');
+        var div = document.createElement('div');
+        div.classList.add('media-item');
+
+        var divText = document.createElement('div');
+        divText.style.float='left';
+
+        var divControls = document.createElement('div');
+        divControls.style.float='right';
+        divControls.style.marginLeft='auto';
+
+        var labelLocal = document.createElement('label');
+        var chkLocal = document.createElement('input');
+
+        var imgDelete = document.createElement('img');
+        imgDelete.width=48;
+        imgDelete.height=48;
+        imgDelete.src="{% static "app/images/icon_delete.png" %}";
+        imgDelete.classList.add('nopadding');
+        imgDelete.classList.add('nomargin');
+
+        var btnDelete = document.createElement('button');
+        btnDelete.classList.add('btn');
+        btnDelete.classList.add('nopadding');
+        btnDelete.addEventListener('click', function() {onClick_DeleteImage(item);});
+        btnDelete.appendChild(imgDelete);
+        
+        chkLocal.type='checkbox';
+        chkLocal.id='chk_isLocal' + item.id;
+        chkLocal.style.scale="1.5";
+        chkLocal.style.marginLeft='0.5em';
+        chkLocal.style.marginRight='0.5em';
+        chkLocal.disabled=true;
+
+        labelLocal.innerText='Is Local';
+        labelLocal.htmlFor=chkLocal.id;
+
+        chkLocal.checked=item.isLocal;
+        if (item.filePath=='') {
+            var path = item.tempPath
+            if (item.isLocal) {
+                path = path.substring(path.lastIndexOf('/')+1)
+                divText.innerText=path + ' (Temp)';
+            } else {
+                divText.innerText=path + ' (Temp)';
+            }
+        } else {
+            divText.innerText=item.filePath;
+        }
+        divText.style.marginTop='auto'
+        divText.style.marginBottom='auto';
+        divText.style.marginRight='.25em';
+
+        divControls.appendChild(labelLocal);
+        divControls.appendChild(chkLocal);
+        divControls.appendChild(btnDelete);
+        div.appendChild(divText);
+        div.appendChild(divControls);
+        liImage.appendChild(div);
+
+        return liImage;
+    }
+
+    function onClick_DeleteImage(item) {
+        if (item.parent!=undefined) {
+            item.parent.removeItem(item);
+            refreshGame();
+        }
+    }
+
+    function createAudioList(item) {
+        var div = document.createElement('div');
+
+        var label = document.createElement('div');
+        label.innerText="Audio";
+        label.classList.add('input-group-text');
+
+        var ulAudios = document.createElement('ul');
+        ulAudios.style.borderBottom='solid 1px black';
+
+        var items = item.audios.getItems();
+        while (items.length > ulAudios.children.length) {
+            for (var i=0; i<items.length; i++) {
+                if (items[i][0]==ulAudios.children.length) {
+                    ulAudios.appendChild(createAudioItem(items[i][1]));
+                    break;
+                }
+            }
+        }
+
+        div.appendChild(label);
+        div.appendChild(ulAudios);
+
+        return div;
+    }
+    function createAudioItem(item) {
+        var liAudio = document.createElement('li');
+        var div = document.createElement('div');
+        div.classList.add('media-item');
+
+        var divText = document.createElement('div');
+        divText.style.float='left';
+
+        var divControls = document.createElement('div');
+        divControls.style.float='right';
+        divControls.style.marginLeft='auto';
+
+        var labelLocal = document.createElement('label');
+        var chkLocal = document.createElement('input');
+
+        var imgDelete = document.createElement('img');
+        imgDelete.width=48;
+        imgDelete.height=48;
+        imgDelete.src="{% static "app/images/icon_delete.png" %}";
+        imgDelete.classList.add('nopadding');
+        imgDelete.classList.add('nomargin');
+
+        var btnDelete = document.createElement('button');
+        btnDelete.classList.add('btn');
+        btnDelete.classList.add('nopadding');
+        btnDelete.addEventListener('click', function() {onClick_DeleteAudio(item);});
+        btnDelete.appendChild(imgDelete);
+        
+        chkLocal.type='checkbox';
+        chkLocal.id='chk_isLocal' + item.id;
+        chkLocal.style.scale="1.5";
+        chkLocal.style.marginLeft='0.5em';
+        chkLocal.style.marginRight='0.5em';
+        chkLocal.disabled=true;
+
+        labelLocal.innerText='Is Local';
+        labelLocal.htmlFor=chkLocal.id;
+
+        chkLocal.checked=item.isLocal;
+        if (item.filePath=='') {
+            var path = item.tempPath
+            if (item.isLocal) {
+                path = path.substring(path.lastIndexOf('/')+1)
+                divText.innerText=path + ' (Temp)';
+            } else {
+                divText.innerText=path + ' (Temp)';
+            }
+        } else {
+            divText.innerText=item.filePath;
+        }
+        divText.style.marginTop='auto'
+        divText.style.marginBottom='auto';
+        divText.style.marginRight='.25em';
+
+        divControls.appendChild(labelLocal);
+        divControls.appendChild(chkLocal);
+        divControls.appendChild(btnDelete);
+        div.appendChild(divText);
+        div.appendChild(divControls);
+        liAudio.appendChild(div);
+
+        return liAudio;
+    }
+
+    function onClick_DeleteAudio(item) {
+        if (item.parent!=undefined) {
+            item.parent.removeItem(item);
+            refreshGame();
+        }
+    }
+
+    function createMediaControls(item) {
+        var div = document.createElement('div');
+        div.style.display='inline-block';
+        div.style.clear='both';
+
+        div.appendChild(createVideoControl(item));
+        div.appendChild(createAudioControl(item));
+        div.appendChild(createImageControl(item));
+
+        return div;
+
+        //<iframe width="560" height="315" src="https://www.youtube.com/embed/CJh59vZ8ccc?controls=0&amp;start=30;end=45" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+    }
+    
+    function createVideoControl(item) {
+        let mainDiv, buttonUrl, textUrl, buttonUpload;
+
+        [mainDiv,buttonUrl, buttonOk,textUrl,buttonUpload] = createMediaControl('Set Video','Upload Video','Use Video Url');
+        buttonOk.addEventListener('click',function() {
+            onClick_VideoUrl(textUrl,item);
+        });
+        buttonUpload.addEventListener('change',function(event) {
+            onClick_VideoUpload(buttonUpload,item);
+        });
+
+        return mainDiv;
+    }
+    function createAudioControl(item) {
+        let mainDiv, buttonUrl, textUrl, buttonUpload;
+
+        [mainDiv,buttonUrl, buttonOk,textUrl,buttonUpload] = createMediaControl('Set Audio','Upload Audio','Use Audio Url');
+        buttonOk.addEventListener('click',function() {
+            onClick_AudioUrl(textUrl,item);
+            textUrl.value='';
+        });
+        buttonUpload.addEventListener('change',function(event) {
+            onClick_AudioUpload(buttonUpload,item);
+        });
+
+        return mainDiv;
+    }
+    function createImageControl(item) {
+        let mainDiv, buttonUrl, textUrl, buttonUpload;
+
+        [mainDiv,buttonUrl, buttonOk,textUrl,buttonUpload] = createMediaControl('Set Image','Upload Image','Use Image Url');
+        buttonOk.addEventListener('click',function() {
+            onClick_ImageUrl(textUrl,item);
+            textUrl.value='';
+        });
+        buttonUpload.addEventListener('change',function(event) {
+            onClick_ImageUpload(buttonUpload,item);
+        });
+
+        return mainDiv;
+    }
+
+    function createMediaControl(labelText, uploadLabel, urlLabel) {
+        var mainDiv = document.createElement('div');
+        mainDiv.classList.add('form-group');
+        mainDiv.classList.add('border');
+        mainDiv.style.float='left';
+        mainDiv.style.margin='0.25em';
+        mainDiv.style.marginRight='0.25em';
+        mainDiv.style.marginLeft='0em';
+
+        var label = document.createElement('label');
+        label.innerText=labelText;
+        label.style.float='left';
+        label.style.clear='both';
+        label.style.margin='0';
+        label.style.padding='0.25em';
+        label.style.paddingLeft='0.5em';
+        label.style.paddingRight='0.5em';
+        label.style.backgroundColor='lightblue';
+        label.style.borderBottom='solid 1px lightgray'
+
+        var controls = document.createElement('div');
+        controls.style.display='flex';
+        controls.style.justifyContent='center';
+        controls.style.alignItems='center';
+
+        var buttonUpload = document.createElement('input');
+        buttonUpload.type='file';
+        buttonUpload.hidden=true;
+
+        var divUpload = document.createElement('label');
+        divUpload.innerText=uploadLabel;
+        divUpload.style.float='left';
+
+        divUpload.appendChild(buttonUpload)
+        divUpload.classList.add('btn');
+        divUpload.classList.add('btn-secondary');
+
+        // var divUrl = document.createElement('div');
+        // divUrl.classList.add('border');
+        // divUrl.style.padding='0.5em';
+        // divUrl.style.float='left';
+        
+        var textUrl = document.createElement('input');
+        textUrl.type='text';
+        textUrl.classList.add('form-control')
+
+        var buttonUrl = document.createElement('button');
+        buttonUrl.innerText = urlLabel;
+        buttonUrl.classList.add('btn');
+        buttonUrl.classList.add('btn-secondary');
+        buttonUrl.style.float='left';
+        buttonUrl.style.clear='both';
+
+        let modal, buttonOk;
+
+        [modal,buttonOk] = createModal(urlLabel,textUrl);
+        
+        buttonUrl.addEventListener('click', function(event) {
+            modal.style.display = 'block';
+        });
+
+        controls.appendChild(divUpload);
+        controls.appendChild(buttonUrl);
+
+        mainDiv.appendChild(modal);
+        mainDiv.appendChild(label);
+        mainDiv.appendChild(controls);
+
+        return [mainDiv,buttonUrl,buttonOk,textUrl,buttonUpload];
+    }
+
+    function createModal(urlLabel,textUrl) {
+        var modal = document.createElement('div');
+        modal.classList.add('modal');
+        modal.id='modalParent';
+        modal.style.display='None';
+        
+        var divContainer = document.createElement('div');
+        divContainer.classList.add('modal-content');
+
+        var label = document.createElement('label');
+        label.innerText = urlLabel;
+
+        var div1 = document.createElement('div');
+        div1.classList.add('form-group');
+        div1.appendChild(label);
+        div1.appendChild(textUrl);
+
+        var buttonOk = document.createElement('button');
+        buttonOk.classList.add('btn');
+        buttonOk.classList.add('btn-primary');
+        buttonOk.classList.add('form-control');
+        buttonOk.innerText='Ok';
+        buttonOk.addEventListener('click',function() {
+            modal.style.display='None';
+        })
+
+        var btnCancel = document.createElement('button')
+        btnCancel.classList.add('btn');
+        btnCancel.classList.add('btn-secondary');
+        btnCancel.classList.add('form-control');
+        btnCancel.innerText='Cancel';
+        btnCancel.addEventListener('click', function() {
+            modal.style.display='None';
+        });
+
+        var div2=document.createElement('div');
+        div2.classList.add('form-group');
+
+        div2.appendChild(buttonOk);
+        div2.appendChild(btnCancel);
+
+        divContainer.appendChild(div1);
+        divContainer.appendChild(div2);
+        modal.appendChild(divContainer)
+        return [modal,buttonOk];
+    }
+
+    function onClick_ImageUrl(source,item) {
+        var url = source.value;
+        parent = item.images;
+        if (parent.count>0) {
+            _item = parent.getItems()[0][1]
+            if (_item.tempPath == '' || _item.isLocal) {
+                parent.removeItem(_item);
+                _item = new ImageFile('','',false);
+                _item.new=true;
+                _item.tempPath = url;
+                parent.addItem(_item);
+            } else {
+                _item.tempPath = url;
+            }
+        } else {
+            _item = new ImageFile('','',false);
+            _item.new=true;
+            _item.tempPath = url;
+            parent.addItem(_item);
+        }
+        source.value='';
+        refreshGame()
+    }
+
+    function onClick_ImageUpload(source,item) {
+        if (source!=undefined && item!=undefined) {
+            var data = new FormData();
+            var div = document.createElement('div');
+            div.innerHTML='{% csrf_token %}'
+            var input = div.firstChild;
+            data.append("csrfmiddlewaretoken", input.value);
+            data.append('file',source.files[0]);
+            var request = new XMLHttpRequest();
+            request.open('post','/app/upload_image');
+            request.onreadystatechange = function() {
+                if (request.readyState===4) {
+                    value = JSON.parse(request.response);
+                    if ('path' in value) {
+                        parent = item.images;
+                        if (parent.count>0) {
+                            _item = parent.getItems()[0][1];
+                            parent.removeItem(_item);
+                            _item = new ImageFile('','',true);
+                            _item.new=true;
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        } else {
+                            _item = new ImageFile('','',true);
+                            _item.new=true;
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        }
+                        refreshGame();
+                    }
+                        
+                }
+            }
+            request.send(data);
+        }
+    }
+
+    function onClick_AudioUrl(source,item) {
+        var url = source.value;
+        parent = item.audios;
+        if (parent.count>0) {
+            _item = parent.getItems()[0][1]
+            if (_item.tempPath == '' || _item.isLocal) {
+                parent.removeItem(_item);
+                _item = new AudioFile('','',false);
+                _item.new=true;
+                _item.tempPath = url;
+                parent.addItem(_item);
+            } else {
+                _item.tempPath = url;
+            }
+        } else {
+            _item = new AudioFile('','',false);
+            _item.new=true;
+            _item.tempPath = url;
+            parent.addItem(_item);
+        }
+        source.value='';
+        refreshGame()
+    }
+
+    function onClick_AudioUpload(source,item) {
+        if (source!=undefined && item!=undefined) {
+            var data = new FormData();
+            var div = document.createElement('div');
+            div.innerHTML='{% csrf_token %}'
+            var input = div.firstChild;
+            data.append("csrfmiddlewaretoken", input.value);
+            data.append('file',source.files[0]);
+            var request = new XMLHttpRequest();
+            request.open('post','/app/upload_audio');
+            request.onreadystatechange = function() {
+                if (request.readyState===4) {
+                    value = JSON.parse(request.response);
+                    if ('path' in value) {
+                        parent = item.audios;
+                        if (parent.count>0) {
+                            _item = parent.getItems()[0][1];
+                            parent.removeItem(_item);
+                            _item = new AudioFile('','',true);
+                            _item.new=true;
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        } else {
+                            _item = new AudioFile('','',true);
+                            _item.new=true;
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        }
+                        refreshGame();
+                    }
+                        
+                }
+            }
+            request.send(data);
+        }
+    }
+
+    function onClick_VideoUrl(source,item) {
+        var url = source.value;
+        parent = item.videos;
+        if (parent.count>0) {
+            _item = parent.getItems()[0][1]
+            if (_item.tempPath == '' || _item.isLocal) {
+                parent.removeItem(_item);
+                _item = new VideoFile('','',false);
+                _item.new=true;
+                _item.tempPath = url;
+                parent.addItem(_item);
+            } else {
+                _item.tempPath = url;
+            }
+        } else {
+            _item = new VideoFile('','',false);
+            _item.new=true;
+            _item.tempPath = url;
+            parent.addItem(_item);
+        }
+        source.value='';
+        refreshGame()
+    }
+
+    function onClick_VideoUpload(source,item) {
+        if (source!=undefined && item!=undefined) {
+            var data = new FormData();
+            var div = document.createElement('div');
+            div.innerHTML='{% csrf_token %}'
+            var input = div.firstChild;
+            data.append("csrfmiddlewaretoken", input.value);
+            data.append('file',source.files[0]);
+            var request = new XMLHttpRequest();
+            request.open('post','/app/upload_video');
+            request.onreadystatechange = function() {
+                if (request.readyState===4) {
+                    value = JSON.parse(request.response);
+                    if ('path' in value) {
+                        parent = item.videos;
+                        if (parent.count>0) {
+                            _item = parent.getItems()[0][1];
+                            parent.removeItem(_item);
+                            _item = new VideoFile('','',true);
+                            _item.new=true;
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        } else {
+                            _item = new VideoFile('','',true);
+                            _item.new=true;
+                            _item.tempPath = value.path;
+                            parent.addItem(_item);
+                        }
+                        refreshGame();
+                    }
+                        
+                }
+            }
+            request.send(data);
+        }
+    }
+
+    function createQuestionControls(round,index) {
+        var div = document.createElement('div');
+        
+        var input = document.createElement('button');
+        input.innerText = "New Question";
+        input.classList.add('btn');
+        input.classList.add('btn-success');
+        input.addEventListener('click',function() {
+            onClick_NewQuestion(round,index)
+        });
+
+
+        div.appendChild(input);
+
+        return div;
+    }
+    function onClick_NewQuestion(round,index) {
+        var value = new Question();
+        value.new=true;
+        value.questionText = '';
+        value.answerText = '';
+        round.setItem(index,value);
+        refreshGame();
+    }
+
+    function createGroups(question,items) {
+        var divGroups = document.createElement('div');
+        divGroups.classList.add('border');
+
+        var divContent = document.createElement('div');
+        var divControls = document.createElement('div');
+
+        var ulGroups = document.createElement('ul');
+        ulGroups.classList.add('list-group');
+        // ulGroups.classList.add('list-group-horizontal');
+        ulGroups.classList.add('border');
+
+        while (items.length>ulGroups.children.length) {
+            for (var i=0; i<items.length; i++) {
+                var item = items[i];
+                if (item[0] == ulGroups.children.length) {
+                    var group = createGroup(item);
+                    ulGroups.appendChild(group);
+                    break;
+                }
+            };
+        }
+
+        divContent.appendChild(ulGroups);
+
+        var input = document.createElement('button');
+        input.classList.add('btn');
+        input.classList.add('btn-success');
+        // input.style.width = "1em";
+        // input.style.height = "1em";
+
+        input.innerText="New Group"
+        input.addEventListener('click', function() { onClick_NewGroup(question) });
+        
+        divControls.appendChild(input);
+
+        divGroups.appendChild(divContent);
+        divGroups.appendChild(divControls);
+
+        return divGroups;
+    }
+    function onClick_NewGroup(question) {
+        value = new Group();
+        value.new=true;
+        question.addItem(value);
+        refreshGame();
+    }
+
+    function createGroup(item) {
+        var liGroup = document.createElement('li');
+        liGroup.classList.add('list-group-item');
+        
+        var label = document.createElement('label');
+        label.innerText = "Group " + item[0];
+        label.classList.add("input-group-text");
+
+        var ulContent = createChoices(item[1].getItems())
+        ulContent.classList.add('list-group');
+
+        var divControls = document.createElement('div');
+        var input = document.createElement('button');
+        input.innerText = "New Choice"
+        input.classList.add('btn');
+        input.classList.add('btn-success');
+        input.addEventListener('click',function() {onClick_NewChoice(item[1])});
+
+        divControls.appendChild(input);
+
+        liGroup.appendChild(label);
+        liGroup.appendChild(ulContent);
+        liGroup.appendChild(divControls);
+        return liGroup
+    }
+    function onClick_NewChoice(group) {
+        value = new Choice();
+        value.new=true;
+        value.value = "";
+        group.addItem(value);
+        refreshGame();
+    }
+
+    function createChoices(items) {
+        var ulChoices = document.createElement('ul');
+        ulChoices.classList.add('list-group');
+
+        while (items.length>ulChoices.children.length) {
+            for (var i=0; i<items.length; i++) {
+                var item = items[i];
+                if (item[0] == ulChoices.children.length) {
+                    var choices = createChoice(item);
+                    ulChoices.appendChild(choices);
+                    break;
+                }
+            };
+        }
+        return ulChoices;
+    }
+
+    function createChoice(item) {
+        var liChoice = document.createElement('li');
+        var div = document.createElement('div');
+        div.classList.add('choice-container');
+
+        var input = document.createElement('textarea');
+        // input.classList.add('item');
+        // input.classList.add('textblock');
+        input.classList.add("form-control");
+        input.classList.add("form-control-lg");
+        input.classList.add('grid-item')        ;
+
+        input.value = item[1].value;
+
+        input.addEventListener('change',function() {onChange_ChoiceText(item[1],input)});
+        div.appendChild(input);
+
+        var btn = document.createElement('button');
+        btn.classList.add('btn');
+        btn.classList.add('grid-item');
+        btn.classList.add('nopadding');
+        btn.addEventListener('click', function() {onClick_DeleteChoice(item[1])});
+
+        var img = document.createElement('img');
+        img.width=48;
+        img.height=48;
+        img.src="{% static "app/images/icon_delete.png" %}";
+        img.classList.add('nopadding');
+        img.classList.add('nomargin');
+
+        btn.appendChild(img);
+
+        div.appendChild(btn);
+
+        liChoice.appendChild(div);
+        liChoice.classList.add('list-group-item');
+
+        return liChoice;
+    }
+
+    function onChange_ChoiceText(choice,source) {
+        choice.setValue(source.value);
+    }
+    function onClick_DeleteChoice(choice) {
+        if (choice.parent!=undefined) {
+            choice.parent.removeItem(choice);
+            refreshGame();
+        }
+    }
+
+    function onClick_Save() {
+        var path = "/app/admin_save_questions/";
+        var _data = {'gameId':game['id'],'data':JSON.stringify(rounds,function(key,value) {
+            if (key=='parent') { return value.id; }
+            else { return value; }
+        })};
+        
+        $.ajax({
+            type:"POST",
+            url:path,
+            dataType:"json",
+            data:_data,
+            beforeSend:function(xhr,settings) {
+                $.ajaxSettings.beforeSend(xhr,settings);
+            },
+            success:onSuccess
+        })
+    }
+
+    function onSuccess(data,text,object) {
+        alert('Questions Saved');
+        document.location.reload();
+    }
+
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i=0; i<cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                if (cookie.substring(0,name.length+1)==(name+'=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length+1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        }
+    })
+
+    function onClick_Cancel() {
+        reloadGame();
+    }
+
+    function onClick_Close() {
+        document.location = "/app/edit_game"
+    }
+</script>
+
+<body>
+    <div id="divData">
+        <ul id="ulRounds">
+
+        </ul>
+    </div>
+    <div id="divControls">
+        <input type="button" class="btn btn-primary" value="Save" onclick="onClick_Save()">
+        <input type="button" class="btn btn-danger" value="Cancel" onclick="onClick_Cancel()">
+        <input type="button" class="btn btn-secondary" value="Close" onclick="onClick_Close()">
+    </div>
+</body>
+
+{% endblock %}

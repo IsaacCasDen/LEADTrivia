@@ -1,0 +1,366 @@
+{% extends '../base.html' %}
+{% load static %}
+{% block content %}
+
+<link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
+
+<style>
+
+    .container {
+      float:center;
+      clear: both;
+    }
+    #TeamRank {
+      display: inline-block;
+      vertical-align: top;
+    }
+
+    #BestPlayer{
+        overflow-x:hidden;
+        overflow-y:hidden;
+        height:775px;
+    }
+
+    #TeamRank{
+        overflow-x:hidden;
+        overflow-y:hidden;
+        height:775px;
+    }
+
+    #TopDiv{
+        display: block;
+        width: 100%;
+        clear: both;
+    }
+    .spacingLeft{
+      float:left;
+      margin: .2em;
+    }
+
+    ul{
+        list-style-type:none ;
+    }
+
+    .spacingRight{
+      float:right;
+      margin: .2em;
+    }
+
+    .text{
+      float: left;
+      margin-left: .5em;
+
+    }
+
+    .questionContain{
+      width: fit-content;
+      clear: both;
+      display: inline-block;
+    }
+
+    #BottomDiv{
+        display: block;
+        width: 100%;
+        clear: both;
+    }
+
+    #LeftDiv{
+        float: left;
+        padding: .5em;
+        border-right: grey solid 0.1em;
+        height: 90%;
+   
+    }
+
+    #RightDiv{
+        float: left;
+        padding: .5em;
+    }
+
+    #team {
+      color: darkslategrey; 
+      max-width: 400px; 
+      border-color: darkgoldenrod; 
+      border-style: solid; 
+      border-width: 0.1em;
+    }
+    #teamInfo {
+      text-align: center;
+      display: block;
+      float:left;
+      margin-right: .5em;
+      
+    }
+    #team_name {
+      display: inline-block;
+    }
+   
+    .user {
+      background-color: aliceblue; 
+      width: 100%;
+      text-align: center;
+      }
+    #btnLeave {
+      background-color: gray;
+      color: whitesmoke;
+      align-self: center;
+      margin: auto;
+      margin-bottom:0.5em;
+      display: block
+    }
+    
+    .modal {
+      width:auto;
+      height:auto;
+      overflow:auto;
+      align-self: center;
+      position:fixed;
+      background-color: rgb(0,0,0);
+      background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      padding: 1em;
+      border: 1em solid #888;
+      width:auto;
+    }
+    .close {
+      color:#aaa;
+      float:right;
+      font-size: 18em;
+      font-weight: bold;
+    }
+  
+    .close:hover, close:focus {
+      color:black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+  
+    .clockTimeWarning {
+        color: red;
+    }  
+</style>
+  
+<!-- <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script> -->
+
+<script>
+  // THIS PAGE NEEDS SOME HEAVY REWORK FOR THE COMPETITION SCREEN
+    // THIS PAGE NEEDS SOME HEAVY REWORK FOR THE COMPETITION SCREEN
+      // THIS PAGE NEEDS SOME HEAVY REWORK FOR THE COMPETITION SCREEN
+
+  var game = {{game|safe}};
+  var results = {{results|safe}};
+  var teams = results['teams'];
+  var users = results['users'];
+  var totalPositions = results['round']['team_count'];
+  var index = undefined;
+  var teamRank = results['teamRank'];
+
+document.onreadystatechange = function(){
+  if (document.readyState == "complete"){
+    init();
+  }
+}
+function init() {
+    setTimeout(checkCurrentQuestionIndex,500);
+    updateTeamDisplay(teamRank);
+    updateUserDisplay(users);
+    scrollDiv_Left();
+    scrollDiv_Right();
+  }
+
+  function timeup() {
+    alert('Time expired');
+  }
+
+  function initClock(time) {
+    var divHours = document.getElementsByClassName("hours")[0];
+    var divMinutes = document.getElementsByClassName("minutes")[0];
+    var divSeconds = document.getElementsByClassName("seconds")[0];
+    initLocalClock(time,divHours,divMinutes,divSeconds);
+  }
+
+
+  function updateCurrentQuestionIndex() {
+    var query = $.getJSON('current_question_index');
+    query.done(function(data) {
+      index = data.index
+      if (index==undefined) {
+        document.location.href = 'app/';
+      }
+    });
+  }
+
+  function checkCurrentQuestionIndex() {
+    var query = $.getJSON('current_question_index/');
+    query.done(function(data) {
+      if (data.index!=index) {
+        document.location.reload();
+      }
+      else if (data.round_finished == False){
+        document.location.replace('/app/show_question/');
+      }
+      // else if (data.game_finished == true){
+      //   document.location.replace('/app/game_results/')
+      // }
+      else {
+        setTimeout(checkCurrentQuestionIndex,500)
+      }
+    });
+  }
+
+  var ScrollRateRight = 50;
+  function scrollDiv_init_right() {
+	DivElmntRight = document.getElementById('BestPlayer');
+	ReachedMaxScroll = false;
+	DivElmntRight.scrollTop = 0;
+	PreviousScrollTop  = 0;
+	ScrollInterval = setInterval('scrollDiv_right()', ScrollRateRight); //Put timeout here
+  } 
+
+  function scrollDiv_right() {
+    if (!ReachedMaxScroll) {
+        DivElmntRight.scrollTop = PreviousScrollTop;
+        PreviousScrollTop++;
+        if (DivElmntRight.scrollTop >= (DivElmntRight.scrollHeight - DivElmntRight.offsetHeight)){
+            setTimeout(function(){
+            ReachedMaxScroll = true;
+            },3000);
+        }
+    }
+    else {        
+        ReachedMaxScroll = (DivElmntRight.scrollTop == 0)?false:true;
+        DivElmntRight.scrollTop = PreviousScrollTop;
+        PreviousScrollTop--;        
+    }
+  }      
+    function scrollDiv_Right(){
+      scrollDiv_init_right();
+      scrollDiv_right();
+    }
+
+    //--LEFT
+  var ScrollRateLeft = 50;
+  function scrollDiv_init_left() {
+	DivElmnt = document.getElementById('TeamRank');
+	ReachedMaxScrollLeft = false;
+	DivElmnt.scrollTop = 0;
+	PreviousScrollTopLeft  = 0;
+	ScrollInterval = setInterval('scrollDiv_left()', ScrollRateLeft); //Put timeout here
+  } 
+
+  function scrollDiv_left() {
+    if (!ReachedMaxScrollLeft) {
+        DivElmnt.scrollTop = PreviousScrollTopLeft;
+        PreviousScrollTopLeft++;
+        ReachedMaxScrollLeft = DivElmnt.scrollTop >= (DivElmnt.scrollHeight - DivElmnt.offsetHeight);
+    }
+    else {
+        ReachedMaxScrollLeft = (DivElmnt.scrollTop == 0)?false:true;
+        DivElmnt.scrollTop = PreviousScrollTopLeft;
+        PreviousScrollTopLeft--;
+    }
+  }      
+    function scrollDiv_Left(){
+      scrollDiv_init_left();
+      scrollDiv_left();
+    }
+
+
+  function updateUserDisplay(users){
+    var u = document.getElementById("BestPlayer");
+    
+    for (var i = 0; i < users.length; i++ ){
+      var user = results['users'][i];
+      var _PlayerName = document.createElement("div");
+      var _PlayerRank = document.createElement("div");
+      var _points = document.createElement("div");
+      var _host = document.createElement("li");
+
+      _PlayerName.textContent = user[1]['username'] + " rank: ";
+      _PlayerRank.textContent = user[1]['rank'] + " points: ";
+      _points.textContent = user[1]['points'] + 1;
+     
+      _PlayerName.classList.add("spacingLeft");
+      _PlayerRank.classList.add("spacingLeft");
+      _points.classList.add("spacingRight");
+
+      _host.appendChild(_PlayerName);
+      _host.appendChild(_PlayerRank);
+      _host.appendChild( _points);
+
+      u.appendChild(_host);
+    }
+  }
+  
+
+  function updateTeamDisplay(teamRank){
+    var t = document.getElementById("TeamRank");
+    
+    for (var i = 0; i < teamRank.length; i++ ){
+      var team = teams[teamRank[i][1]];
+      var _teamName = document.createElement("div");
+      var _teamRank = document.createElement("div");
+      var _points = document.createElement("div");
+      var _host = document.createElement("li");
+
+      _teamName.textContent = team['teamName'] + " rank: ";
+      _teamRank.textContent = team['rank'] + " points: ";
+      _points.textContent = team['points'] ;
+
+    //   _teamName.textContent = "Team Matrix" + " rank: ";
+    //   _teamRank.textContent = "1" + " points: ";
+    //   _points.textContent = "0";
+
+      _teamName.classList.add("spacingLeft");
+      _teamRank.classList.add("spacingLeft");
+      _points.classList.add("spacingRight");
+
+      _host.appendChild(_teamName);
+      _host.appendChild(_teamRank);
+      _host.appendChild( _points);
+
+      t.appendChild(_host);
+    }
+  }
+
+
+
+
+</script>
+<body >
+    <div class="container">
+        <div id = "TopDiv">
+            {% csrf_token %}
+            <!-- <article id="clock" class="clock">
+                <div class="minutes"></div>
+                <div class="timesep">:</div>
+                <div class="seconds"></div>
+            </article> -->
+            <div id=teamDiv>
+                <div>
+                </div>
+            </div>
+        </div>
+        <div id = "BottomDiv">
+            <div id = "LeftDiv">
+                <div id = "RoundResult"> <u>Final Team Rankings</u>
+                  <div id = "Rank">
+                  <ul id = "TeamRank"></ul> 
+                  </div>
+                </div> 
+            </div>
+            <div id = "RightDiv">
+                <div id = PlayerResults> <u>Player Rankings</u></div>
+                <div id = "MostAccurate">
+                <ul id = "BestPlayer" ></ul>
+ 
+
+            
+            </div>
+        </div>
+    </div>
+</body>
+
+{% endblock %}
