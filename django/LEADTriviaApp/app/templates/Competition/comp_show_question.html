@@ -347,17 +347,17 @@ function createChoices(group){
         <div>
 
           <div id = "Media" style="width: auto;">
-            <div style ="align-items: center; display:flex; justify-content: center;" >
-              <img id = "GameImage" src = "" style="display: none; width: auto; height: auto; max-width: 500; max-height: 500px; object-fit: contain; "/>
+            <div style ="object-fit: cover; max-width: 100%; max-height: 50%; align-items: center; display:flex; justify-content: center;" >
+              <img id = "GameImage" src = "" style="display: none; width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; "/>
             </div>
 
-            <div style = "align-items: center; display:flex; justify-content: center;">
+            <div style = "object-fit: cover; max-width: 100%; align-items: center; display:flex; justify-content: center;">
               <audio controls controlsList="nodownload" id = "AudioMedia" style = "display: none;">
                 <source type = "audio/mpeg" id = "AudioSource">
               </audio>
             </div>
 
-            <div style = "object-fit: cover; width: 1080px; height: 720px; align-items: center; display:flex; justify-content: center;" id = "VideoParent" >
+            <div style = "object-fit: cover; max-width: 100%; max-height: 50%; align-items: center; display:flex; justify-content: center;" id = "VideoParent" >
               <video controls controlsList="nodownload" id = "VideoMedia" style = "display: none; max-width: 100%; max-height: 100%; align-items: center;">
                 <source type = "video/mp4" id = "VideoSource" style="display: none;">
               </video>
