@@ -127,40 +127,36 @@ def index(request):
     return render(request,'index.html', context=context)
 
 def lobby(request):
-    mode=0
-    # mode = request.session['mode']
-    # init_session_vars(request)
+    init_session_vars(request)
+    session = validate_session(request)
+
     context = {}
 
-    # username = request.POST.get('username', request.session.get('username', ''))
-    # userId = request.POST.get('userId', request.session.get('userId', ''))
-    # gameId = request.POST.get('gameId', request.session.get('gameId', ''))
-    # teamId = request.POST.get('teamId', request.session.get('teamId', ''))
-    # request.session['errors'] = []
+    if session.has_game:
+        context['gameId'] = session.game.id
+        context['gamename'] = session.game.name
+    else: 
+        return redirect(index)
 
+    mode = request.POST.get('mode','')
+    if mode == '':
+        return redirect(index)
+    else:
+        mode = int(mode)
+        request.session['mode'] = mode
 
-    # if gameId != '':
-    #     gameId = int(gameId)
-    #     request.session['gameId'] = gameId
-    # else:
-    #     return redirect(index)
-
-    # game = get_game(gameId)
-    # if game == None:
-    #     return redirect(index)
-    # elif game.state==2:
-    #     return redirect(final_results)
-    
-    # state = get_gamestate(gameId)
-    # if mode == 0:
-            
-    #     if userId != '':
-    #         userId = int(userId)
-    #         request.session['userId'] = userId
+    if session.has_user and session.has_team:
+        return redirect(team)
+    elif session.has_user:
+        context['userId'] = session.user.user.id
+        context['username'] = session.user.user.user_name
+    elif not session.has_user:
         
-    #     if teamId != '':
-    #         teamId = int(teamId)
-    #         request.session['teamId'] = teamId
+
+    context['errors'] = request.session['errors']
+    
+   
+    #----------------------------------------------------------User Name
 
     #     if username == '':
     #         request.session['errors'] = ['Please enter a username']
@@ -190,13 +186,16 @@ def lobby(request):
     #                 request.session['username'] = user.user.user_name
         
     #     context['username'] = request.session['username']
+
+    #----------------------------------------------------------User Name
+
    
-    # context['username'] = request.session['username']
-    # context['teams'] = json.dumps(state['Teams'])
-    # context['orphans'] = json.dumps(state['Orphans'])
-    # context['game']=json.dumps(state['Game'])
-    # context['gameId'] = request.session['gameId']
-    # context['errors'] = request.session['errors'] 
+    context['username'] = request.session['username']
+    context['teams'] = json.dumps['Teams']
+    context['orphans'] = json.dumps['Orphans']
+    context['game']= json.dumps['Game']
+    context['gameId'] = request.session['gameId']
+    context['errors'] = request.session['errors'] 
 
     if mode == 0:
         return render(request, 'User/lobby.html',context)
