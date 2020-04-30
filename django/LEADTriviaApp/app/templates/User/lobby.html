@@ -7,6 +7,23 @@
 <link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
 
 <style>
+
+    .modal {
+        margin-left:auto;
+        margin-right:auto;
+        position: fixed;
+        width: fit-content;
+        height:fit-content;
+        background-color: rgb(0,0,0);
+        background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+        background-color: #fefefe;
+        padding: 1em;
+        border: 1em solid #888;
+        width:fit-content;
+        height: fit-content;
+    }
     body{ 
         background-image: url("{% static "app/images/lobbyimage.jpg" %}");
         background-repeat: no-repeat;
@@ -179,10 +196,11 @@
     {% comment %} // var game={{game|safe}}; 
     // var teams={{teams|safe}};
     // var orphans={{orphans|safe}};
-    // var username = "{{username|safe}}";
     // var gameId = {{gameId|safe}};
     // var timeremaining = 0;
     // var timerEvents = [[40,showTimeWarning]];{% endcomment %}
+    var username = "{{username|safe}}";
+
 
 
     document.onreadystatechange=function() {
@@ -196,7 +214,56 @@
         // initClock(timeremaining);
         // initTeams();
         // initTitlesAndSizes();
+        username_modal();
+        
     }
+
+    function username_modal(){
+        var userText = document.getElementById('divUser');
+        userText.innerText = username;
+        userText.style.color= "blue"
+        var textUrl = document.createElement('input');
+        textUrl.type='text';
+        let modal, buttonOk;
+
+        [modal,buttonOk] = createModal('Enter Username!',textUrl);
+        userText.addEventListener('click', function(event) {
+            modal.style.display = 'block';
+        });
+        buttonOk.addEventListener('click',function() {
+            update_username(textUrl);
+            textUrl.value='';
+        });
+        document.body.appendChild(modal);
+    }
+
+    function update_username(source) {
+        if (source!=undefined) {
+            var data = new FormData();
+            var div = document.createElement('div');
+            div.innerHTML='{% csrf_token %}'
+            var input = div.firstChild;
+            data.append("csrfmiddlewaretoken", input.value);
+            data.append('new_username',source.value);
+            var request = new XMLHttpRequest();
+            request.open('post','/app/update_username/');
+            request.onreadystatechange = function() {
+                if (request.readyState===4) {
+                    value = JSON.parse(request.response);
+                    if (value['status'] === 'okay'){
+                        var userText = document.getElementById('divUser');
+                        userText.innerText = value['username'];                        
+
+                    }else{
+                        alert(value['status']);
+                    }                    
+                        
+                }
+            }
+            request.send(data);
+        }
+    }
+
 
     function initTitlesAndSizes() {
         // var title = document.getElementById('divTitle');
@@ -314,6 +381,56 @@
         return divTeam;
     }
 
+   
+
+
+    function createModal(urlLabel,textUrl) {
+        var modal = document.createElement('div');
+        modal.classList.add('modal');
+        modal.id='modalParent';
+        modal.style.display='None';
+        
+        var divContainer = document.createElement('div');
+        divContainer.classList.add('modal-content');
+
+        var label = document.createElement('label');
+        label.innerText = urlLabel;
+
+        var div1 = document.createElement('div');
+        div1.classList.add('form-group');
+        div1.appendChild(label);
+        div1.appendChild(textUrl);
+
+        var buttonOk = document.createElement('button');
+        buttonOk.classList.add('btn');
+        buttonOk.classList.add('btn-primary');
+        buttonOk.classList.add('form-control');
+        buttonOk.innerText='Ok';
+        buttonOk.addEventListener('click',function() {
+            modal.style.display='None';
+        })
+
+        var btnCancel = document.createElement('button')
+        btnCancel.classList.add('btn');
+        btnCancel.classList.add('btn-secondary');
+        btnCancel.classList.add('form-control');
+        btnCancel.innerText='Cancel';
+        btnCancel.addEventListener('click', function() {
+            modal.style.display='None';
+        });
+
+        var div2=document.createElement('div');
+        div2.classList.add('form-group');
+
+        div2.appendChild(buttonOk);
+        div2.appendChild(btnCancel);
+
+        divContainer.appendChild(div1);
+        divContainer.appendChild(div2);
+        modal.appendChild(divContainer)
+        return [modal,buttonOk];
+    }
+
     
 
 </script>
@@ -337,7 +454,7 @@
             </div>
             <div style="margin-left: auto; margin-right: auto; margin-top: .5em; width: fit-content; display: flex; font-size: larger;">
                 <div id="userInfo">
-                    <div class="infoitem">Welcome </div><div id="divUser" class="infoitem"></div><div class="infoitem">! Please select a team below to join, or create a new team!</div>
+                    <div class="infoitem">Welcome! </div><div id="divUser" class="infoitem"></div><div class="infoitem"> Please select a team below to join, or create a new team!</div>
                 </div>
                 <div>
                     <input id="btnNewTeam" class="btn btn-large btn-primary" type="button" value="New Team" />

@@ -61,9 +61,11 @@ def validate_session(request)->SessionState:
 
     session_state = SessionState()
 
-    gameId = request.session.get('gameId','')
-    userId = request.session.get('userId','')
-    teamId = request.session.get('teamId','')
+    
+
+    gameId = request.POST.get('gameId',request.session.get('gameId',''))
+    userId = request.POST.get('userId',request.session.get('userId',''))
+    teamId = request.POST.get('teamId',request.session.get('teamId',''))
     
     if gameId == '':
         return session_state
@@ -283,17 +285,19 @@ def update_teamname(request):
     return redirect(team)
 
 def update_username(request):
-    gameId = request.session.get(GAMEID,'')
-    userId = request.session.get(USERID,'')
+    session = validate_session(request)
     new_username = request.POST.get('new_username','')
-    
+    response = {'status':'', 'username':''}
+
     if new_username != '':
         if not change_username(gameId,userId,new_username):
-            request.session['errors'].append('Username already taken')
+            response['status']='Username already taken'
         else:
             request.session['username']=new_username
+            response['status']='okay'
+            response['username']=new_username
 
-    return redirect(team)
+    return JsonResponse(response)
 
 def next_round(request):
     mode = request.session['mode']
