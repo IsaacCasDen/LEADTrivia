@@ -700,7 +700,7 @@ def final_results(request):
         results['teamRank'] = game_results['teamRank'] 
         results['teams'] = game_results['teams']
         context['results'] = json.dumps(results)
-        results['team'] = game_results['teams'][teamId]        
+        results['team'] = game_results['teams'][session.team.id]        
         context['username']= session.user.user_name
         context['userId'] = session.user.id
         return render(request,'User/final_results.html',context)
