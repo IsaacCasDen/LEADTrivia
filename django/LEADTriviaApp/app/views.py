@@ -3,6 +3,7 @@ import LEADTriviaApp
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts  import redirect
+
 from pathlib import Path
 import sys
 import os
@@ -23,9 +24,27 @@ GAMENAME = 'gameName'
 APP_ROOT = os.path.abspath(LEADTriviaApp.__path__[0])
 MEDIA = os.path.join(str(Path(APP_ROOT).parent),'app','static','app','media')
 
-def set_session_vars(request):
-    request.session['mode'] = 1
+class SessionState():
+    def __init__(self):
+        self.has_game=False
+        self.game = None
 
+        self.has_user=False
+        self.user = None
+
+        self.has_team=False
+        self.team = None
+
+    def game_state(self):
+        if self.game==None:
+            return None
+        else:
+            return self.game.state
+
+def init_session_vars(request):
+
+    if 'mode' not in request.session.keys():
+        request.session['mode'] = ''
     if 'gameId' not in request.session.keys():
         request.session['gameId'] = ''
     if 'errors' not in request.session.keys():
@@ -37,137 +56,147 @@ def set_session_vars(request):
     if 'teamId' not in request.session.keys():
         request.session['teamId'] = ''
 
-    should_set = False
-    if should_set:
-        create_questions()
+def validate_session(request)->SessionState:
 
-    should_set = False
-    if should_set:
-        request.session['userId'] = 160
-        request.session['errors'] = []
+    session_state = SessionState()
 
-        games = get_games()
-        request.session['gameId'] = games[len(games)-1].id
-
-
-def init_db():
-    should_init = False
-    if should_init:
-        try:
-            reset_db()
-        except:
-            pass
-        finally:
-            create_model()
+    gameId = request.session.get('gameId','')
+    userId = request.session.get('userId','')
+    teamId = request.session.get('teamId','')
     
+    if gameId == '':
+        return session_state
+
+    gameId = int(gameId)
+    game = get_game(gameId)
+    if game == None:
+        return session_state
+    else:
+        session_state.has_game=True
+        session_state.game=game
+
+    if userId != '':
+        userId = int(userId)
+        user = TeamMember.objects.filter(user__id=userId,game__id=gameId)
+        if len(user)>0:
+            session_state.has_user = True
+            session_state.user=user[0]
+
+    if teamId != '':
+        teamId = int(teamId)
+        team = TriviaGameTeam.objects.filter(game__id=gameId,team__id=teamId)
+        if len(team)>0:
+            session_state.has_team = True
+            session_state.team=team[0]
+    
+    return session_state
+    
+
 
 def index(request):
-    set_session_vars(request)
-    # init_db()
-    mode = request.session['mode']
-
-    games = get_games()
-    _games = []
-    for game in games:
-        _games.append(game.get_info())
-    if request.session['gameId'] == '':
-        pass
-    
-    if len(games)==0:
-        return HttpResponse("No Games Available")
-
-    game_data = get_gamestate(games[len(games)-1].id) 
-    gameId = request.session['gameId']
-
-    if gameId != game_data['Game']['Id']:
-        gameId = game_data['Game']['Id']
-        request.session['gameId']=gameId
-        request.session['userId']=''
-
-    if mode == 1:
-        return redirect(lobby)    
-
-    userId = request.session['userId']
-
-    if isinstance(userId,int) and isinstance(gameId,int) and  len(request.session['errors'])==0:
-        return redirect(lobby)
+    init_session_vars(request)
+    session = validate_session(request)
 
     context = {}
-    context['games'] = json.dumps(_games)
+    
+    games = [game.get_info() for game in get_games()]
 
-    context['gameId'] = request.session['gameId']
-    context['userId'] = request.session['userId']
-    context['username'] = request.session['username']
+    context['games'] = json.dumps(games)
+
+    context['gameId'] = json.dumps(None)
+    context['gamename'] = ''
+    context['userId'] = json.dumps(None)
+    context['username'] = ''
+    context['teamId'] = json.dumps(None)
+    context['teamname'] = ''
+
+    if session.has_game:
+        context['gameId'] = session.game.id
+        context['gamename'] = session.game.name
+
+    if session.has_user:
+        context['userId'] = session.user.user.id
+        context['username'] = session.user.user.user_name
+
+    if session.has_team:
+        context['teamId'] = session.team.team.id
+        context['teamname'] = session.team.team.team_name
+
     context['errors'] = request.session['errors']
-    context['data'] = json.dumps(game_data)
 
-    return render(request,'User/index.html', context)
+    return render(request,'index.html', context=context)
 
 def lobby(request):
-    mode = request.session['mode']
-    set_session_vars(request)
+    mode=0
+    # mode = request.session['mode']
+    # init_session_vars(request)
     context = {}
 
-    username = request.POST.get('username', request.session.get('username', ''))
-    userId = request.POST.get('userId', request.session.get('userId', ''))
-    gameId = request.POST.get('gameId', request.session.get('gameId', ''))
-    teamId = request.POST.get('teamId', request.session.get('teamId', ''))
-    request.session['errors'] = []
+    # username = request.POST.get('username', request.session.get('username', ''))
+    # userId = request.POST.get('userId', request.session.get('userId', ''))
+    # gameId = request.POST.get('gameId', request.session.get('gameId', ''))
+    # teamId = request.POST.get('teamId', request.session.get('teamId', ''))
+    # request.session['errors'] = []
 
 
-    if gameId != '':
-        gameId = int(gameId)
-        request.session['gameId'] = gameId
-    else:
-        return redirect(index)
+    # if gameId != '':
+    #     gameId = int(gameId)
+    #     request.session['gameId'] = gameId
+    # else:
+    #     return redirect(index)
+
+    # game = get_game(gameId)
+    # if game == None:
+    #     return redirect(index)
+    # elif game.state==2:
+    #     return redirect(final_results)
     
-    state = get_gamestate(gameId)
-    if mode == 0:
+    # state = get_gamestate(gameId)
+    # if mode == 0:
             
-        if userId != '':
-            userId = int(userId)
-            request.session['userId'] = userId
+    #     if userId != '':
+    #         userId = int(userId)
+    #         request.session['userId'] = userId
         
-        if teamId != '':
-            teamId = int(teamId)
-            request.session['teamId'] = teamId
+    #     if teamId != '':
+    #         teamId = int(teamId)
+    #         request.session['teamId'] = teamId
 
-        if username == '':
-            request.session['errors'] = ['Please enter a username']
-            return redirect(index)
-        elif userId == '':
-            request.session['username'] = username
-            user = create_user(int(gameId),username)
-            if user == None:
-                request.session['errors'] = ['Username already taken']
-                return redirect(index)
-            else:
-                request.session['userId']=user.id
-        else:
-            user = get_user(int(gameId), int(userId))
-            if user != None:
-                request.session['userId']=user['user'].id
-                request.session['username']=user['user'].user_name
-                request.session['teamId']=user['team'].id
-                return redirect(team)
-            else:
-                user = get_orphan(int(gameId),int(userId))
-                if user == None:
-                    request.session['userId'] = ''
-                    request.session['teamId'] = ''
-                    return redirect(index)
-                else:
-                    request.session['username'] = user.user.user_name
+    #     if username == '':
+    #         request.session['errors'] = ['Please enter a username']
+    #         return redirect(index)
+    #     elif userId == '':
+    #         request.session['username'] = username
+    #         user = create_user(int(gameId),username)
+    #         if user == None:
+    #             request.session['errors'] = ['Username already taken']
+    #             return redirect(index)
+    #         else:
+    #             request.session['userId']=user.id
+    #     else:
+    #         user = get_user(int(gameId), int(userId))
+    #         if user != None:
+    #             request.session['userId']=user['user'].id
+    #             request.session['username']=user['user'].user_name
+    #             request.session['teamId']=user['team'].id
+    #             return redirect(team)
+    #         else:
+    #             user = get_orphan(int(gameId),int(userId))
+    #             if user == None:
+    #                 request.session['userId'] = ''
+    #                 request.session['teamId'] = ''
+    #                 return redirect(index)
+    #             else:
+    #                 request.session['username'] = user.user.user_name
         
-        context['username'] = request.session['username']
+    #     context['username'] = request.session['username']
    
-
-    context['teams'] = json.dumps(state['Teams'])
-    context['orphans'] = json.dumps(state['Orphans'])
-    context['game']=json.dumps(state['Game'])
-    context['gameId'] = request.session['gameId']
-    context['errors'] = request.session['errors'] 
-    
+    # context['username'] = request.session['username']
+    # context['teams'] = json.dumps(state['Teams'])
+    # context['orphans'] = json.dumps(state['Orphans'])
+    # context['game']=json.dumps(state['Game'])
+    # context['gameId'] = request.session['gameId']
+    # context['errors'] = request.session['errors'] 
 
     if mode == 0:
         return render(request, 'User/lobby.html',context)
@@ -176,7 +205,7 @@ def lobby(request):
        
 def team(request):
     mode = request.session['mode']
-    set_session_vars(request)
+    init_session_vars(request)
     context = {}
 
     if mode == 1:
@@ -241,7 +270,7 @@ def team(request):
         return render(request, 'Competition/comp_team.html',context)
     
 def leave_team(request):
-    set_session_vars(request)
+    init_session_vars(request)
     gameId = request.session.get(GAMEID,'')
     userId = request.session.get(USERID,'')
     teamId = request.session.get(TEAMID,'')
@@ -301,7 +330,7 @@ def next_round(request):
 def show_question(request):
     mode = request.session['mode']
 
-    set_session_vars(request)
+    init_session_vars(request)
     gameId = request.POST.get('gameId', request.session.get('gameId', ''))
 
 
@@ -362,7 +391,7 @@ def admin_next_question(request):
 
 def submit_answer(request):
     value = {}
-    set_session_vars(request)
+    init_session_vars(request)
 
     gameId = request.session.get(GAMEID,'')
     userId = request.session.get(USERID,'')
