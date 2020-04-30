@@ -24,3 +24,6 @@ requirements.txt
 django/LEADTriviaApp/app/static/app/media/video/temp/
 django/LEADTriviaApp/app/static/app/media/audio/temp/
 django/LEADTriviaApp/app/static/app/media/images/temp/
+django/LEADTriviaApp/app/static/app/media/video/
+django/LEADTriviaApp/app/static/app/media/audio/
+django/LEADTriviaApp/app/static/app/media/images/
