@@ -3,8 +3,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    #------------------ADMIN
     path('',views.index, name='index'),
+
+    #------------------ADMIN
     path('admin_manager/', views.admin_manager, name='admin_manager'),
     path('admin_game/', views.admin_game,name='admin_game'),
     path('admin_game/admin_prev_question/', views.admin_prev_question,name='admin_prev_question'),
