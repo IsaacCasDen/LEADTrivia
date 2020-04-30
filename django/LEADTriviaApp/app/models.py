@@ -79,9 +79,10 @@ class TriviaGame(models.Model):
     current_question_index = models.IntegerField(default=0)
     start_time = models.DateTimeField()
     is_cancelled = models.BooleanField(default=False)
+    pre_game_minutes = models.IntegerField(default=15)
 
     @classmethod
-    def create(cls, name:str, start_time:datetime, state:int=0, current_round:int=1, current_question_index:int=1, is_cancelled:bool=False):
+    def create(cls, name:str, start_time:datetime, state:int=0, current_round:int=1, current_question_index:int=1, is_cancelled:bool=False, pre_game_minutes:int=15):
         game = TriviaGame()
         game.name = name
         game.start_time = start_time
@@ -89,6 +90,7 @@ class TriviaGame(models.Model):
         game.current_round = current_round
         game.current_question_index = current_question_index
         game.is_cancelled = is_cancelled
+        game.pre_game_minutes=pre_game_minutes
         game.save()
         return game
 
@@ -102,7 +104,7 @@ class TriviaGame(models.Model):
         value['start_time'] = self.get_starttime()
         value['is_cancelled'] = self.is_cancelled
         value['team_count'] = len(TriviaGameTeam.objects.filter(game__id=self.id))
-        value['user_count'] = len(TeamMember.objects.filter(game__id=self.id))
+        value['user_count'] = len(TeamMember.objects.filter(game__id=self.id)) + len(OrphanUser.objects.filter(game__id=self.id))
         return value
 
     def get_starttime(self):
@@ -248,7 +250,7 @@ class TriviaGameQuestion(models.Model):
 
 class TriviaGameUserAnswerChoice(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
-    user = models.ForeignKey(TeamMember,on_delete=SET_NULL, null=True)
+    user = models.ForeignKey(TeamMember,on_delete=CASCADE)
     question = models.ForeignKey(TriviaGameQuestion, on_delete=CASCADE)
     group = models.ForeignKey(TriviaQuestionChoiceGroup, on_delete=CASCADE)
     choice = models.ForeignKey(TriviaQuestionChoice, on_delete=CASCADE,null=True)
@@ -260,7 +262,7 @@ class TriviaGameUserAnswerChoice(models.Model):
 
 class TriviaGameUserAnswer(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
-    user = models.ForeignKey(TeamMember,on_delete=SET_NULL, null=True)
+    user = models.ForeignKey(TeamMember,on_delete=CASCADE)
     question = models.ForeignKey(TriviaGameQuestion, on_delete=CASCADE)
     answer = models.CharField(max_length=512)
 
@@ -269,14 +271,14 @@ class TriviaGameUserAnswer(models.Model):
 
 class TriviaGameTeamAnswerChoice(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
-    team = models.ForeignKey(TriviaGameTeam,on_delete=SET_NULL, null=True)
+    team = models.ForeignKey(TriviaGameTeam,on_delete=CASCADE)
     question = models.ForeignKey(TriviaGameQuestion, on_delete=CASCADE)
     group = models.ForeignKey(TriviaQuestionChoiceGroup, on_delete=CASCADE)
     choice = models.ForeignKey(TriviaQuestionChoice, on_delete=CASCADE,null=True)
 
 class TriviaGameTeamAnswer(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
-    team = models.ForeignKey(TriviaGameTeam,on_delete=SET_NULL, null=True)
+    team = models.ForeignKey(TriviaGameTeam,on_delete=CASCADE)
     question = models.ForeignKey(TriviaGameQuestion, on_delete=CASCADE)
     answer = models.CharField(max_length=512)
 
@@ -291,28 +293,28 @@ class TriviaGameRound(models.Model):
 class TriviaGameRoundResultTeam(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
     game_round = models.ForeignKey(TriviaGameRound,on_delete=CASCADE)
-    team = models.ForeignKey(TriviaGameTeam,on_delete=SET_NULL, null=True)
+    team = models.ForeignKey(TriviaGameTeam,on_delete=CASCADE)
     points = models.IntegerField()
     rank = models.IntegerField()
 
 class TriviaGameRoundResultUser(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
     game_round = models.ForeignKey(TriviaGameRound,on_delete=CASCADE)
-    team = models.ForeignKey(TriviaGameTeam,on_delete=SET_NULL, null=True)
-    user = models.ForeignKey(TeamMember,on_delete=SET_NULL, null=True)
+    team = models.ForeignKey(TriviaGameTeam,on_delete=CASCADE)
+    user = models.ForeignKey(TeamMember,on_delete=CASCADE)
     points = models.IntegerField()
     rank = models.IntegerField()
 
 class TriviaGameResultTeam(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
-    team = models.ForeignKey(TriviaGameTeam,on_delete=SET_NULL, null=True)
+    team = models.ForeignKey(TriviaGameTeam,on_delete=CASCADE)
     points = models.IntegerField()
     rank = models.IntegerField()
 
 class TriviaGameResultUser(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
-    team = models.ForeignKey(TriviaGameTeam,on_delete=SET_NULL, null=True)
-    user = models.ForeignKey(TeamMember,on_delete=SET_NULL, null=True)
+    team = models.ForeignKey(TriviaGameTeam,on_delete=CASCADE)
+    user = models.ForeignKey(TeamMember,on_delete=CASCADE)
     points = models.IntegerField()
     rank = models.IntegerField()
 
@@ -503,6 +505,7 @@ def compile_round_stats_users(round_id:int):
             _result.game=game
             _result.game_round=game_round
             _result.user=user
+            _result.team=user.team
         
         answers = get_user_answers(game.id,user.id,game_round.round_index)
         _result.points = answers[1]
@@ -591,6 +594,7 @@ def compile_stats_users(game_id:int):
             _result = TriviaGameResultUser()
             _result.game=game
             _result.user=user
+            _result.team=user.team
         
         answers = get_user_answers(game.id,user.id)
         _result.points = answers[1]
@@ -652,7 +656,7 @@ def get_user_answer(game_id:int, user_id:int, question_id:int):
         return ""
     
     for user_choice in user_choices:
-        groups = TriviaQuestionChoiceGroup.objects.filter(question__id=user_choice.question.id)
+        groups = TriviaQuestionChoiceGroup.objects.filter(question__id=user_choice.question.question.id)
         for group in groups:
             choices = TriviaQuestionChoice.objects.filter(group__id=group.id)
             if user_choice.choice in choices:
@@ -720,7 +724,7 @@ def get_team_answer(game_id:int, team_id:int, question_id:int):
         return ""
 
     for team_choice in team_choices:
-        groups = TriviaQuestionChoiceGroup.objects.filter(question__id=team_choice.question.id)
+        groups = TriviaQuestionChoiceGroup.objects.filter(question__id=team_choice.question.question.id)
         for group in groups:
             choices = TriviaQuestionChoice.objects.filter(group__id=group.id)
             if team_choice.choice in choices:
@@ -1148,7 +1152,7 @@ def create_team(game_id:int, teamname:str):
             tgt.game = game
             tgt.save()
 
-            return team
+            return tgt
         finally:
             createteam_lock.release()
     
@@ -1346,6 +1350,8 @@ def remove_teammember(game_id:str, team_id:int, user_id:int):
                 return True
             else:
                 pass
+        else:
+            return True
     except:
         pass
     return False
@@ -1435,9 +1441,9 @@ def save_question_data(game_id:int, data):
 def save_rounds(game:TriviaGame,data):
     if data['name']=='Rounds':
         for r in data['deleted']:
-            delete_round(r)
+            delete_round(game,r)
         for r in data['items']:
-            save_round(game,r,data['items'][r])
+            save_round(game,int(r)+1,data['items'][r])
 
 def delete_round(game:TriviaGame,data):
     for q in data['items']:
@@ -1448,7 +1454,7 @@ def save_round(game:TriviaGame,index,data):
         for q in data['deleted']:
             delete_question(q)
         for q in data['items']:
-            save_question(game,index,q,data['items'][q])
+            save_question(game,index,int(q),data['items'][q])
 
 def delete_question(data):
     if 'id' in data and data['id']!='':
@@ -1471,7 +1477,7 @@ def save_question(game:TriviaGame,round_index,index,data):
             tg_question.question = TriviaQuestion()
             has_update=True
         else:
-            tg_question = TriviaGameQuestion.objects.filter(game=game,question__id=data['id'])
+            tg_question = TriviaGameQuestion.objects.filter(game__id=game.id,id=data['id'])
             if len(tg_question)>0:
                 tg_question=tg_question[0]
             else:
@@ -1481,9 +1487,10 @@ def save_question(game:TriviaGame,round_index,index,data):
             has_update=True
         
         if has_update:
+            tg_question.game=game
             tg_question.index=index
-            tg_question.question.question=data['question']
-            tg_question.question.answer=data['answer']
+            tg_question.question.question=data['questionText']
+            tg_question.question.answer=data['answerText']
             tg_question.round_index=round_index
             tg_question.index=index
             tg_question.question.save()
@@ -1493,7 +1500,7 @@ def save_question(game:TriviaGame,round_index,index,data):
         for g in data['deleted']:
             delete_group(g)
         for g in data['items']:
-            save_group(g,tg_question.question,data['items'][g])
+            save_group(int(g),tg_question.question,data['items'][g])
 
         save_videos(tg_question.question, data['videos'])
         save_audios(tg_question.question, data['audios'])
@@ -1525,7 +1532,7 @@ def save_group(index,question,data):
         for c in data['deleted']:
             delete_choice(c)
         for c in data['items']:
-            save_choice(c,group,data['items'][c])
+            save_choice(int(c),group,data['items'][c])
 
 def delete_choice(data):
     if data['id'] == '':
@@ -1606,21 +1613,115 @@ def save_video(question,index,data):
             video.save()
 
 def save_audios(question,data):
-    pass
+    if data['name']=='Audios':
+        for item in data['deleted']:
+            delete_audio(item)
+        for index in data['items']:
+            save_audio(question,int(index),data['items'][index])
 
 def delete_audio(data):
-    pass
-
-def save_audio(data):
     if data['name']=='Audio':
-        pass
+        if data['isLocal']:
+            audio = None
+            path = os.path.join(MEDIA,'audio')
+            if data['new']:
+                path = os.path.join(path,'temp',data['tempPath'])
+                os.remove(path)
+        
+        if str(data['id']).isdigit():
+            audio = TriviaQuestionAudio.objects.get(id=data['id'])
+            if audio==None:
+                return
+            if audio.is_local:
+                path = os.path.join(path,audio.file_path)
+                os.remove(path)
+
+            audio.delete()
+
+def save_audio(question,index,data):
+    if data['name']=='Audio':
+        audio = None
+        if data['new']:
+            audio = TriviaQuestionAudio()
+            audio.question=question
+            if data['isLocal']:
+                file_name = data['tempPath'][data['tempPath'].rindex(os.path.sep)+1:]
+                folder = 'question' + str(question.id)
+                rel_dir = os.path.join(folder,file_name)
+                old_path = os.path.join(MEDIA,'audio','temp',data['tempPath'])
+                new_path = os.path.join(MEDIA,'audio',folder)
+                if not os.path.exists(new_path):
+                    os.mkdir(new_path)
+                new_path = os.path.join(new_path,file_name)
+                os.replace(old_path,new_path)
+                audio.file_path=rel_dir
+                audio.is_local = True
+            else:
+                audio.file_path = data['tempPath']
+                audio.is_local = False
+            audio.index=index
+            audio.save()
+            
+        elif data['changed']:
+            audio = TriviaQuestionAudio.objects.get(id=data['id'])
+            audio.file_path=data['filePath']
+            audio.index = index
+            audio.is_local=data['isLocal'].lower()=='true'
+            audio.save()
 
 def save_images(question,data):
-    pass
+    if data['name']=='Images':
+        for item in data['deleted']:
+            delete_image(item)
+        for index in data['items']:
+            save_image(question,int(index),data['items'][index])
 
 def delete_image(data):
-    pass
-
-def save_image(data):
     if data['name']=='Image':
-        pass
+        if data['isLocal']:
+            image = None
+            path = os.path.join(MEDIA,'images')
+            if data['new']:
+                path = os.path.join(path,'temp',data['tempPath'])
+                os.remove(path)
+        
+        if str(data['id']).isdigit():
+            image = TriviaQuestionImage.objects.get(id=data['id'])
+            if image==None:
+                return
+            if image.is_local:
+                path = os.path.join(path,image.file_path)
+                os.remove(path)
+
+            image.delete()
+
+def save_image(question,index,data):
+    if data['name']=='Image':
+        image = None
+        if data['new']:
+            image = TriviaQuestionImage()
+            image.question=question
+            if data['isLocal']:
+                file_name = data['tempPath'][data['tempPath'].rindex(os.path.sep)+1:]
+                folder = 'question' + str(question.id)
+                rel_dir = os.path.join(folder,file_name)
+                old_path = os.path.join(MEDIA,'images','temp',data['tempPath'])
+                new_path = os.path.join(MEDIA,'images',folder)
+                if not os.path.exists(new_path):
+                    os.mkdir(new_path)
+                new_path = os.path.join(new_path,file_name)
+                os.replace(old_path,new_path)
+                image.file_path=rel_dir
+                image.is_local = True
+            else:
+                image.file_path = data['tempPath']
+                image.is_local = False
+            image.index=index
+            image.save()
+            
+        elif data['changed']:
+            image = TriviaQuestionImage.objects.get(id=data['id'])
+            image.file_path=data['filePath']
+            image.index = index
+            image.is_local=data['isLocal'].lower()=='true'
+            image.save()
