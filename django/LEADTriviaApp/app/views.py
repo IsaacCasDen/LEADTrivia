@@ -170,52 +170,19 @@ def lobby(request):
         
         orphan = add_orphan(session.game.id,user.id)
 
+        request.session['userId'] = user.id
+        request.session['username'] = user.user_name
+
         session.has_user=True
         session.is_orphan=True
         session.user=user
-        
-
     
-   
-    #----------------------------------------------------------User Name
+    state = get_gamestate(session.game.id)
 
-    #     if username == '':
-    #         request.session['errors'] = ['Please enter a username']
-    #         return redirect(index)
-    #     elif userId == '':
-    #         request.session['username'] = username
-    #         user = create_user(int(gameId),username)
-    #         if user == None:
-    #             request.session['errors'] = ['Username already taken']
-    #             return redirect(index)
-    #         else:
-    #             request.session['userId']=user.id
-    #     else:
-    #         user = get_user(int(gameId), int(userId))
-    #         if user != None:
-    #             request.session['userId']=user['user'].id
-    #             request.session['username']=user['user'].user_name
-    #             request.session['teamId']=user['team'].id
-    #             return redirect(team)
-    #         else:
-    #             user = get_orphan(int(gameId),int(userId))
-    #             if user == None:
-    #                 request.session['userId'] = ''
-    #                 request.session['teamId'] = ''
-    #                 return redirect(index)
-    #             else:
-    #                 request.session['username'] = user.user.user_name
-        
-    #     context['username'] = request.session['username']
-
-    #----------------------------------------------------------User Name
-
-   
     context['username'] = request.session['username']
-    context['teams'] = json.dumps['Teams']
-    context['orphans'] = json.dumps['Orphans']
-    context['game']= json.dumps['Game']
-    context['gameId'] = request.session['gameId']
+    context['teams'] = json.dumps(state['Teams'])
+    context['orphans'] = json.dumps(state['Orphans'])
+    context['game']= json.dumps(state['Game'])
     context['errors'] = request.session['errors'] 
 
     if mode == 0:
