@@ -136,11 +136,10 @@
   var game = {{game|safe}};
   var results = {{results|safe}}
   var users = results['team']['users']
-  var teamname = results['team']['teamName'];
+  var teamname = results['teamname']
   var totalPositions = results['round']['team_count']
   var teamPosition = results ['team']['rank']
   var questions = results['team']['questions']
-  var index = undefined;
 
 document.onreadystatechange = function(){
   if (document.readyState == "complete"){
@@ -152,7 +151,7 @@ function init() {
     initUsers(userId, users);
     createRank(teamPosition, totalPositions);
     check();
-    setTimeout(checkCurrentQuestionIndex,500);
+    setTimeout(checkCurrentQuestionIndex,10000);
   }
 
   function timeup() {
@@ -189,24 +188,14 @@ function init() {
 
   }
 
-  function updateCurrentQuestionIndex() {
-    var query = $.getJSON('/app/current_question_index');
-    query.done(function(data) {
-      index = data.index
-      if (index==undefined) {
-        document.location.href = 'app/';
-      }
-    });
-  }
-
   function checkCurrentQuestionIndex() {
     var query = $.getJSON('/app/current_question_index/');
     query.done(function(data) {
-      if (data.index!=index && index != undefined) {
-        document.location.reload();
+      if (!data.round_finished){
+        document.location.replace('/app/show_question/')
       }
-      else if (data.round_finished == false){
-        document.location.replace('/app/next_round/');
+      else if (data.game_finished == true){
+        document.location.replace('/app/final_results/')
       }
       else {
         setTimeout(checkCurrentQuestionIndex,500)
