@@ -1084,22 +1084,29 @@ usernameavailable_lock = Lock()
 def is_username_available(name:str):
     
     if usernameavailable_lock.acquire():
-        usernames = [user.user_name for user in User.objects.all()]
-        if name in usernames:
-            return False
-    
-        return True
+        try:
+            usernames = [user.user_name for user in User.objects.all()]
+            if name in usernames:
+                return False
+        
+            return True
+        finally:
+            usernameavailable_lock.release()
     
     return False
 
 teamnameavailable_lock = Lock()
 def is_teamname_available(game_id:int,name:str):
+    
     if teamnameavailable_lock.acquire():
-        teamnames = [team.team.team_name for team in get_teams(game_id)]
-        if name in teamnames:
-            return False
-        
-        return True
+        try:
+            teamnames = [team.team.team_name for team in get_teams(game_id)]
+            if name in teamnames:
+                return False
+            
+            return True
+        finally:
+            teamnameavailable_lock.release()
     
     return False
 
