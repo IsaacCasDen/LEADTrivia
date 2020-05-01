@@ -278,15 +278,29 @@ def leave_team(request):
     return redirect(team)
 
 def update_teamname(request):
-    gameId = request.session.get(GAMEID,'')
-    teamId = request.session.get(TEAMID,'')
+    init_session_vars(request)
+    session = validate_session(request)
+
+    value = {'status':''}
+
+    if not session.has_game:
+        value['status'] = 'Error: No Game Selected'
+        return JsonResponse(value)
+    elif not session.has_team:
+        value['status'] = 'Error: No Team Selected'
+        return JsonResponse(value)
+
     new_teamname = request.POST.get('new_teamname','')
 
     if new_teamname != '':
-        if not change_teamname(gameId,teamId,new_teamname):
-            request.session['errors'].append('Teamname already taken')
-    
-    return redirect(team)
+        if not change_teamname(session.game.id,session.team.id,new_teamname):
+            value['status'] = 'Teamname already taken'
+        else:
+            value['status'] = new_teamname
+    else:
+        value['status'] = 'Error Team name cannot be blank'
+        
+    return JsonResponse(value)
 
 def update_username(request):
     session = validate_session(request)
