@@ -153,7 +153,7 @@
   var results = {{results|safe}};
   var teams = results['teams'];
   var users = results['users'];
-  var totalPositions = results['round']['team_count'];
+  var totalPositions = results['game']['team_count'];
   var index = undefined;
   var teamRank = results['teamRank'];
 
@@ -280,7 +280,7 @@ function init() {
 
       _PlayerName.textContent = user[1]['username'] + " rank: ";
       _PlayerRank.textContent = user[1]['rank'] + " points: ";
-      _points.textContent = user[1]['points'] + 1;
+      _points.textContent = user[1]['points'];
      
       _PlayerName.classList.add("spacingLeft");
       _PlayerRank.classList.add("spacingLeft");
