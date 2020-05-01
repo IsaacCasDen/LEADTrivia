@@ -181,6 +181,7 @@ class TeamMember(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     team = models.ForeignKey(TriviaGameTeam,on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=False)
 
     def __str__(self):
         return "Team: {}\tUser:{}".format(team.team_name,user.user_name)
@@ -839,6 +840,16 @@ def update_team_answer(game_id:int,question_id:int,team_id:int):
     game_answer.answer=get_team_answer(game_id,team_id,question_id)
     game_answer.save()
 
+def set_user_active(game_id:int,user_id:int,is_active:bool):
+    tm = TeamMember.objects.filter(game__id=game_id,user__id=user_id)
+    while len(tm)>1:
+        tm.delete()
+    
+    if len(tm)>0:
+        tm=tm[0]
+        tm.is_active=is_active
+        tm.save()
+
 def update_team_choice(game_id:int, team_id:int, question_id: int, group_id:int) -> bool:
     
     game = TriviaGame.objects.get(id=game_id)
@@ -851,11 +862,10 @@ def update_team_choice(game_id:int, team_id:int, question_id: int, group_id:int)
     else:
         team=team[0]
 
-    team_members = TeamMember.objects.filter(team__id=team.id)
+    team_members = TeamMember.objects.filter(team__id=team.id,is_active=True)
     team_choices = {}
     for user in team_members:
         user_choice = TriviaGameUserAnswerChoice.objects.filter(game__id=game_id,user__id=user.id,question__id=question_id,group__id=group_id)
-        # user_choice = TriviaGameUserAnswerChoice.objects.filter(game__id=game.id,question__id=question_id,group__id=group_id,choice__id=choice_id)
         if len(user_choice)>0:
             user_choice=user_choice[0]
             if user_choice.choice.id in team_choices:
@@ -1161,13 +1171,10 @@ def get_user(game_id:int, user_id:int):
 
     users = TeamMember.objects.filter(game__id=game_id,user__id=user_id)
     if len(users)>0:
-        if len(users)==1:
-            result = {}
-            result['user']=users[0].user
-            result['team']=users[0].team
-            return result
-        else:
-            pass
+        result = {}
+        result['user']=users[0].user
+        result['team']=users[0].team
+        return result
     
     return None
 
