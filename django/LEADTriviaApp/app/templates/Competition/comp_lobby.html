@@ -7,7 +7,7 @@
 <link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
 
 <style>
-    body{ 
+    body{
         background-image: url("{% static "app/images/lobbyimage.jpg" %}");
         background-repeat: no-repeat;
         background-color: firebrick;
@@ -53,7 +53,7 @@
         width: 80%;
         min-height:1.5em;
         height: fit-content;
-        
+
         flex: 1;
         flex-direction: column;
 
@@ -100,8 +100,84 @@
 
     #clock div {
         position: relative;
-        font-size: 1.05em;    
-        width: fit-content;    
+        font-size: 1.05em;
+        width: fit-content;
+    }
+
+
+    ul{
+        list-style-type: none;
+        padding-left: 0mm;
+        padding-right: 0mm;
+
+
+    }
+
+    .mediaItem{
+        max-width: 100%;
+        font-size: .7em;
+        overflow-x: hidden;
+        border-bottom: grey solid 1px;
+        padding-top: .5em;
+        padding-left: .5em;
+
+    }
+    #ParentDiv {
+        display: block;
+        float: right;
+        height: 700px;
+        width: 250px;
+
+    }
+
+    #TopDiv {
+        display: block;
+        float: right;
+        border-top-left-radius: 1em;
+        border-top-right-radius: 1em;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+
+        margin-right: 50px;
+        margin-top: 50px;
+        margin-left: 50;
+        text-align: center;
+        justify-content: center;
+        align-items: center;
+
+        height: 50px;
+        width: 250px;
+        background-color: lightsteelblue;
+        font-family: fantasy;
+
+
+    }
+
+
+    #SideDiv {
+
+        display: block;
+        float: right;
+        margin-right: 50px;
+        margin-left: 50;
+        margin-bottom: 50;
+        text-align: center;
+        justify-content: center;
+        align-items: center;
+        height: 500px;
+        width: 250px;
+        background-color: lightsteelblue;
+        font-family: fantasy;
+        border-bottom-right-radius: 1em;
+        border-bottom-left-radius: 1em;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+
+        overflow-x:hidden;
+        overflow-y:hidden;
+
     }
 
     #userInfo {
@@ -117,10 +193,12 @@
         text-align: center;
         border-top-left-radius: 5em;
         border-bottom-left-radius: 5em;
+        border-top-right-radius: 5em;
+        border-bottom-right-radius: 5em;
         border-color: black;
         border-width: 0.5;
         border-style: solid;
-        
+
     }
 
     #btnNewTeam {
@@ -135,7 +213,7 @@
 
         font-size: 1em;
     }
-    
+
     .infoitem {
         display: inline;
         font-size: 1em;
@@ -150,12 +228,12 @@
         font-size: 1.1em;
     }
     .divTeam {
-        
+
         float:left;
         background-color: whitesmoke;
         padding: 1em;
         margin: 1em;
-        
+
         border-radius: 5%;
         border-color: black;
         border-width: 0.5;
@@ -176,15 +254,15 @@
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
 
 <script>
-    {% comment %}
-    // var game={{game|safe}};
-    // var teams={{teams|safe}};
-    // var orphans={{orphans|safe}};
-    // var username = "{{username|safe}}";
-    // var gameId = {{gameId|safe}};
-    // var timeremaining = 0;
-    // var timerEvents = [[40,showTimeWarning]];
-    {% endcomment %}
+
+    var game={{game|safe}};
+    var teams={{teams|safe}};
+    var orphans={{orphans|safe}};
+    var username = "{{username|safe}}";
+    var gameId = {{gameId|safe}};
+    var timeremaining = 0;
+    var timerEvents = [[40,showTimeWarning]];
+
 
 
     document.onreadystatechange=function() {
@@ -194,67 +272,69 @@
     }
 
     function init() {
-        // timeremaining = calcTimeRemaining(game['StartTime']['date'], game['StartTime']['time']);
-        // initClock(timeremaining);
-        // initTeams();
-        // initTitlesAndSizes();
+        timeremaining = calcTimeRemaining(game['StartTime']['date'], game['StartTime']['time']);
+        initClock(timeremaining);
+        initTeams();
+        initTitlesAndSizes();
+        display_users();
+        scrollDiv_Right();
+
     }
 
     function initTitlesAndSizes() {
-        // var title = document.getElementById('divTitle');
-        // title.innerText = game.Name;
+        var title = document.getElementById('divTitle');
+        title.innerText = game.Name;
 
-        // var clock = document.getElementById('clock');
-        // clock.style.height = title.clientHeight;
+        var clock = document.getElementById('clock');
+        clock.style.height = title.clientHeight;
 
-        // var userInfo = document.getElementById('userInfo');
-        // var btnNewTeam = document.getElementById('btnNewTeam');
+        var userInfo = document.getElementById('userInfo');
+        var btnNewTeam = document.getElementById('btnNewTeam');
 
-        // btnNewTeam.style.height = userInfo.clientHeight;
     }
 
     function calcTimeRemaining(date,time) {
         var value = new Date(date + ' ' + time);
-        var diff = (value - Date.now())/1000; 
+        var diff = (value - Date.now())/1000;
         return diff;
     }
 
     function timeup() {
-        // var clock = document.getElementById('clock');
-        // children = clock.children;
-        // if (children.length !== undefined && children.length>0){
-        //     for (var i=1; i<children.length; i++) {
-        //         clock.removeChild(children[i]);
-        //     }
+        var clock = document.getElementById('clock');
+        children = clock.children;
+        if (children.length !== undefined && children.length>0){
+            for (var i=1; i<children.length; i++) {
+                clock.removeChild(children[i]);
+            }
 
-        //     clock = children[0];
-            
-        //     children=clock.children;
-        //     if (children.length !== undefined && children.length>0) {
-        //         for (var i=0; i<children.length; i++) {
-        //             clock.removeChild(children[i]);
-        //         }
-        //     }
-            
+            clock = children[0];
 
-        //     clock.innerText="Game Started!"
-        //     // clock.classList.remove("clockTimeWarning");
-        //     clock.parentElement.style.backgroundColor="lightgreen";
-        // }
-        
-        
+            children=clock.children;
+            if (children.length !== undefined && children.length>0) {
+                for (var i=0; i<children.length; i++) {
+                    clock.removeChild(children[i]);
+                }
+            }
+
+
+            clock.innerText="Game Started!"
+            // clock.classList.remove("clockTimeWarning");
+            clock.parentElement.style.backgroundColor="lightgreen";
+        }
+
+
     }
 
     function initClock(time) {
-        // if (time>0) {
-        //     var divHours = document.getElementsByClassName("hours")[0];
-        //     var divMinutes = document.getElementsByClassName("minutes")[0];
-        //     var divSeconds = document.getElementsByClassName("seconds")[0];
-        //     initLocalClock(time,timerEvents,divHours,divMinutes,divSeconds);
-        //     setAction(timeup);
-        // } else {
-        //     timeup()
-        // }
+        if (time>0) {
+            var divHours = document.getElementsByClassName("hours")[0];
+            var divMinutes = document.getElementsByClassName("minutes")[0];
+            var divSeconds = document.getElementsByClassName("seconds")[0];
+            initLocalClock(time,timerEvents,divHours,divMinutes,divSeconds);
+            setAction(timeup);
+        } else {
+            timeup()
+        }
     }
 
     function showTimeWarning() {
@@ -262,28 +342,36 @@
         clock.style.backgroundColor="palegoldenrod";
     }
 
+    function display_users(){
+        var userDiv = document.getElementById("SideDiv");
+
+        for (var i = 0; i < orphans.length; i++){
+            var orphan = orphans[i];
+            var _PlayerName = document.createElement("div");
+            var _host = document.createElement("li");
+            _host.classList.add('list-item');
+            _PlayerName.classList.add('mediaItem');
+
+            _PlayerName.innerText = orphan;
+
+            _host.appendChild(_PlayerName);
+            userDiv.appendChild(_host);
+
+        }
+
+
+    }
+
     function initTeams() {
-        // var btnNewTeam = document.getElementById("btnNewTeam");
-        // var formTeams = document.getElementById("formTeams");
-        // var divTeams = document.getElementById("divTeams");
-        // var divUser = document.getElementById("divUser");
-        // var teamIds = Object.keys(teams);
+        var btnNewTeam = document.getElementById("btnNewTeam");
+        var formTeams = document.getElementById("formTeams");
+        var divTeams = document.getElementById("divTeams");
+        var teamIds = Object.keys(teams);
 
-        // divUser.innerText = username;
-
-        // btnNewTeam.onclick = function() {
-        //     const hiddenField = document.createElement('input');
-        //     hiddenField.type = 'hidden';
-        //     hiddenField.name = 'teamId';
-        //     hiddenField.value = null;
-        //     formTeams.appendChild(hiddenField);
-        //     formTeams.submit();
-        // }
-
-        // teamIds.forEach(element => {
-        //     var div = createTeam(formTeams,teams[element]);
-        //     divTeams.appendChild(div);
-        // });
+        teamIds.forEach(element => {
+            var div = createTeam(formTeams,teams[element]);
+            divTeams.appendChild(div);
+        });
     }
 
     function createTeam(parent, team) {
@@ -316,7 +404,37 @@
         return divTeam;
     }
 
-    
+    var ScrollRateRight = 80;
+    function scrollDiv_init_right() {
+	DivElmntRight = document.getElementById('SideDiv');
+	ReachedMaxScroll = false;
+	DivElmntRight.scrollTop = 0;
+	PreviousScrollTop  = 0;
+	ScrollInterval = setInterval('scrollDiv_right()', ScrollRateRight); //Put timeout here
+  }
+
+  function scrollDiv_right() {
+    if (!ReachedMaxScroll) {
+        DivElmntRight.scrollTop = PreviousScrollTop;
+        PreviousScrollTop++;
+        if (DivElmntRight.scrollTop >= (DivElmntRight.scrollHeight - DivElmntRight.offsetHeight)){
+            setTimeout(function(){
+            ReachedMaxScroll = true;
+            },1000);
+        }
+    }
+    else {
+        ReachedMaxScroll = (DivElmntRight.scrollTop == 0)?false:true;
+        DivElmntRight.scrollTop = PreviousScrollTop;
+        PreviousScrollTop--;
+    }
+  }
+    function scrollDiv_Right(){
+      scrollDiv_init_right();
+      scrollDiv_right();
+    }
+
+
 
 </script>
 <body>
@@ -339,12 +457,16 @@
             </div>
             <div style="margin-left: auto; margin-right: auto; margin-top: .5em; width: fit-content; display: flex; font-size: larger;">
                 <div id="userInfo">
-                    <div class="infoitem">Welcome! </div><div id="divUser" class="infoitem"></div><div class="infoitem"> Please select a team from below to join!</div>
+                    <div class="infoitem">Welcome to Trivia Night! Please join a team! </div>
                 </div>
             </div>
         </div>
         <div id="body">
             <div id="divTeams"></div>
+            <div id = "ParentDiv">
+                <div id="TopDiv">Users</div>
+                <ul id="SideDiv" class = "list" ></ul>
+            </div>
         </div>
         <div id="footer">
         </div>
