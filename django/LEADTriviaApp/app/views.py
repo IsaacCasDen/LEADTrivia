@@ -171,6 +171,8 @@ def lobby(request):
 
     mode = request.POST.get('mode','')
     if mode == '':
+        mode = request.session.get('mode','')
+    if mode == '':
         return redirect(index)
     else:
         mode = int(mode)
