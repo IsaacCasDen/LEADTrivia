@@ -425,12 +425,13 @@
     }
 
     class Question extends Parent {
-        constructor(id,questionText,answerText) {
+        constructor(id,questionText,answerText,timeAllowed) {
             super(id);
             this.name = "Question";
             this.remove=false;
             this.questionText=questionText;
             this.answerText=answerText;
+            this.timeAllowed = timeAllowed;
             this.videos = new VideoFiles();
             this.videos.parent = this;
 
@@ -450,6 +451,12 @@
         setAnswerText(value) {
             if (this.answerText!=value) {
                 this.answerText=value;
+                this.changed=true;
+            }
+        }
+        setTimeAllowed(value) {
+            if (this.timeAllowed!=value) {
+                this.timeAllowed=value;
                 this.changed=true;
             }
         }
@@ -491,7 +498,7 @@
             var index = rounds.addItem(round);
             var gameQuestions = questions[1][roundKey];
             gameQuestions.forEach(q => {
-                question = new Question(q.id,q.question,q.answer);
+                question = new Question(q.id,q.question,q.answer,q.time_allowed);
                 round.setItem(q.index,question);
                 q.groups.forEach(g => {
                     group = new Group(g.id);
@@ -748,6 +755,7 @@
 
         divContent.appendChild(createQuestionText(item[1],item[1].questionText));
         divContent.appendChild(createAnswerText(item[1],item[1].answerText));
+        divContent.appendChild(createTimeAllowed(item[1],item[1].timeAllowed));
         divContent.appendChild(createVideoList(item[1]))
         divContent.appendChild(createImageList(item[1]))
         divContent.appendChild(createAudioList(item[1]))
@@ -757,6 +765,7 @@
 
         return liQuestion;
     }
+
     function createQuestionText(question,text) {
         var label,input,div;
         
@@ -789,6 +798,43 @@
     function onChange_QuestionText(question,source) {
         question.setQuestionText(source.value);
     }
+    
+    function createTimeAllowed(question,text) {
+        var label,input,div;
+        
+        div = document.createElement('div');
+        div.classList.add('form-group');
+        div.classList.add('input-group');
+        div.classList.add('block');
+
+        label = document.createElement('label');
+        label.classList.add("input-group");
+        label.classList.add("item");
+        label.classList.add("input-group-text");
+
+        input = document.createElement('textarea');
+        input.classList.add('question');
+        input.classList.add('item');
+        input.classList.add('textblock');
+        input.classList.add("form-control");
+        input.classList.add("form-control-lg");
+
+        label.innerText = 'Time Allowed';
+        input.innerText = text;
+        input.addEventListener('change',function() {onChange_QuestionTimeAllowed(question,input)});
+        div.appendChild(label);
+        div.appendChild(input);
+
+        return div;
+    }
+
+    function onChange_QuestionTimeAllowed(question,source) {
+        var val = parseInt(source.value);
+        if (val>0) {
+            question.setTimeAllowed(val);
+        }
+    }
+
     function onChange_AnswerText(question,source) {
         question.setAnswerText(source.value);
     }
@@ -848,6 +894,7 @@
 
         return div;
     }
+    
     function createVideoItem(item) {
         var liVideo = document.createElement('li');
         var div = document.createElement('div');
@@ -1142,6 +1189,7 @@
 
         return mainDiv;
     }
+    
     function createAudioControl(item) {
         let mainDiv, buttonUrl, textUrl, buttonUpload;
 
@@ -1156,6 +1204,7 @@
 
         return mainDiv;
     }
+    
     function createImageControl(item) {
         let mainDiv, buttonUrl, textUrl, buttonUpload;
 
@@ -1488,6 +1537,7 @@
 
         return div;
     }
+    
     function onClick_NewQuestion(round,index) {
         var value = new Question();
         value.new=true;
@@ -1538,6 +1588,7 @@
 
         return divGroups;
     }
+    
     function onClick_NewGroup(question) {
         value = new Group();
         value.new=true;
@@ -1570,6 +1621,7 @@
         liGroup.appendChild(divControls);
         return liGroup
     }
+    
     function onClick_NewChoice(group) {
         value = new Choice();
         value.new=true;
@@ -1638,6 +1690,7 @@
     function onChange_ChoiceText(choice,source) {
         choice.setValue(source.value);
     }
+    
     function onClick_DeleteChoice(choice) {
         if (choice.parent!=undefined) {
             choice.parent.removeItem(choice);
