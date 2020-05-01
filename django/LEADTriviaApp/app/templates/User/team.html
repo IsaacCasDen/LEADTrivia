@@ -256,9 +256,9 @@
 
       if (isUser) {
         input.id="btnUser";
-        input.onclick = function() {
-          modalChangeUserName.style.display="block";
-        }
+        username_modal(input);
+
+
       } else {
         input.classList.add("disabled") 
       };
@@ -280,6 +280,150 @@
       modalChangeUserName.style.display="none";
     }
   } 
+
+  function username_modal(button){
+        var userText = document.getElementById('divUser');
+        userText.innerText = username;
+        userText.style.color= "blue"
+        var textUrl = document.createElement('input');
+        textUrl.type='text';
+        let modal, buttonOk;
+
+        [modal,buttonOk] = createModal('Enter Username!',textUrl);
+        button.addEventListener('click', function(event) {
+            modal.style.display = 'block';
+        });
+        buttonOk.addEventListener('click',function() {
+            update_username(textUrl, button);
+            textUrl.value='';
+        });
+        document.body.appendChild(modal);
+    }
+
+    function teamname_modal(){
+        var userText = document.getElementById('team_name');
+        var buttonTeam = document.getElementById('btnEditTeamName');
+
+        userText.innerText = teamname;
+        userText.style.color= "blue"
+        var textUrl = document.createElement('input');
+        textUrl.type='text';
+        let modal, buttonOk;
+
+        [modal,buttonOk] = createModal('Change Teamname',textUrl);
+        buttonTeam.addEventListener('click', function(event) {
+            modal.style.display = 'block';
+        });
+        buttonOk.addEventListener('click',function() {
+            update_teamname(textUrl);
+            textUrl.value='';
+        });
+        document.body.appendChild(modal);
+    }
+
+    function createModal(urlLabel,textUrl) {
+        var modal = document.createElement('div');
+        modal.classList.add('modal');
+        modal.id='modalParent';
+        modal.style.display='None';
+        
+        var divContainer = document.createElement('div');
+        divContainer.classList.add('modal-content');
+
+        var label = document.createElement('label');
+        label.innerText = urlLabel;
+
+        var div1 = document.createElement('div');
+        div1.classList.add('form-group');
+        div1.appendChild(label);
+        div1.appendChild(textUrl);
+
+        var buttonOk = document.createElement('button');
+        buttonOk.classList.add('btn');
+        buttonOk.classList.add('btn-primary');
+        buttonOk.classList.add('form-control');
+        buttonOk.innerText='Ok';
+        buttonOk.addEventListener('click',function() {
+            modal.style.display='None';
+        })
+
+        var btnCancel = document.createElement('button')
+        btnCancel.classList.add('btn');
+        btnCancel.classList.add('btn-secondary');
+        btnCancel.classList.add('form-control');
+        btnCancel.innerText='Cancel';
+        btnCancel.addEventListener('click', function() {
+            modal.style.display='None';
+        });
+
+        var div2=document.createElement('div');
+        div2.classList.add('form-group');
+
+        div2.appendChild(buttonOk);
+        div2.appendChild(btnCancel);
+
+        divContainer.appendChild(div1);
+        divContainer.appendChild(div2);
+        modal.appendChild(divContainer)
+        return [modal,buttonOk];
+    }
+
+    function update_username(source, button) {
+        if (source!=undefined) {
+            var data = new FormData();
+            var div = document.createElement('div');
+            div.innerHTML='{% csrf_token %}'
+            var input = div.firstChild;
+            data.append("csrfmiddlewaretoken", input.value);
+            data.append('new_username',source.value);
+            var request = new XMLHttpRequest();
+            request.open('post','/app/update_username/');
+            request.onreadystatechange = function() {
+                if (request.readyState===4) {
+                    value = JSON.parse(request.response);
+                    if (value['status'] === 'okay'){
+                      if (button != undefined){
+                        button.value = value['username'];
+                      }
+                    }else{
+                        alert(value['status']);
+                    }                    
+                        
+                }
+            }
+            request.send(data);
+        }
+    }
+
+    function update_teamname(source) {
+        if (source!=undefined) {
+            var data = new FormData();
+            var div = document.createElement('div');
+            div.innerHTML='{% csrf_token %}'
+            var input = div.firstChild;
+            data.append("csrfmiddlewaretoken", input.value);
+            data.append('new_teamname',source.value);
+            var request = new XMLHttpRequest();
+            request.open('post','/app/update_teamname/');
+            request.onreadystatechange = function() {
+                if (request.readyState===4) {
+                    value = JSON.parse(request.response);
+                    if (value['status'] === 'okay'){
+                        var userText = document.getElementById('team_name');
+                        userText.innerText = value['teamname'];                        
+
+                    }else{
+                        alert(value['status']);
+                    }                    
+                        
+                }
+            }
+            request.send(data);
+        }
+    }
+
+    
+
 </script>
 
 <div>
