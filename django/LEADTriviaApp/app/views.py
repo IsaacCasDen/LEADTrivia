@@ -383,7 +383,7 @@ def show_question(request):
     question = get_question(game_id=gameId, index=ind, round_index = round_index)
     context= {}
     
-    context["Question"] = question["question"]
+    context["Question"] = question["question"].replace("'",'"')
     context["Media"] = json.dumps({'videos': question['videos'], 'images': question['images'],'audios': question['audios']})
     context["Answer"] = ''
     context["ActualAnswer"] = question['answer']
