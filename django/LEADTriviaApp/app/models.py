@@ -135,6 +135,12 @@ class TriviaGame(models.Model):
                         if self.current_round == nums[i+1][0]:
                             self.current_question_index = nums[i+1][1]
                             self.save()
+
+                            q = TriviaGameQuestion.objects.filter(game__id=self.id,round_index=self.current_round,index=self.current_question_index)
+                            if len(q)>0:
+                                q=q[0]
+                                q.time_started = datetime.now()
+                                q.save()
                             return True
                         else:
                             game_round = get_game_round(self.id,self.current_round)
@@ -145,6 +151,10 @@ class TriviaGame(models.Model):
                                     self.current_round = nums[i+1][0]
                                     self.current_question_index = nums[i+1][1]
                                     self.save()
+                                    q = TriviaGameQuestion.objects.filter(game__id=self.id,round_index=self.current_round,index=self.current_question_index)
+                                    if len(q)>0:
+                                        q[0].time_started = datetime.now()
+                                        q[0].save()
                                 else:
                                     compile_round_stats(self.id)
                                     game_round.is_finished = True
@@ -203,7 +213,7 @@ class OrphanUser(models.Model):
 class TriviaQuestion(models.Model):
     question = models.CharField(max_length=512)
     answer = models.CharField(max_length=512)
-    #working here
+    time_allowed = models.IntegerField(default=30)
 
 class TriviaQuestionChoiceGroup(models.Model):
     question = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE)
@@ -236,9 +246,9 @@ class TriviaGameQuestion(models.Model):
     #Check for correct or wrong
     question = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE)
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)  
-    time = models.IntegerField(default=60)
     index = models.IntegerField()
     round_index = models.IntegerField(default=1)
+    time_started = models.DateTimeField(null=True)
 
     @classmethod
     def create(cls, question, game, time, index, round_index=1):
@@ -946,6 +956,7 @@ def get_question(game_id:int=None, round_index:int = None, index:int = None, que
     value['answer']=question.question.answer
     value['round_index']=question.round_index
     value['index']=question.index
+    value['time_allowed']=question.question.time_allowed
     value['groups'] = []
     
     groups = TriviaQuestionChoiceGroup.objects.filter(question__id=question.question.id)
@@ -1493,6 +1504,7 @@ def save_question(game:TriviaGame,round_index,index,data):
             tg_question.index=index
             tg_question.question.question=data['questionText']
             tg_question.question.answer=data['answerText']
+            tg_question.question.time_allowed=int(data['timeAllowed']) 
             tg_question.round_index=round_index
             tg_question.index=index
             tg_question.question.save()
