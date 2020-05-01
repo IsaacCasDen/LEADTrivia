@@ -211,13 +211,11 @@
     }
 
   function initTeam(name) {
+    teamname_modal();
     var formLeave = document.getElementById("formLeave");
     var team_info = document.getElementById('team_info');
     var team_name=document.getElementById("team_name");
-    var btnEditTeamName = document.getElementById("btnEditTeamName");
-    var modalChangeTeamName = document.getElementById("modalChangeTeamName");
-    var btnEditNameSubmit = document.getElementById("btnTeamSubmit");
-    var btnEditNameCancel = document.getElementById("btnTeamCancel");
+
     var btnLeaveTeam = document.getElementById("btnLeave");
 
     btnLeaveTeam.onclick = function() {
@@ -229,15 +227,7 @@
     var clock = document.getElementById('clock');
       clock.style.height = team_info.clientHeight;
 
-    btnEditTeamName.onclick = function() {
-      modalChangeTeamName.style.display="block";
-    }
-    btnEditNameSubmit.onclick=function() {
-      modalChangeTeamName.style.display="none";
-    }
-    btnEditNameCancel.onclick=function() {
-      modalChangeTeamName.style.display="none";
-    }
+    
   }
 
   function initUsers(users) {
@@ -265,26 +255,9 @@
       team_users.appendChild(input);
     }
 
-    var btnEditUserName = document.getElementById("btnUser");
-    var modalChangeUserName = document.getElementById("modalChangeUserName");
-    var btnEditNameSubmit = document.getElementById("btnUserSubmit");
-    var btnEditNameCancel = document.getElementById("btnUserCancel");
-
-    btnEditUserName.onclick = function() {
-      modalChangeUserName.style.display="block";
-    }
-    btnEditNameSubmit.onclick=function() {
-      modalChangeUserName.style.display="none";
-    }
-    btnEditNameCancel.onclick=function() {
-      modalChangeUserName.style.display="none";
-    }
   } 
 
   function username_modal(button){
-        var userText = document.getElementById('divUser');
-        userText.innerText = username;
-        userText.style.color= "blue"
         var textUrl = document.createElement('input');
         textUrl.type='text';
         let modal, buttonOk;
@@ -427,30 +400,6 @@
 </script>
 
 <div>
-  <div>
-    <form id="modalChangeTeamName" class="modal" method="POST" action="update_teamname/">
-      {% csrf_token %}
-      <div class="modal-content form-group">
-        <label for="txtTeamName">New Team Name:</label>
-        <input type="text" id="txtTeamName" name="new_teamname" class="form-control" />
-      </div>
-      <div>
-        <input type="submit" id="btnTeamSubmit" class="btn btn-primary" value="Submit" />
-        <input type="button" id="btnTeamCancel" class="btn btn-secondary" value="Cancel" />
-      </div>
-    </form>
-    <form id="modalChangeUserName" class="modal" method="POST" action="update_username/">
-      {% csrf_token %}
-      <div class="modal-content form-group">
-        <label for="txtUserName">New User Name:</label>
-        <input type="text" id="txtTeamName" name="new_username" class="form-control" />
-      </div>
-      <div>
-        <input type="submit" id="btnUserSubmit" class="btn btn-primary" value="Submit" />
-        <input type="button" id="btnUserCancel" class="btn btn-secondary" value="Cancel" />
-      </div>
-    </form>
-  </div>
   <div style="width: fit-content; height: fit-content; margin-left: auto; margin-right: auto;">
     <div id="team">
       <div id="team_header">

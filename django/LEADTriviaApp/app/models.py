@@ -1127,8 +1127,8 @@ def change_teamname(game_id:int,team_id:int,value:str):
                 return None
 
             else:
-                team.team_name = value
-                team.save()
+                team.team.team_name = value
+                team.team.save()
                 return team
             
         finally:
@@ -1181,10 +1181,7 @@ def get_users(game_id:int, team_id:int):
 def get_orphan(game_id:int,user_id:int):
     orphans = OrphanUser.objects.filter(game__id=game_id,user__id=user_id)
     if len(orphans)>0:
-        if len(orphans)==1:
-            return orphans[0]
-        else:
-            pass
+        return orphans[0]
     
     return None
 
@@ -1331,25 +1328,23 @@ def add_teammember(game_id:int, team_id:int, user_id:int) -> bool:
     tm.team=team
     tm.user=user.user
     tm.save()
-    user.delete()
+    remove_orphan(game.id,user.user.id)
 
     return True
 
 def remove_teammember(game_id:str, team_id:int, user_id:int):
     try:
         game = TriviaGame.objects.get(id=game_id)
-        user = TeamMember.objects.filter(user__id=user_id,team__id=team_id)
-        if len(user)>0:
-            if len(user)==1:
-                user=user[0]
-                orphan = OrphanUser()
-                orphan.user = user.user
-                orphan.game=game
-                orphan.save()
+        users = TeamMember.objects.filter(user__id=user_id,team__id=team_id)
+        if len(users)>0:
+            user=users[0]
+            orphan = OrphanUser()
+            orphan.user = user.user
+            orphan.game=game
+            orphan.save()
+            for i,user in enumerate(users):
                 user.delete()
-                return True
-            else:
-                pass
+            return True
         else:
             return True
     except:

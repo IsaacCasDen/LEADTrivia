@@ -141,6 +141,8 @@ def index(request):
     context['teamId'] = json.dumps(None)
     context['teamname'] = ''
 
+
+
     if session.has_game:
         context['gameId'] = session.game.id
         context['gamename'] = session.game.name
@@ -152,6 +154,7 @@ def index(request):
     if session.has_team:
         context['teamId'] = session.team.team.id
         context['teamname'] = session.team.team.team_name
+        return redirect(lobby)
 
     context['errors'] = request.session['errors']
 
@@ -248,6 +251,12 @@ def team(request):
         request.session['teamname']=team.team.team_name
     else:
         team = get_team(session.game.id,session.team.id)
+        add_teammember(session.game.id,team.id,session.user.id)
+        session.team = team
+        session.has_team = True
+        request.session['teamId']=team.id
+        request.session['teamname']=team.team.team_name
+
 
     users = [{'isUser':user.id==session.user.id,'username':user.user_name} for user in get_users(session.game.id,session.team.id)]
 
@@ -281,7 +290,7 @@ def update_teamname(request):
     init_session_vars(request)
     session = validate_session(request)
 
-    value = {'status':''}
+    value = {'status':'', 'teamname':''}
 
     if not session.has_game:
         value['status'] = 'Error: No Game Selected'
@@ -296,7 +305,8 @@ def update_teamname(request):
         if not change_teamname(session.game.id,session.team.id,new_teamname):
             value['status'] = 'Teamname already taken'
         else:
-            value['status'] = new_teamname
+            value['teamname'] = new_teamname
+            value['status'] = 'okay'
     else:
         value['status'] = 'Error Team name cannot be blank'
         
