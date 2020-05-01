@@ -111,8 +111,13 @@
             </div>
         </div>
         <div id="divControls">
-            <div id="divCurrentQuestion">
-                <input type="submit" type="button" value="Previous Question" formaction="admin_prev_question/" class="btn btn-secondary" id = "move_back">
+            <div id="divGameOptions" style="margin:.5em">
+                <input type="submit" type="button" value="Close Game" formaction="admin_close_game/" class="btn btn-secondary" id = "close_game" />
+                <input type="submit" type="button" value="Open Game" formaction="admin_open_game/" class="btn btn-secondary" id = "open_game" />
+                <input type="submit" type="button" value="Finish Game" formaction="admin_finish_game/" class="btn btn-secondary" id = "finish_game" />
+            </div>
+            <div id="divCurrentQuestion" style="margin:.5em">
+                <!-- <input type="submit" type="button" value="Previous Question" formaction="admin_prev_question/" class="btn btn-secondary" id = "move_back"> -->
                 <input type="submit" type="button" value="Next Question" formaction="admin_next_question/" class="btn btn-primary" id = "move_forward">
             </div>
         </div>
