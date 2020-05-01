@@ -272,13 +272,19 @@
     }
 
     function init() {
-        timeremaining = calcTimeRemaining(game['StartTime']['date'], game['StartTime']['time']);
-        initClock(timeremaining);
+        initClock(calcTimeRemaining(game['StartTime']['date'], game['StartTime']['time']));
         initTeams();
         initTitlesAndSizes();
         display_users();
         scrollDiv_Right();
 
+    }
+
+    function initClock(time) {
+        var divMinutes = document.getElementsByClassName("minutes")[0];
+        var divSeconds = document.getElementsByClassName("seconds")[0];
+        initLocalClock(time,[15,showTimeWarning],divHours,divMinutes,divSeconds);
+        setAction(timeup);
     }
 
     function initTitlesAndSizes() {
@@ -320,6 +326,8 @@
             clock.innerText="Game Started!"
             // clock.classList.remove("clockTimeWarning");
             clock.parentElement.style.backgroundColor="lightgreen";
+
+            setTimeout(function() {document.location="/app/next_round/";},2000)
         }
 
 
@@ -406,32 +414,32 @@
 
     var ScrollRateRight = 80;
     function scrollDiv_init_right() {
-	DivElmntRight = document.getElementById('SideDiv');
-	ReachedMaxScroll = false;
-	DivElmntRight.scrollTop = 0;
-	PreviousScrollTop  = 0;
-	ScrollInterval = setInterval('scrollDiv_right()', ScrollRateRight); //Put timeout here
-  }
+        DivElmntRight = document.getElementById('SideDiv');
+        ReachedMaxScroll = false;
+        DivElmntRight.scrollTop = 0;
+        PreviousScrollTop  = 0;
+        ScrollInterval = setInterval('scrollDiv_right()', ScrollRateRight); //Put timeout here
+    }
 
-  function scrollDiv_right() {
-    if (!ReachedMaxScroll) {
-        DivElmntRight.scrollTop = PreviousScrollTop;
-        PreviousScrollTop++;
-        if (DivElmntRight.scrollTop >= (DivElmntRight.scrollHeight - DivElmntRight.offsetHeight)){
-            setTimeout(function(){
-            ReachedMaxScroll = true;
-            },1000);
+    function scrollDiv_right() {
+        if (!ReachedMaxScroll) {
+            DivElmntRight.scrollTop = PreviousScrollTop;
+            PreviousScrollTop++;
+            if (DivElmntRight.scrollTop >= (DivElmntRight.scrollHeight - DivElmntRight.offsetHeight)){
+                setTimeout(function(){
+                ReachedMaxScroll = true;
+                },1000);
+            }
+        }
+        else {
+            ReachedMaxScroll = (DivElmntRight.scrollTop == 0)?false:true;
+            DivElmntRight.scrollTop = PreviousScrollTop;
+            PreviousScrollTop--;
         }
     }
-    else {
-        ReachedMaxScroll = (DivElmntRight.scrollTop == 0)?false:true;
-        DivElmntRight.scrollTop = PreviousScrollTop;
-        PreviousScrollTop--;
-    }
-  }
     function scrollDiv_Right(){
-      scrollDiv_init_right();
-      scrollDiv_right();
+        scrollDiv_init_right();
+        scrollDiv_right();
     }
 
 
@@ -457,7 +465,7 @@
             </div>
             <div style="margin-left: auto; margin-right: auto; margin-top: .5em; width: fit-content; display: flex; font-size: larger;">
                 <div id="userInfo">
-                    <div class="infoitem">Welcome to Trivia Night! Please join a team! </div>
+                    <div class="infoitem">Welcome to Trivia Night!</div>
                 </div>
             </div>
         </div>
