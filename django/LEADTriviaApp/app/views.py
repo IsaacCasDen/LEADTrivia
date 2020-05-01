@@ -152,9 +152,9 @@ def index(request):
         context['username'] = session.user.user_name
 
     if session.has_team:
-        context['teamId'] = session.team.team.id
-        context['teamname'] = session.team.team.team_name
-        return redirect(lobby)
+        set_user_active(session.game.id,session.user.id,False)
+        request.session['teamId'] = ''
+        request.session['teamname'] = ''
 
     context['errors'] = request.session['errors']
 
@@ -180,6 +180,14 @@ def lobby(request):
     else:
         mode = int(mode)
         request.session['mode'] = mode
+
+    if session.has_user and not session.has_team:
+        user = get_user(session.game.id,session.user.id)
+        if user!=None:
+            session.team=user['team']
+            session.has_team=True
+            request.session['teamId'] = session.team.id
+            request.session['teamname'] = session.team.team.team_name
 
     if session.has_user and session.has_team:
         return redirect(team)
@@ -375,7 +383,7 @@ def show_question(request):
     question = get_question(game_id=gameId, index=ind, round_index = round_index)
     context= {}
     
-    context["Question"] = question["question"].replace("'",'"')
+    context["Question"] = question["question"]
     context["Media"] = json.dumps({'videos': question['videos'], 'images': question['images'],'audios': question['audios']})
     context["Answer"] = ''
     context["ActualAnswer"] = question['answer']
@@ -802,6 +810,7 @@ def upload_video(request):
 
     if _file.content_type not in ['video/mp4']:
         return
+    create_path(MEDIA,['video'])
     path = get_temp_location(os.path.join(MEDIA,'video'),'temp',_file.name) 
     write_temp_file(path[0],_file.chunks())
     return JsonResponse({'path':path[1]})
@@ -813,6 +822,7 @@ def upload_audio(request):
 
     if _file.content_type not in ['audio/mpeg']:
         return
+    create_path(MEDIA,['audio'])
     path = get_temp_location(os.path.join(MEDIA,'audio'),'temp',_file.name) 
     write_temp_file(path[0],_file.chunks())
     return JsonResponse({'path':path[1]})
@@ -824,9 +834,21 @@ def upload_image(request):
 
     if _file.content_type not in ['image/jpeg','image/jpg']:
         return
+    create_path(MEDIA,['images'])
     path = get_temp_location(os.path.join(MEDIA,'images'),'temp',_file.name) 
     write_temp_file(path[0],_file.chunks())
     return JsonResponse({'path':path[1]})
+
+def create_path(root,folders):
+    
+    path = root
+    if not os.path.exists(path):
+        os.mkdir(path)
+    
+    for i,folder in enumerate(folders):
+        path = os.path.join(path,folder)
+        if not os.path.exists(path):
+            os.mkdir(path)
 
 
 def write_temp_file(path,chunks):
