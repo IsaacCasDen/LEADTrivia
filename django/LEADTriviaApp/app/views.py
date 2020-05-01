@@ -397,14 +397,14 @@ def show_question(request):
 
 def admin_prev_question(request):
     
-    gameId = request.session.get('gameId','')
-    if gameId == '':
-        redirect(admin_manager)
+    # gameId = request.session.get('gameId','')
+    # if gameId == '':
+    #     redirect(admin_manager)
 
-    gameId = int(gameId)
+    # gameId = int(gameId)
 
-    game = get_game(gameId)
-    game.prev_question()
+    # game = get_game(gameId)
+    # game.prev_question()
     return redirect(admin_game)
 
 def admin_next_question(request):
@@ -808,7 +808,7 @@ def upload_video(request):
     if _file == '':
         return JsonResponse({'path':''})
 
-    if _file.content_type not in ['video/mp4']:
+    if not _file.content_type.startswith('video/'):
         return
     create_path(MEDIA,['video'])
     path = get_temp_location(os.path.join(MEDIA,'video'),'temp',_file.name) 
@@ -820,7 +820,7 @@ def upload_audio(request):
     if _file == '':
         return JsonResponse({'path':''})
 
-    if _file.content_type not in ['audio/mpeg']:
+    if not _file.content_type.startswith('audio/'):
         return
     create_path(MEDIA,['audio'])
     path = get_temp_location(os.path.join(MEDIA,'audio'),'temp',_file.name) 
@@ -831,8 +831,8 @@ def upload_image(request):
     _file = request.FILES.get('file','')
     if _file == '':
         return JsonResponse({'path':''})
-
-    if _file.content_type not in ['image/jpeg','image/jpg']:
+    
+    if not _file.content_type.startswith('image/'):
         return
     create_path(MEDIA,['images'])
     path = get_temp_location(os.path.join(MEDIA,'images'),'temp',_file.name) 
