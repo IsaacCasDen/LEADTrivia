@@ -15,7 +15,6 @@ from pathlib import Path
 APP_ROOT = os.path.abspath(LEADTriviaApp.__path__[0])
 MEDIA = os.path.join(str(Path(APP_ROOT).parent),'app','static','app','media')
 
-#test
 class User(models.Model):
     
     __SECRET_KEY_LENGTH__ = 6
@@ -63,7 +62,6 @@ class SecretQuestions(models.Model):
 
 class Team(models.Model):
     team_name = models.CharField(max_length=256)
-    # team_members = models.ForeignKey(User,on_delete=models.SET_NULL)
 
     def __str__(self):
         return "{}".format(self.team_name)
@@ -207,8 +205,6 @@ class OrphanUser(models.Model):
     def __repr__(self):
         return self.__str__()
 
-# class TriviaAnswer(models.Model):
-
 
 class TriviaQuestion(models.Model):
     question = models.CharField(max_length=512)
@@ -222,7 +218,6 @@ class TriviaQuestionChoiceGroup(models.Model):
 class TriviaQuestionChoice(models.Model):
     group = models.ForeignKey(TriviaQuestionChoiceGroup, on_delete=models.CASCADE)
     choice = models.CharField(max_length=512)
-    # visible = models.BooleanField(default=True)
 
 class TriviaQuestionImage(models.Model):
     question = models.ForeignKey(TriviaQuestion, on_delete=models.CASCADE)
@@ -243,7 +238,6 @@ class TriviaQuestionAudio(models.Model):
     is_local = models.BooleanField(default=True)
 
 class TriviaGameQuestion(models.Model):
-    #Check for correct or wrong
     question = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE)
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)  
     index = models.IntegerField()
@@ -256,7 +250,6 @@ class TriviaGameQuestion(models.Model):
         while index in ind:
             index += 1
         item = cls(question = question, game = game, time = time, index = index, round_index = round_index)
-        #item.save()
         return item
 
 class TriviaGameUserAnswerChoice(models.Model):
@@ -690,10 +683,14 @@ def get_user_answer(game_id:int, user_id:int, question_id:int):
     
     user_answer = ""
     if '{}' in question.question:
+        items = question.question.split('{}')
+        text = ''
+        for i,item in enumerate(items):
+            text += item + indices[i][1]
+        user_answer = text
         # user_answer = question.question
         # for value in indices:
         #     user_answer = user_answer.replace("{}",value[1],1)
-        user_answer = question.question.format(*[value[1] for value in indices])
     else:
         user_answer = indices[0][1]
 
@@ -733,7 +730,7 @@ def get_team_answer(game_id:int, team_id:int, question_id:int):
     team_choices = TriviaGameTeamAnswerChoice.objects.filter(game__id=game_id,team__id=team_id,question__id=question_id)
     if len(team_choices) == 0:
         return ""
-
+    
     for team_choice in team_choices:
         groups = TriviaQuestionChoiceGroup.objects.filter(question__id=team_choice.question.question.id)
         for group in groups:
@@ -741,8 +738,7 @@ def get_team_answer(game_id:int, team_id:int, question_id:int):
             if team_choice.choice in choices:
                 answers[group.index]=team_choice.choice.choice
             else:
-                if group.index not in answers:
-                    answers[group.index]="{}"
+                answers[group.index]="{}"
     indices = [(key,answers[key]) for key in answers.keys()]
     indices.sort(key=lambda x:x[0])
 
@@ -759,10 +755,14 @@ def get_team_answer(game_id:int, team_id:int, question_id:int):
     
     team_answer = ""
     if '{}' in question.question:
+        items = question.question.split('{}')
+        text = ''
+        for i,item in enumerate(items):
+            text += item + indices[i][1]
+        team_answer = text
         # team_answer = question.question
         # for value in indices:
         #     team_answer = team_answer.replace("{}",value[1],1)
-        team_answer = question.question.format(*[value[1] for value in indices])
     else:
         team_answer = indices[0][1]
 
@@ -872,7 +872,8 @@ def update_team_choice(game_id:int, team_id:int, question_id: int, group_id:int)
     else:
         team=team[0]
 
-    team_members = TeamMember.objects.filter(team__id=team.id,is_active=True)
+    team_members = TeamMember.objects.filter(team__id=team.id)
+    present = len([tm for tm in team_members if tm.is_active])
     team_choices = {}
     for user in team_members:
         user_choice = TriviaGameUserAnswerChoice.objects.filter(game__id=game_id,user__id=user.id,question__id=question_id,group__id=group_id)
@@ -886,7 +887,8 @@ def update_team_choice(game_id:int, team_id:int, question_id: int, group_id:int)
 
     team_choice = None
     for key in team_choices:
-        if team_choices[key] > len(team_members)/2:
+        if team_choices[key] > present/2:
+        # if team_choices[key] > len(team_members)/2:
             team_choice = TriviaQuestionChoice.objects.get(id=key)
             break
 
@@ -1272,27 +1274,6 @@ def get_game_round(game_id:int,round_ind:int) -> TriviaGameRound:
         return game_round[0]
     else:
         return None
-
-# def get_game():
-#     games = TriviaGame.objects.all()
-#     # return games[len(games)-1]
-#     _game = games[len(games)-1]
-#     game = {}
-#     game['Game'] = [_game.id, _game.name]
-#     game['Teams'] = {}
-#     game['Orphans'] = []
-
-#     for orphan in get_orphans(_game.id):
-#         game['Orphans'].append(str(orphan))
-    
-#     for team in get_teams(_game.id):
-#         t = {}
-#         t['id']=team.team.id
-#         t['name']=team.team.team_name
-#         t['members']=[str(user) for user in get_users(_game.id,team.id)]
-#         game['Teams'][team.team.id] =
-    
-#     return game
 
 def add_orphan(game_id:int,user_id:int) -> OrphanUser:
     game = TriviaGame.objects.filter(id=game_id)
