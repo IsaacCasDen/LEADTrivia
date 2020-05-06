@@ -882,4 +882,66 @@ def get_temp_location(root,folder,filename)->str:
 
     return (path,rel_path)
 
+def login(request):
+    init_session_vars(request)
+    session = validate_session(request)
+
+    context = {'username':request.session.get('last_username','')}
     
+
+    return render(request,'login.html',context)
+
+def login_user(request):
+    init_session_vars(request)
+
+    user_name = request.POST.get('username','')
+    password = request.POST.get('password')
+
+    if user_name == '' or password == '':
+        request.session['last_username'] = user_name
+        return redirect(login)
+    
+    user = authenticate_user(user_name,password)
+    if user == None:
+        request.session['last_username'] = user_name
+        return redirect(login)
+
+    request.session[USERID] = user.id
+    request.session[USERNAME] = user.user_name
+    request.session['next_page'] = 'admin_manager'
+
+    if user.is_temp_pwd:
+        return redirect(user_change_password)
+
+def user_change_password(request):
+    init_session_vars(request)
+    return render(request,'user_change_password.html')
+
+
+def change_password(request):
+    init_session_vars(request)
+
+    user_id = request.session.get(USERID,'')
+
+    if user_id == '':
+        return redirect(login_user)
+
+    old_password = request.POST.get('oldPassword', '')
+    new_password = request.POST.get('password', '')
+    conf_password = request.POST.get('passwordConfirm', '')
+
+    if old_password == '' or new_password == '' or conf_password == '':
+        return redirect(user_change_password)
+    
+    if not change_user_password(user_id,old_password,new_password,conf_password):
+        return redirect(user_change_password)
+    
+    next_page = request.session.get('next_page','')
+    if next_page != '':
+        request.session['next_page'] = ''
+        if next_page == 'admin_manager':
+            return redirect(admin_manager)
+        else:
+            return redirect(index)
+    
+
