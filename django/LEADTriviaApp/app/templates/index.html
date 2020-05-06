@@ -2,14 +2,62 @@
 {% load static %}
 {% block content %}
 
+<style>
+    ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    #topMenu {
+        position: -webkit-sticky;
+        position: sticky;
+        display: inline-block;
+        background-color: whitesmoke;
+        border-bottom: solid darkgray 1px;
+        top: 0;
+        margin-bottom: 1em;    
+        width: 100%;
+        clear: both;
+    }
+
+    .menuItem {
+        padding: 0.5em;
+        border-left: solid 1px darkgray;
+        border-right: solid 1px darkgray;
+        cursor: pointer;
+    }
+
+    .menuItem button {
+        margin:0;
+    }
+
+    .firstMenuItem {
+        padding-left: 1em;
+        border-left: none;
+    }
+
+    .leftMenuItem {
+        float: left ;
+        margin-right: 1em;
+    }
+
+    .lastMenuItem {
+        padding-right: 1em;
+        border-right: none
+    }
+
+    .rightMenuItem {
+        float:right;
+        margin-left: 1em;
+    }
+</style>
+
 <script>
     var games = {{games|safe}};
     var lastGameId={{gameId|safe}};
     var lastGameName = "{{gamename|safe}}";
-    var lastUserId={{userId|safe}};
-    var lastUserName = "{{username|safe}}";
-    var lastTeamId={{teamId|safe}};
-    var lastTeamName = "{{teamname|safe}}";
+    var username = "{{username|safe}}";
     var errors = {{errors|safe}};
 
     document.onreadystatechange=function() {
@@ -19,6 +67,10 @@
     }
 
     function init() {
+        var liLogin = document.getElementById('liLogin');
+        liLogin.addEventListener('click', function() {
+            document.location.href = 'login/';
+        });
         showGames()
     }
 
@@ -173,76 +225,13 @@
         return li;
     }
 
-    // function init() {
-        // attachGameId(data['Game']['Id']);
-        // var teamIds = Object.keys(data['Teams']);
-        // showErrors(errors);
-
-        // if (username === null || username == "None" || username == "null" || username == "") {
-        //     generateUserName(teamIds);
-        // } else {
-        //     var user = document.getElementsByName("username");
-        //     if (user.length>0) user = user[0];
-        //     user.value = username;
-        // }
-
-        // initGames();
-    // }
-    // function attachGameId(id) {
-    //     var form = document.getElementById('formUser');
-    //     const hiddenField = document.createElement('input');
-    //     hiddenField.type = 'hidden';
-    //     hiddenField.name = 'gameId';
-    //     hiddenField.value = id;
-    //     form.appendChild(hiddenField);
-    // }
-
-    // function initGames() {
-    //     var divGames = document.getElementById('divGames');
-    //     for (i in games) {
-    //         divGames.appendChild(createGameDiv(games[i]))
-    //     }
-    // }
-    // function createGameForm(game) {
-    //     var child = document.createElement('div');
-
-
-    //     var name = document.createElement('div');
-    //     name.innerText = game.name
-    // }
-    
-    // function generateUserName(teamIds){
-    //     var user = document.getElementsByName("username");
-    //     if (user.length>0) user = user[0];
-    //     else return;
-
-    //     var count = data ['Orphans'].length;
-    //     teamIds.forEach(element => {
-    //         count += data ['Teams'][element]["members"].length;
-    //     });
-    //     user.value = "User " + count;
-
-    // }
-
-    // function showErrors(errors) {
-    //     var listError = document.getElementById("ulErrors");
-
-    //     errors.forEach(element=> {
-    //         var item = document.createElement("li");
-    //         item.innerText=element;
-    //         listError.appendChild(item);
-    //     });
-    // }
-
-    // function validateForm() {
-    //     var user = document.getElementById('userId');
-    //     if (user.value.length > 0) return true;
-    //     else return false;
-
-    // }
 </script>
 <body>
     <div>
+        <ul id="topMenu">
+            <li id='liUsername' class="menuItem firstMenuItem leftMenuItem">Welcome</li>
+            <li id='liLogin' class="menuItem lastMenuItem rightMenuItem">Admin Login</li>
+        </ul>
         <div>Welcome to LEAD Trivia!</div>
         <div id='divGames'>
         </div>
