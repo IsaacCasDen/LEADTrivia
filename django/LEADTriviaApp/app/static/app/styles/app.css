@@ -1,5 +1,5 @@
 body {
-    padding: 1em;
+    /* padding: 1em; */
     font-size: xx-large;
 }
 
@@ -51,6 +51,9 @@ input[type=time] {
 }
 
 input[type=button] {
+    font-size: xx-large;
+}
+input[type=password] {
     font-size: xx-large;
 }
 
