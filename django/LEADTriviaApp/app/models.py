@@ -20,6 +20,7 @@ class User(models.Model):
     
     __SECRET_KEY_LENGTH__ = 6
     __SALT_LENGTH__ = 6
+    __MIN_PASSWORD_LENGTH__=6
 
     user_name = models.CharField(max_length=128)
     secret_key = models.CharField(max_length=128,null=True)
@@ -29,12 +30,16 @@ class User(models.Model):
     is_admin = models.BooleanField(default=False)
 
     @classmethod
-    def create(cls, user_name:str, password:str=None, email:str=None):
+    def create(cls, user_name:str, password:str=None, email:str=None, is_admin:bool = False):
         users = User.objects.filter(user_name=user_name)
         if len(users)>0:
             return None
 
+        if (is_admin and not User.validate_password(password))  or (password != '' and not User.validate_password(password)):
+            return None
+
         user = User()
+        user.is_admin=is_admin
         user.user_name = user_name
         user.email = email
         
@@ -44,7 +49,7 @@ class User(models.Model):
         #Please note, a bug in django indicates that 
         # AttributeError: 'str' object has no attribute 'decode'
         #This necessitates the following change in the file below:
-        #django/contrib/contrib/auth/hashers.py
+        #django/contrib/auth/hashers.py
         #def encode(self, password, salt):
         #...
         # data = bcrypt.hashpw(password, salt)
@@ -93,6 +98,21 @@ class User(models.Model):
             return None
 
     @classmethod
+    def validate_password(cls, password):
+        check_len = len(password)>User.__MIN_PASSWORD_LENGTH__
+
+        return check_len
+
+    def change_password(self, old_password:str, new_password:str):
+        if not old_password == new_password and User.validate_password(new_password) and check_password(old_password,self.password) and not check_password(new_password,self.password):
+            self.password = make_password(new_password)
+            self.secret_key = None
+            self.save()
+            return True
+        
+        return False
+
+    @classmethod
     def create_secret(cls,length:int=None):
         if length == None:
             return ''
@@ -110,6 +130,29 @@ class User(models.Model):
         return "{}".format(self.user_name)
     def __repr__(self):
         return self.__str__()
+
+def authenticate_user(user_name:str, password:str = None, secret_key:str = None):
+    if user_name != '':
+        if secret_key!=None and password!=None:
+            return User.login_with_secretkey(user_name,secret_key,password)
+        elif password!=None:
+            return User.login(user_name,password)  
+    
+    return None
+
+def change_user_password(user_id:int, old_password:str, password:str, conf_password:str):
+    if password != conf_password:
+        return None
+
+    users = User.objects.filter(id=user_id)
+    if len(users)==0:
+        return None
+    user = users[0]
+    user = authenticate_user(user.user_name,password=old_password)
+    if user != None:
+        user.change_password(old_password,password)
+    
+
 
 class SecretQuestions(models.Model):
     user = models.ForeignKey(User,on_delete=CASCADE)
