@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import LEADTriviaApp
+from django.contrib.auth.hashers import make_password,check_password
 from django.core.mail import send_mail
 from django.db import models, transaction
 from django.db.models import CASCADE, SET_NULL
@@ -22,10 +23,10 @@ class User(models.Model):
 
     user_name = models.CharField(max_length=128)
     secret_key = models.CharField(max_length=128,null=True)
-    password = models.CharField(max_length=128)
-    email = models.CharField(max_length=128)
+    password = models.CharField(max_length=128,null=True)
+    is_temp_pwd = models.BooleanField(default=True)
+    email = models.CharField(max_length=128,null=True)
     is_admin = models.BooleanField(default=False)
-    salt = models.CharField(max_length=__SALT_LENGTH__)
 
     @classmethod
     def create(cls, user_name:str, password:str=None, email:str=None):
@@ -33,23 +34,78 @@ class User(models.Model):
         if len(users)>0:
             return None
 
-        user = User.objects.create_user(user_name,email,password)
+        user = User()
+        user.user_name = user_name
+        user.email = email
+        
         if password == None:
-            user.secret_key = User.create_secret_key()
-            user.save()
+            user.secret_key = User.create_secret(User.__SECRET_KEY_LENGTH__)
+
+        #Please note, a bug in django indicates that 
+        # AttributeError: 'str' object has no attribute 'decode'
+        #This necessitates the following change in the file below:
+        #django/contrib/contrib/auth/hashers.py
+        #def encode(self, password, salt):
+        #...
+        # data = bcrypt.hashpw(password, salt)
+        # return "%s$%s" % (self.algorithm, data.decode('ascii'))
+        #...
+        #must be changed to:
+        #...
+        # data = bcrypt.hashpw(password, salt).encode('ascii')
+        # return "%s$%s" % (self.algorithm, data.decode('ascii'))
+        #...
+
+        #In my version of django it is at or near line 415, but there are multiple classes containing a definition for encode
+        #In my version the relevant class is: class BCryptSHA256PasswordHasher(BasePasswordHasher):
+
+        user.password = make_password(password)
+        user.save()
 
         return user
 
     @classmethod
-    def create_secret_key(cls):
+    def login(cls,user_name,password):
+        users = User.objects.filter(user_name=user_name)
+        if len(users)==0:
+            return None
+        
+        user = users[0]
+        if check_password(password,user.password):
+            return user
+        else:
+            return None
+
+    @classmethod
+    def login_with_secretkey(cls,user_name,secret_key,password):
+        users = User.objects.filter(user_name=user_name)
+        if len(users)==0:
+            return None
+        
+        user = users[0]
+
+        if user.secret_key != None and user.secret_key == secret_key:
+            user.password = make_password(password)
+            user.secret_key = None
+            user.save()
+            return user
+        else:
+            return None
+
+    @classmethod
+    def create_secret(cls,length:int=None):
+        if length == None:
+            return ''
+
         alphabet = 'abcdefghiklmnopqrstuvwxyz'
         chars = []
-        for i in range(User.__SECRET_KEY_LENGTH__):
+        for i in range(length):
             chars.append(secrets.choice(alphabet))
 
         value = ''.join(chars)
+        print(value)
         return value
-
+    
     def __str__(self):
         return "{}".format(self.user_name)
     def __repr__(self):
@@ -1072,7 +1128,7 @@ def create_user(game_id:int, username:str):
 
             game = TriviaGame.objects.filter(id=game_id)[0]
 
-            user = User()
+            user = User.create(username)
             user.user_name = username
             user.save()
             
