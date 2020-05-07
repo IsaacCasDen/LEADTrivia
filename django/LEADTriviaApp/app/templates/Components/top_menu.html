@@ -1,16 +1,17 @@
 <script>
-    document.onreadystatechange = function() {
+
+    document.addEventListener('readystatechange', function() {
         if (document.readyState=="complete") {
-            var change_username, modal, text, ok, cancel, login, logout;
-            
+            var change_username, modalChangeUsername, text, ok, cancel, login, logout;
+
             change_username = document.getElementById('liUsername');
-            modal = document.getElementById('modalChangeUsername');
+            modalChangeUsername = document.getElementById('modalChangeUsername');
             text = document.getElementById('inputUsername');
             ok = document.getElementById('btnChangeUsernameOk');
             cancel = document.getElementById('btnChangeUsernameCancel');
             login = document.getElementById('liLogin');
             logout = document.getElementById('liLogout');
-            
+
             if (username && username != '') {
                 change_username.innerText = 'Welcome ' + username;
                 login.style.display='none';
@@ -25,11 +26,11 @@
             }
 
             change_username.addEventListener('click', function() {
-                modal.style.display='flex';
+                modalChangeUsername.style.display='flex';
             });
             ok.addEventListener('click', function() {
                 var value = text.value;
-                modal.style.display='none';
+                modalChangeUsername.style.display='none';
                 text.value = '';
                 var path = '/app/update_username/';
                 var data = new FormData();
@@ -59,10 +60,10 @@
                 request.send(data);
             });
             cancel.addEventListener('click', function() {
-                modal.style.display='none';
+                modalChangeUsername.style.display='none';
                 text.value = '';
             });
-            
+
             login.addEventListener('click', function() {
                 if (!username || username =='')
                     document.location.href ='/app/login';
@@ -71,8 +72,8 @@
                 if (username || username !='')
                     document.location.href ='/app/logout';
             });
-        }
-    }
+            }
+    })
 </script>
 
 <div style="width: 100%;">
