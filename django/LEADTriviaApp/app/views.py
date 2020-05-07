@@ -143,7 +143,7 @@ def get_context(session_state:SessionState):
         context[USERNAME] = session_state.user.user_name
     if session_state.has_team:
         context[TEAMID] = session_state.team.id
-        context[TEAMNAME] = session_state.team.team_name
+        context[TEAMNAME] = session_state.team.team.team_name
     if session_state.has_game:
         context[GAMEID] = session_state.game.id
         context[GAMENAME] = session_state.game.name
