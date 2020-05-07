@@ -3,6 +3,8 @@
 {% block content %}
 
 <link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
+<meta name=”viewport” content=”width=device-width, initial-scale=1″>
+
 
 <style>
     #PlayerRank {
@@ -63,68 +65,150 @@
         width: fit-content;
     }
 
+    
+    @media (max-width: 1000px){
 
-    #team {
-      color: darkslategrey; 
-      max-width: 400px; 
-      border-color: darkgoldenrod; 
-      border-style: solid; 
-      border-width: 0.1em;
+      #PlayerRank {
+      display: inline-block;
+      vertical-align: top;
+      font-size: 90px;
+      font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+      color:white;
+
     }
-    #team_info {
+
+    #TopDiv{
       text-align: center;
-      display: block;
-      float:left;
+        display: block;
+        width: 100%;
+        clear: both;
+        
     }
-    #team_name {
+
+    #teamInfo{
+      padding-top: 2em;
+      font-size: 90px;
+      text-shadow: -.015em 0 black, 0 .015em black, .015em 0 black, 0 -.015em black;
+      font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+      color:white;
+
+    }
+
+    .text{
+      float: left;
+      margin-left: .5em;
+
+    }
+
+    #questions{
+      overflow-x:hidden;
+      overflow-y:hidden;
+      height:fit-content;
+      text-align: center;
+    }
+
+    .questionContain{
+      width: fit-content;
+      clear: both;
       display: inline-block;
     }
+
+    #BottomDiv{
+        display: block;
+        width: 100%;
+        clear: both;
+    }
+
+    #LeftDiv{
+        border-color: transparent;
+        float: left;
+        text-align: center;
+        width: 100%;
+        padding: .5em;
+        height: fit-content;
+        
    
-    .user {
-      background-color: aliceblue; 
-      width: 100%;
-      text-align: center;
-      }
-    #btnLeave {
-      background-color: gray;
-      color: whitesmoke;
-      align-self: center;
-      margin: auto;
-      margin-bottom:0.5em;
-      display: block
     }
-    
-    .modal {
-      width:auto;
-      height:auto;
-      overflow:auto;
-      align-self: center;
-      position:fixed;
-      background-color: rgb(0,0,0);
-      background-color: rgba(0,0,0,0.4);
+
+    #paragraph{
+            font-size: 60px;
+            color:white;
+
+        }
+
+    body{
+      background-image: url("{% static "app/images/lobbyimage.jpg" %}");
+        background-size: 100% 120%;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        }
+
+    #RightDiv{
+        float: left;
+        padding: .5em;
+        width: 100%;
+        text-align: center;
+        height: fit-content;
+
+
     }
-    .modal-content {
-      background-color: #fefefe;
-      padding: 1em;
-      border: 1em solid #888;
-      width:auto;
+
+    #Accuracy{
+        float: left;
+        width: 100%;
+        text-align: center;
+        font-size: 70px;
+        color:white;
+
     }
-    .close {
-      color:#aaa;
-      float:right;
-      font-size: 18em;
-      font-weight: bold;
+
+    #RoundResult{
+        float: left;
+        text-align: center;
+        width: 100%;
+        font-size: 90px;
+        font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        color:white;
+
+        
     }
-  
-    .close:hover, close:focus {
-      color:black;
-      text-decoration: none;
-      cursor: pointer;
+    #TeamResults{
+      float: left;
+      padding: .5em;
+        text-align: center;
+        width: 100%;
+        font-size: 90px;
+        font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        color:white;
+
+
     }
-  
-    .clockTimeWarning {
-        color: red;
-    }  
+    #BestPlayer{
+      font-size: 70px;
+        font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        color:gold;
+    }
+
+    #WorstPlayer{
+      font-size: 70px;
+        font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        color:white;
+    }
+
+    #TeamRank{
+      font-size: 60px;
+      color:white;
+
+
+    }
+    #TotalPositions{
+      font-size: 60px;
+      color:white;
+
+
+    }
+
+  }
 </style>
   
 <!-- <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script> -->
@@ -228,11 +312,6 @@ function init() {
     <div class="container">
         <div id = "TopDiv">
             {% csrf_token %}
-            <!-- <article id="clock" class="clock">
-                <div class="minutes"></div>
-                <div class="timesep">:</div>
-                <div class="seconds"></div>
-            </article> -->
             <div id=teamDiv>
                 <div id="teamInfo">
                 </div>
@@ -248,7 +327,7 @@ function init() {
                 <p id = TeamResults> <u>Team Results</u></p>
 
                 <div id = "Rank">
-                <div id = "PlayerRank"> <p style="float: left;" >Rank: &nbsp;</p> <p style="float: left;" id="TeamRank"></p> <p style="float: left;">&nbsp;of&nbsp; </p> <p style= "float: right;" id="TotalPositions"></p> </div>
+                <div id = "PlayerRank"> <p style="float: left; " id = "paragraph" >Rank: &nbsp;</p> <p style="float: left;"  id="TeamRank"></p> <p style="float: left;" id = "paragraph">&nbsp;of&nbsp; </p> <p style= "float: right;" id="TotalPositions"></p> </div>
 
                 </div>
                 <div id = "MostAccurate">
