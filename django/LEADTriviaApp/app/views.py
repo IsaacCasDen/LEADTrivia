@@ -180,7 +180,7 @@ def lobby(request):
     session = validate_session(request)
     context = get_context(session)
 
-    if session.has_game:
+    if session.has_game and session.game.is_ready():
         context['gameId'] = session.game.id
         context['gamename'] = session.game.name
     else: 
@@ -240,7 +240,7 @@ def team(request):
     session = validate_session(request)
     context = get_context(session)
 
-    if not session.has_game:
+    if not session.has_game or not session.game.is_ready():
         return redirect(index)
         
     if session.has_mode and (session.mode == 1 or (session.mode == 0 and not session.has_user)):
@@ -352,19 +352,11 @@ def next_round(request):
     init_session_vars(request)
     session = validate_session(request)
     context = get_context(session)
-     
-    if not session.has_mode:
-        return redirect(index)
-
-    gameId = request.session.get(GAMEID,'')
-    if gameId == '':
-        return redirect(index)
-
-    game = get_game(gameId)
-    if game  == None:
+    
+    if not session.has_mode or not session.has_game or not session.game.is_ready():
         return redirect(index)
         
-    context['round'] = game.current_round
+    context['round'] = session.game.current_round
     
     if session.mode == 0:
         return render(request,'User/next_round.html',context)
@@ -376,29 +368,19 @@ def show_question(request):
     session = validate_session(request)
     context = get_context(session)
 
-    if not session.has_mode:
+    if not session.has_mode or not session.has_game or not session.game.is_ready():
         return redirect(index)
     
-    gameId = request.POST.get('gameId', request.session.get('gameId', ''))
-
-
-    if gameId != '':
-        gameId = int(gameId)
-        request.session['gameId'] = gameId
-    else:
-        return redirect(index)
-
-    result = __current_question_index__(gameId)
+    result = __current_question_index__(session.game.id)
     if result['game_finished']:
         return redirect(final_results)
     elif result['round_finished']:
         return redirect(round_results)
 
-    game = get_game(gameId)
-    state = get_gamestate(gameId)
-    ind = game.current_question_index
-    round_index = game.current_round
-    question = get_question(game_id=gameId, index=ind, round_index = round_index)
+    state = get_gamestate(session.game.id)
+    ind = session.game.current_question_index
+    round_index = session.game.current_round
+    question = get_question(game_id=session.game.id, index=ind, round_index = round_index)
     
     context["Question"] = question["question"].replace("'",'"')
     context["Media"] = json.dumps({'videos': question['videos'], 'images': question['images'],'audios': question['audios']})
@@ -429,7 +411,7 @@ def admin_next_question(request):
     session = validate_session(request)
     context = get_context(session)
 
-    if not session.has_game:
+    if not session.has_game or not session.user.is_admin:
         return redirect(admin_manager)
 
     session.game.next_question()
@@ -442,7 +424,7 @@ def submit_answer(request):
 
     value = {}
     
-    if not session.has_game or not session.has_team or not session.has_user:
+    if not session.has_game or not session.game.is_ready() or not session.has_team or not session.has_user:
         return redirect(index)
     
     questionId = request.POST.get('questionId','')
@@ -466,7 +448,7 @@ def submit_answer(request):
     answers_submitted = True
 
     for groupId, choiceId in choices:
-        answers_submitted = answers_submitted and submit_user_choice(gameId,questionId,groupId,choiceId,userId)
+        answers_submitted = answers_submitted and submit_user_choice(session.game.id,questionId,groupId,choiceId,session.user.id)
 
     value['answer'] = answers_submitted
 
@@ -620,65 +602,71 @@ def save_game(request):
     init_session_vars(request)
     session = validate_session(request)
     context = get_context(session)
+    result = {'status':''}
 
     if not session.has_user:
-        request.session['next_page'] = 'create_game'
-        return redirect(login)
+        result['status'] = 'Error: Must be logged in to save game'
     elif not session.user.is_admin:
-        return HttpResponse('Unauthorized', status=401)
-    
-    game_id = request.POST.get('gameId','')
+        result['status'] = 'Error: must be logged in to save game'
+
     name = request.POST.get('name','')
     state = request.POST.get('state','')
     currentround = request.POST.get('current_round','')
     currentquestionindex = request.POST.get('current_question_index','')
-    startdate = request.POST.get('start_date','')
-    starttime = request.POST.get('start_time','')
-    timezone = request.POST.get('timezone','')
+    startdate = request.POST.get('date','')
+    # starttime = request.POST.get('start_time','')
+    # timezone = request.POST.get('timezone','')
     iscancelled = request.POST.get('is_cancelled','')
-    if iscancelled == '':
-        iscancelled = False
     
     val_fail = False
-    val_fail = name == '' or state == '' or currentround == '' or currentquestionindex == '' or startdate == '' or starttime == '' or iscancelled == ''
-    
+    val_fail = name == '' or state == '' or currentround == '' or currentquestionindex == '' or startdate == '' or iscancelled == ''
+
     if not val_fail:
         state = int(state)
         currentround = int(currentround)
         currentquestionindex = int(currentquestionindex)
 
-        datetime_str = "{} {}".format(startdate,starttime)
-        datetime_val = None
+        # datetime_str = "{} {}".format(startdate,starttime)
+        # datetime_val = None
         try:
-            datetime_val  = datetime.strptime(datetime_str,"%Y-%m-%d %H:%M")
-        except ValueError:
+            datetime_val  = datetime.strptime(startdate,"%Y-%m-%d %H:%M")
+            # datetime_val = datetime_val.fromisoformat(startdate[:len(startdate)-1])
+        except ValueError as ex:
+            print(ex)
             try:
-                datetime_val  = datetime.strptime(datetime_str,"%Y-%m-%d %H:%M:%S")
-            except:
-                return redirect(edit_game)
+                datetime_val  = datetime.strptime(startdate,"%Y-%m-%d %H:%M:%S")
+            except Exception as ex:
+                print(ex)
+                result['status'] = "Error: Parsing datetime failed"
 
+        datetime_val = datetime_val.astimezone(timezone.utc)
         starttime = datetime_val
-        iscancelled = bool(iscancelled)
-
-        if game_id == '':
-            game = TriviaGame.create(name,starttime,state,currentround,currentquestionindex,iscancelled)
-            game_id = game.id
+        
+        if iscancelled.lower() == 'true':
+            iscancelled=True
         else:
-            game_id = int(game_id)
-            game = get_game(game_id)
-            game.name=name
-            game.state=state
-            game.current_round=currentround
-            game.current_question_index=currentquestionindex
-            game.start_time=starttime
-            game.is_cancelled=iscancelled
-            game.save()
+            iscancelled=False
+
+        
+    if not session.has_game:
+        game = TriviaGame.create(name,starttime,state,currentround,currentquestionindex,iscancelled)
+        game.save()
+        request.session[GAMEID] = game.id
+    else:
+        session.game.name=name
+        session.game.state=state
+        session.game.current_round=currentround
+        session.game.current_question_index=currentquestionindex
+        session.game.start_time=starttime
+        session.game.is_cancelled=iscancelled
+        session.game.save()
         
     if val_fail:
-        return redirect(create_game)
+        result['status'] = 'Error: Form Validation Failed'
     else:
-        request.session[GAMEID] = game_id
-        return redirect(edit_game)
+        result['status'] = 'okay'
+    
+    return JsonResponse(result)
     
 def edit_questions(request):
     init_session_vars(request)
@@ -720,7 +708,7 @@ def round_results(request):
     session = validate_session(request)
     context = get_context(session)
 
-    if not session.has_game or not session.has_mode:
+    if not session.has_game or not session.game.is_ready() or not session.has_mode:
         return redirect(index)
 
     round_results = get_round_results(session.game.id,session.game.current_round)
@@ -772,7 +760,7 @@ def final_results(request):
     session = validate_session(request)
     context = get_context(session)
 
-    if not session.has_game or not session.has_mode:
+    if not session.has_game or not session.game.is_ready() or not session.has_mode:
         return redirect(index)
 
 
