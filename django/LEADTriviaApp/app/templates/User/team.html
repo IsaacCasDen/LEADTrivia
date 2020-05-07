@@ -1,4 +1,3 @@
-
 {% extends '../base.html' %}
 
 {% load static %}
@@ -299,59 +298,6 @@
 
 </style>  
 
-<style>
-  ul {
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
-  }
-
-  #topMenu {
-      position: -webkit-sticky;
-      position: sticky;
-      display: inline-block;
-      background-color: whitesmoke;
-      border-bottom: solid darkgray 1px;
-      top: 0;
-      margin-bottom: 1em;    
-      width: 100%;
-      clear: both;
-  }
-
-  .menuItem {
-      padding: 0.5em;
-      border-left: solid 1px darkgray;
-      border-right: solid 1px darkgray;
-      cursor: pointer;
-  }
-
-  .firstMenuItem {
-      padding-left: 1em;
-      border-left: none;
-  }
-
-  .leftMenuItem {
-      float: left ;
-      margin-right: 1em;
-  }
-
-  .lastMenuItem {
-      padding-right: 1em;
-      border-right: none
-  }
-
-  .rightMenuItem {
-      float:right;
-      margin-left: 1em;
-  }
-
-  #title {
-      float:left;
-  }
-
-  
-</style>
-
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
 
 <script>
@@ -362,11 +308,11 @@
 
   var startTime = game.StartTime;
 
-  document.addEventListener('readystatechange', function() {
+  document.onreadystatechange=function() {
     if (document.readyState=="complete") {
       init()
     }
-  });
+  }
 
   function calcTimeRemaining(date,time) {
       var value = new Date(date + ' ' + time);
@@ -592,23 +538,15 @@
     
 
 </script>
-
-<div>
-  <div style="width: fit-content; height: fit-content; margin-left: auto; margin-right: auto;">
+<body>
+  <div>
     {% include "../Components/top_menu.html" %}
-    <div id="team">
-      <div id="team_header">
-        <div id="team_info">
-          <div id="team_name" class="title"></div>
-          <input type="image" id="btnEditTeamName" src="{% static "app/images/edit.png" %}" alt="Suggest new name">
-        </div>
-        <div id="clock" class="clock">
-          <div>
-            <!-- <div class="hours"></div>
-            <div class="timesep">:</div> -->
-            <div class="minutes"></div>
-            <div class="timesep">:</div>
-            <div class="seconds"></div>
+    <div id ="Parent Div" >
+      <div id="team">
+        <div id="team_header">
+          <div id="team_info">
+            <div id="team_name" ></div>
+            <input type="image" id="btnEditTeamName" src="{% static "app/images/edit.png" %}" alt="Suggest new name">
           </div>
           <div id="clock" class="clock">
             <div>

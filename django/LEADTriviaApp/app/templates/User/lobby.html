@@ -115,12 +115,14 @@
         border-color: black;
         border-width: 0.5;
         border-style: solid;
+
     }
 
     #clock div {
         position: relative;
         font-size: 1.05em;    
-        width: fit-content;    
+        width: fit-content; 
+   
     }
 
     #userInfo {
@@ -157,7 +159,7 @@
     
     .infoitem {
         display: inline;
-        font-size: 1em;
+        font-size: 30px;
     }
 
     .h1 {
@@ -202,6 +204,12 @@
       #TextUrl{
           font-size: 50;
       }
+
+      #clock {
+
+        height: 155px;
+
+    }
       #btnNewTeam {
         float:left;
         flex:1;
@@ -258,11 +266,10 @@
         border-style: solid;
         width: 500px;
         text-align: center;
-
         font-size: 2.2em;
         }
         #divTeams {
-            padding-left: 4.8em;
+            padding-left: 12em;
         }
 
         #divTitle {
@@ -337,6 +344,7 @@
         margin-bottom: 1em;    
         width: 100%;
         clear: both;
+
     }
 
     .menuItem {
@@ -369,6 +377,8 @@
     #title {
         float:left;
     }
+
+    
 
 
     
@@ -403,6 +413,7 @@
 
     function username_modal(){
         var userText = document.getElementById('divUser');
+
         userText.innerText = username;
         userText.style.color= "blue"
         var textUrl = document.createElement('input');
@@ -517,8 +528,6 @@
         var divTeams = document.getElementById("divTeams");
         var divUser = document.getElementById("divUser");
         var teamIds = Object.keys(teams);
-
-        divUser.innerText = username;
 
         btnNewTeam.onclick = function() {
             const hiddenField = document.createElement('input');
@@ -644,7 +653,7 @@
             </div>
             <div style="margin-left: auto; margin-right: auto; margin-top: .5em; width: fit-content; display: flex; font-size: larger;">
                 <div id="userInfo">
-                    <div class="infoitem">Welcome! </div><div id="divUser" class="infoitem"></div><div class="infoitem"> Please select a team below to join, or create a new team!</div>
+                    <div class="infoitem">Welcome! Please select a team below to join, or create a new team!</div>
                 </div>
                 <div>
                     <input id="btnNewTeam" class="btn btn-large btn-primary" type="button" value="New Team" />
