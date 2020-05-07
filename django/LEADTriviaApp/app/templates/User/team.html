@@ -6,21 +6,26 @@
 {% block content %}
 
 <link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
+<meta name=”viewport” content=”width=device-width, initial-scale=1″>
 
 <style>
+  #Parent Div{
+    width: fit-content; 
+    height: fit-content; 
+    margin-left: auto; 
+    margin-right: auto;
+  }
+
   #team {
     padding:1em;
     display:block;
-    color: darkslategrey; 
     width: fit-content;
     height:fit-content;
     margin-left: auto;
     margin-right: auto;
-    border-color: darkgoldenrod; 
-    border-style: solid; 
-    border-width: 0.1em;
+
     z-index: 1;
-    border-radius: 2.25em;
+    
   }
   #team_header {
     width: fit-content;
@@ -161,6 +166,136 @@
   .clockTimeWarning {
         color: red;
   }  
+  @media (max-width: 1000px){
+    body{
+      background-color: cyan;
+      background-image: linear-gradient(white, lightblue, steelblue );
+    }
+
+    #Parent Div{
+      float:center;
+      width: fit-content; 
+      height: fit-content; 
+      margin-left: auto; 
+      margin-right: auto;
+    }
+
+
+    #team_header {
+      padding-top: 2em;
+      display: flex;
+      font-size: 40px;
+      width: 100%; 
+  }
+
+
+    #team {
+      float: center;
+      padding:1em;
+      display:block;
+      width: 100%;
+      z-index: 1;
+    }
+
+    #team_name {
+    text-align: center;
+    display: inline-block;
+    font-size: 2.5em;
+    margin-right: 0.5em;
+  }
+
+    #btnEditTeamName {
+      width:1.25em;
+      height:1.25em
+    }
+
+    #team_users {
+      margin-left: auto;
+      margin-right: auto;
+      width:70%;
+      margin-top: 1em;
+      margin-bottom: .5em;
+    }
+
+    .user {
+      background-color: aliceblue; 
+      width: 100%;
+      height: 200px;
+      text-align: center;
+    }
+
+    #formLeave {
+      position: relative;
+      margin-top: 1em;
+      margin-bottom:0.1em;
+      height:fit-content;
+      width:fit-content;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #btnLeave {
+      background-color: gray;
+      color: whitesmoke;
+      width: 400px;
+      height: 125px;
+      font-size: 60px;
+      border-radius: 2.25em;
+
+    }
+
+    #btnUser{
+      font-size: 90px;
+      border-top-right-radius: 5em;
+      border-bottom-right-radius: 5em;
+      border-top-left-radius: 5em;
+      border-bottom-left-radius: 5em;
+    }
+
+      #team_info {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      /* float:left; */
+      padding:.5em;
+      background-color: whitesmoke;
+      height:fit-content;
+      width: fit-content;
+      text-align: center;
+
+    }
+    .modal {
+        margin-left:auto;
+        margin-right:auto;
+        position: center;
+        width: 100%;
+        height:100%;
+        background-color: rgb(0,0,0);
+        background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+        background-color: #fefefe;
+        padding: 1em;
+        border: 1em solid #888;
+        width:100%;
+        height: 33%;
+        
+    }
+
+    #ButtonID{
+        font-size: 70px;
+    }
+
+    #label{
+        font-size: 70px;
+
+    }
+    #TextUrl{
+      font-size: 70px;
+      width: 80%;
+    }
+  }
 
 </style>  
 
@@ -259,6 +394,7 @@
 
   function username_modal(button){
         var textUrl = document.createElement('input');
+        textUrl.id = "TextUrl";
         textUrl.type='text';
         let modal, buttonOk;
 
@@ -280,6 +416,7 @@
         userText.innerText = teamname;
         userText.style.color= "blue"
         var textUrl = document.createElement('input');
+        textUrl.id = "TextUrl";
         textUrl.type='text';
         let modal, buttonOk;
 
@@ -304,6 +441,7 @@
         divContainer.classList.add('modal-content');
 
         var label = document.createElement('label');
+        label.id = "label";
         label.innerText = urlLabel;
 
         var div1 = document.createElement('div');
@@ -312,6 +450,8 @@
         div1.appendChild(textUrl);
 
         var buttonOk = document.createElement('button');
+        buttonOk.id = "ButtonID";
+
         buttonOk.classList.add('btn');
         buttonOk.classList.add('btn-primary');
         buttonOk.classList.add('form-control');
@@ -321,6 +461,7 @@
         })
 
         var btnCancel = document.createElement('button')
+        btnCancel.id = "ButtonID";
         btnCancel.classList.add('btn');
         btnCancel.classList.add('btn-secondary');
         btnCancel.classList.add('form-control');
@@ -398,35 +539,36 @@
     
 
 </script>
-
-<div>
-  <div style="width: fit-content; height: fit-content; margin-left: auto; margin-right: auto;">
-    <div id="team">
-      <div id="team_header">
-        <div id="team_info">
-          <div id="team_name" class="title"></div>
-          <input type="image" id="btnEditTeamName" src="{% static "app/images/edit.png" %}" alt="Suggest new name">
-        </div>
-        <div id="clock" class="clock">
-          <div>
-            <!-- <div class="hours"></div>
-            <div class="timesep">:</div> -->
-            <div class="minutes"></div>
-            <div class="timesep">:</div>
-            <div class="seconds"></div>
+<body>
+  <div>
+    <div id ="Parent Div" >
+      <div id="team">
+        <div id="team_header">
+          <div id="team_info">
+            <div id="team_name" ></div>
+            <input type="image" id="btnEditTeamName" src="{% static "app/images/edit.png" %}" alt="Suggest new name">
+          </div>
+          <div id="clock" class="clock">
+            <div>
+              <!-- <div class="hours"></div>
+              <div class="timesep">:</div> -->
+              <div class="minutes"></div>
+              <div class="timesep">:</div>
+              <div class="seconds"></div>
+            </div>
           </div>
         </div>
-      </div>
-      <div id="team_users" class="list-group col-lg-auto"></div>
-        <form id="formLeave" method="POST" action="leave_team/">
-          {% csrf_token %}
-          <div>
-            <input type="submit" id="btnLeave" class="btn" value="Leave" />
-          </div>
-        </form>
+        <div id="team_users" class="list-group col-lg-auto"></div>
+          <form id="formLeave" method="POST" action="leave_team/">
+            {% csrf_token %}
+            <div>
+              <input type="submit" id="btnLeave" class="btn" value="Leave" />
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
-</div>
+</body>
 
 {% endblock %}
