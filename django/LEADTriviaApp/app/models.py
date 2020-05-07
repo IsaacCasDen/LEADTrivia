@@ -194,6 +194,12 @@ class TriviaGame(models.Model):
         game.save()
         return game
 
+    def datetime_to_utc(self,value):
+        pass
+    
+    def datetime_from_utc(self,value):
+        pass
+
     def get_info(self):
         value = {}
         value['id'] = self.id
@@ -223,6 +229,15 @@ class TriviaGame(models.Model):
     def reset_started(self):
         self.state=0
         self.save()
+
+    def is_ready(self) -> bool:
+        return True
+        # current_time = datetime.now(timezone.utc)
+        # s_time = self.start_time
+        # diff=current_time-s_time
+        # minutes = divmod(diff.seconds,60)
+        # return minutes[0]<self.pre_game_minutes
+
 
     def next_question(self):
         questions = TriviaGameQuestion.objects.filter(game__id=self.id)
@@ -1550,7 +1565,7 @@ def save_round(game:TriviaGame,index,data):
         for q in data['deleted']:
             delete_question(q)
         for q in data['items']:
-            save_question(game,index,int(q),data['items'][q])
+            save_question(game,index,int(q),data['items'][q],data['changed'])
 
 def delete_question(data):
     if 'id' in data and data['id']!='':
@@ -1564,7 +1579,7 @@ def remove_question(game:TriviaGame,data):
         if tq != None:
             tq.delete()
 
-def save_question(game:TriviaGame,round_index,index,data):
+def save_question(game:TriviaGame,round_index,index,data,round_changed):
     if data['name']=='Question':
         tg_question = None
         has_update = False
@@ -1582,7 +1597,7 @@ def save_question(game:TriviaGame,round_index,index,data):
         if data['changed']:
             has_update=True
         
-        if has_update:
+        if has_update or round_changed:
             tg_question.game=game
             tg_question.index=index
             tg_question.question.question=data['questionText']
