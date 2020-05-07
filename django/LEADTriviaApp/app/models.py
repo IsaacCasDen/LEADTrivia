@@ -28,6 +28,7 @@ class User(models.Model):
     is_temp_pwd = models.BooleanField(default=True)
     email = models.CharField(max_length=128,null=True)
     is_admin = models.BooleanField(default=False)
+    salt = models.CharField(max_length=128,null=True)
 
     @classmethod
     def create(cls, user_name:str, password:str=None, email:str=None, is_admin:bool = False):
