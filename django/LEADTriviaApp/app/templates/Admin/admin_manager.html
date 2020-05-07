@@ -118,7 +118,11 @@
         var state = createField("State:&nbsp;", "state", game.state);
         var round = createField("Current Round:&nbsp;", "currentRound", game.current_round);
         var question = createField("Current Question Index:&nbsp;", "currentQuestionIndex", game.current_question_index);
-        var start = createField("Start Time:&nbsp;", "startTime", game.start_time.date + ' ' + game.start_time.time);
+
+        var val = game.start_time.date + 'T' + game.start_time.time + '.000Z';
+        var value = Date.parse(val);
+        
+        var start = createField("Start Time:&nbsp;", "startTime", new Date(value).toLocaleDateString() + ' ' + new Date(value).toLocaleTimeString());
         var cancelled = createField("Is Cancelled:&nbsp;", "isCancelled", game.is_cancelled);
         var edit = createEdit();
         var manage = createManage();

@@ -26,8 +26,7 @@
         margin-left: 0;
         border-top: solid lightgray 1px;
     }
-</style>
-<style>
+
     ul {
         list-style-type: none;
         margin: 0;
@@ -80,7 +79,7 @@
   </style>
 
 <script>
-    var name = '{{gamename|safe}}';
+    var name = '{{gameName|safe}}';
     var state = {{state|safe}};
     var currentRound = {{current_round|safe}};
     var currentQuestionIndex = {{current_question_index|safe}};
@@ -125,14 +124,35 @@
         }
 
         
+        
         if (currentRound!=undefined) setValue("inputCurrentRound","value",currentRound);
         if (currentQuestionIndex!=undefined) setValue("inputCurrentQuestionIndex","value",currentQuestionIndex);
-        if (startDate!="undefined") setValue("inputStartDate","value",startDate);
-        if (startTime!="undefined") setValue("inputStartTime","value",startTime);
+        // if (startDate!="undefined") setValue("inputStartDate","value",startDate);
+        // if (startTime!="undefined") setValue("inputStartTime","value",startTime);
+        if (startDate!="undefined" && startTime!="undefined") {
+            var val = startDate + 'T' + startTime + '.000Z';
+            var value = Date.parse(val);
+            var dtm = new Date(value);
+            var dt = dtm.getFullYear()+'-'+get2Digit(dtm.getMonth())+'-'+get2Digit(dtm.getDate()-1);
+            var tm = get2Digit(dtm.getHours()-1)+':'+get2Digit(dtm.getMinutes()-1)+':'+get2Digit(dtm.getSeconds()-1);
+            setValue("inputStartDate","value", dt);
+            setValue("inputStartTime","value",tm);
+        };
         if (isCancelled!=undefined) setValue("inputIsCancelled","value",isCancelled);
         // formaction= onsubmit="return validateForm()"
         // onclick="onClose()"
         // formaction="edit_questions/" 
+    }
+
+    function get2Digit(value) {
+        if (value+1<10)
+            return '0'+(value+1);
+        else
+            return ''+(value+1);
+    }
+
+    function getLocalFromUtc(value)  {
+
     }
 
     function initEvents() {
