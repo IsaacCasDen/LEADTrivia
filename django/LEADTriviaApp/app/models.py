@@ -107,6 +107,7 @@ class User(models.Model):
         if not old_password == new_password and User.validate_password(new_password) and check_password(old_password,self.password) and not check_password(new_password,self.password):
             self.password = make_password(new_password)
             self.secret_key = None
+            self.is_temp_pwd = False
             self.save()
             return True
         
@@ -150,7 +151,9 @@ def change_user_password(user_id:int, old_password:str, password:str, conf_passw
     user = users[0]
     user = authenticate_user(user.user_name,password=old_password)
     if user != None:
-        user.change_password(old_password,password)
+        return user.change_password(old_password,password)
+            
+    return False
     
 
 
