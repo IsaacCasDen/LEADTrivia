@@ -194,12 +194,6 @@ class TriviaGame(models.Model):
         game.save()
         return game
 
-    def datetime_to_utc(self,value):
-        pass
-    
-    def datetime_from_utc(self,value):
-        pass
-
     def get_info(self):
         value = {}
         value['id'] = self.id
