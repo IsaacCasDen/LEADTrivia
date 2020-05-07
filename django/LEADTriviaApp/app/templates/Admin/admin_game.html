@@ -18,6 +18,9 @@
     var countRemaining = {{countRemaining|safe}};
     var roundsRemaining = {{roundsRemaining|safe}};
     var roundFinished = {{roundFinished | safe}};
+    var timeAllowed = {{timeAllowed | safe}};
+    var timeStarted = {{timeStarted | safe}};
+
 
     document.onreadystatechange = function() {
         if (document.readyState=="complete") {
@@ -34,13 +37,21 @@
         var divCurrentIndex = document.getElementById('divCurrentQuestion');
         var divQuestion = document.getElementById('divCurrentQuestionText');
         var divAnswer = document.getElementById('divCurrentAnswerText');
-
+        setTimeout(lockButton,500)
         divName.innerText = name;
         divRemaining.innerText = countRemaining;
         divRound.innerText = currentRound
         divCurrentIndex.innerText = currentQuestionIndex
         divQuestion.innerText = currentQuestion;
         divAnswer.innerText = currentAnswer;
+        lockButton()
+
+    }
+
+    function lockButton(){
+
+
+        setTimeout(lockButton,500)
     }
 
     function updateButton(){
