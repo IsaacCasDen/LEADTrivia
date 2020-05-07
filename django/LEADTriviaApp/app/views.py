@@ -73,21 +73,25 @@ def validate_session(request)->SessionState:
         gameId = request.session.get('gameId','')
     else:
         request.session['gameId'] = int(gameId)
+        gameId=int(gameId)
 
     if userId == '':
         userId = request.session.get('userId','')
     else:
         request.session['userId'] = int(userId)
+        userId=int(userId)
 
     if teamId == '':
         teamId = request.session.get('teamId','')
     else:
         request.session['teamId'] = int(teamId)
+        teamId=int(teamId)
 
     if mode == '':
         mode = request.session.get('mode','')
     else:
         request.session['mode'] = int(mode)
+        mode=int(mode)
 
     user = None
 
@@ -127,6 +131,7 @@ def validate_session(request)->SessionState:
     
     if mode != '':
         session_state.has_mode = True
+        session_state.mode=mode
 
     return session_state
     
