@@ -28,10 +28,6 @@
         cursor: pointer;
     }
 
-    .menuItem button {
-        margin:0;
-    }
-
     .firstMenuItem {
         padding-left: 1em;
         border-left: none;
@@ -51,6 +47,18 @@
         float:right;
         margin-left: 1em;
     }
+
+    #title {
+        float:left;
+    }
+
+    @media (max-width: 1000px) {
+        #title {
+            float:right;
+        }
+    }
+
+    
 </style>
 
 <script>
@@ -67,10 +75,6 @@
     }
 
     function init() {
-        var liLogin = document.getElementById('liLogin');
-        liLogin.addEventListener('click', function() {
-            document.location.href = 'login/';
-        });
         showGames()
     }
 
@@ -228,11 +232,8 @@
 </script>
 <body>
     <div>
-        <ul id="topMenu">
-            <li id='liUsername' class="menuItem firstMenuItem leftMenuItem">Welcome</li>
-            <li id='liLogin' class="menuItem lastMenuItem rightMenuItem">Admin Login</li>
-        </ul>
-        <div>Welcome to LEAD Trivia!</div>
+        {% include "Components/top_menu.html" %}
+        <div id='title'>Welcome to LEAD Trivia!</div>
         <div id='divGames'>
         </div>
         <ul id="ulErrors"></ul>

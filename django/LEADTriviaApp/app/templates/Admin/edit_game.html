@@ -27,6 +27,7 @@
     var startDate = {{start_date|safe}};
     var startTime = {{start_time|safe}};
     var isCancelled = {{is_cancelled|safe}};
+    var username = '{{username|safe}}'
 
     document.onreadystatechange = function() {
         if (document.readyState=="complete") {
@@ -80,6 +81,7 @@
 </script>
 
 <body>
+    {% include "../Components/top_menu.html" %}
     <form id="formEditGame" method="POST">
         {% csrf_token %}
         <div>

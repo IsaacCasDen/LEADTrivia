@@ -8,6 +8,7 @@
 </style>
 
 <script>
+    var username = '{{username|safe}}'
     var name = {{name|safe}};
     var currentQuestionIndex = {{currentQuestionIndex|safe}};
     var currentRound = {{currentRound|safe}};
@@ -85,6 +86,7 @@
 
 
 <body>
+    {% include "../Components/top_menu.html" %}
     <form id="formAdminGame" method="POST">
         {% csrf_token %}
         <div id="divInfo">

@@ -75,7 +75,7 @@
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
 
 <script>
-
+var username = '{{username|safe}}'
 var question = '{{Question | safe}}';
 var answer = "{{Answer | safe}}";
 var actualAnswer = "{{ActualAnswer | safe}}";
@@ -341,6 +341,7 @@ function createChoices(group){
 
 <!-- This needs to fix the border to wrap correctly and then move the submit button -->
 <body >
+  {% include "../Components/top_menu.html" %}
   <div class="container">
     <div>
       <div>

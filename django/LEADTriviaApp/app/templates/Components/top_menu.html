@@ -1,0 +1,96 @@
+<script>
+    document.onreadystatechange = function() {
+        if (document.readyState=="complete") {
+            var change_username, modal, text, ok, cancel, login, logout;
+            
+            change_username = document.getElementById('liUsername');
+            modal = document.getElementById('modalChangeUsername');
+            text = document.getElementById('inputUsername');
+            ok = document.getElementById('btnChangeUsernameOk');
+            cancel = document.getElementById('btnChangeUsernameCancel');
+            login = document.getElementById('liLogin');
+            logout = document.getElementById('liLogout');
+            
+            if (username && username != '') {
+                change_username.innerText = 'Welcome ' + username;
+                login.style.display='none';
+                // login.style.display='block';
+                // login.removeAttribute('readonly')
+                logout.style.display='block';
+                // logout.style.display='block';
+            } else {
+                change_username.innerText = 'Welcome User';
+                login.style.display='block';
+                logout.style.display='none';
+            }
+
+            change_username.addEventListener('click', function() {
+                modal.style.display='flex';
+            });
+            ok.addEventListener('click', function() {
+                var value = text.value;
+                modal.style.display='none';
+                text.value = '';
+                var path = '/app/update_username/';
+                var data = new FormData();
+                var div = document.createElement('div');
+                div.innerHTML='{% csrf_token %}'
+                var input = div.firstChild;
+                data.append("csrfmiddlewaretoken", input.value);
+                data.append('new_username',value);
+                var request = new XMLHttpRequest();
+                request.open('post',path);
+                request.onreadystatechange = function() {
+                    if (request.readyState===4) {
+                        try {
+                            value = JSON.parse(request.response);
+                            if (value['status'] === 'okay'){
+                                change_username.innerText = 'Welcome ' + value['username'];
+                            }else{
+                                alert(value['status']);
+                            }                    
+                        } catch(exception) {
+                            alert(exception);
+                        }
+                        
+                            
+                    }
+                }
+                request.send(data);
+            });
+            cancel.addEventListener('click', function() {
+                modal.style.display='none';
+                text.value = '';
+            });
+            
+            login.addEventListener('click', function() {
+                if (!username || username =='')
+                    document.location.href ='/app/login';
+            })
+            logout.addEventListener('click', function() {
+                if (username || username !='')
+                    document.location.href ='/app/logout';
+            });
+        }
+    }
+</script>
+
+<div style="width: 100%;">
+    <ul id="topMenu">
+        <li><button id='liUsername' class="btn menuItem firstMenuItem leftMenuItem">Welcome</button></li>
+        <li><button id='liLogin' class="btn btn-success menuItem lastMenuItem rightMenuItem">Admin Login</button></li>
+        <li><button id='liLogout' class="btn btn-danger menuItem lastMenuItem rightMenuItem">Logout</button></li>
+    </ul>
+    <div id='modalChangeUsername' style="display: none; top: 0; bottom: 0; justify-items: center; align-items: center; margin: auto;position: fixed; width: 100%; height:100%; background-color: rgb(0,0,0); background-color: rgba(0,0,0,0.4);">
+        <div style="background-color: #fefefe; padding: 1em; border: 1em solid #888; height: auto; margin: auto; width: auto">
+            <div style="float: left; clear: both;">
+                <label for='inputUsername' class='col-form-label'>Enter Username:</label>
+                <input id='inputUsername' class="form-control" type="text" />
+            </div>
+            <div style="clear:both; display: flex; justify-content: right ; align-items:flex-end;">
+                <button id='btnChangeUsernameOk' class='btn btn-success' style="min-width:6em; margin: 0.5em;">Ok</button>
+                <button id='btnChangeUsernameCancel' class='btn btn-danger' style="min-width:6em; margin: 0.5em">Cancel</button>
+            </div>
+        </div>
+    </div>
+</diV>

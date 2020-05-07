@@ -214,55 +214,10 @@
         initClock(timeremaining);
         initTeams();
         initTitlesAndSizes();
-        username_modal();
         
     }
 
-    function username_modal(){
-        var userText = document.getElementById('divUser');
-        userText.innerText = username;
-        userText.style.color= "blue"
-        var textUrl = document.createElement('input');
-        textUrl.type='text';
-        let modal, buttonOk;
-
-        [modal,buttonOk] = createModal('Enter Username!',textUrl);
-        userText.addEventListener('click', function(event) {
-            modal.style.display = 'block';
-        });
-        buttonOk.addEventListener('click',function() {
-            update_username(textUrl);
-            textUrl.value='';
-        });
-        document.body.appendChild(modal);
-    }
-
-    function update_username(source) {
-        if (source!=undefined) {
-            var data = new FormData();
-            var div = document.createElement('div');
-            div.innerHTML='{% csrf_token %}'
-            var input = div.firstChild;
-            data.append("csrfmiddlewaretoken", input.value);
-            data.append('new_username',source.value);
-            var request = new XMLHttpRequest();
-            request.open('post','/app/update_username/');
-            request.onreadystatechange = function() {
-                if (request.readyState===4) {
-                    value = JSON.parse(request.response);
-                    if (value['status'] === 'okay'){
-                        var userText = document.getElementById('divUser');
-                        userText.innerText = value['username'];                        
-
-                    }else{
-                        alert(value['status']);
-                    }                    
-                        
-                }
-            }
-            request.send(data);
-        }
-    }
+   
 
 
     function initTitlesAndSizes() {
@@ -435,6 +390,7 @@
 
 </script>
 <body>
+    {% include "../Components/top_menu.html" %}
     <form id="formTeams" method="POST" action="/app/team/">
         {% csrf_token %}
         <div id="header">

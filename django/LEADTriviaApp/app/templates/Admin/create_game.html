@@ -15,6 +15,7 @@
 </style>
 
 <script>
+    var username = '{{username|safe}}'
     function validateForm() {
         
         var isValid = true;
@@ -30,6 +31,7 @@
 </script>
 
 <body>
+    {% include "../Components/top_menu.html" %}
     <form id="formNewGame" method="POST" action="/app/save_game/" onsubmit="return validateForm()">
         {% csrf_token %}
         <div>

@@ -1,70 +1,40 @@
-body {
-    /* padding: 1em; */
-    font-size: xx-large;
+#topMenu {
+    position: -webkit-sticky;
+    position: sticky;
+    display: inline-block;
+    background-color: whitesmoke;
+    border-bottom: solid darkgray 1px;
+    top: 0;
+    margin-bottom: 1em;    
+    width: 100%;
+    clear: both;
 }
 
-div {
-    font-size: xx-large;
+.menuItem {
+    padding: 0.5em;
+    cursor: pointer;
 }
 
-p {
-    font-size: xx-large;
+.firstMenuItem {
+    /* padding-left: 1em; */
+    border-left: none;
 }
 
-label {
-    font-size: xx-large;
+.leftMenuItem {
+    float: left ;
+    border-right: solid 1px darkgray;
+    margin-right: 1em;
+    margin-left: 1em;
 }
 
-input {
-    font-size: xx-large;
+.lastMenuItem {
+    /* padding-right: 1em; */
+    border-right: none
 }
 
-input[type=submit] {
-    font-size: xx-large;
-}
-
-input[type=text] {
-    font-size: xx-large;
-}
-
-input[type=radio] {
-    font-size: xx-large;
-    width:0.75em;
-    height:0.75em;
-    margin:0.25em;
-}
-
-input[type=number] {
-    font-size: xx-large;
-}
-
-input[type=checkbox] {
-    font-size: xx-large;
-}
-
-input[type=date] {
-    font-size: xx-large;
-}
-
-input[type=time] {
-    font-size: xx-large;
-}
-
-input[type=button] {
-    font-size: xx-large;
-}
-input[type=password] {
-    font-size: xx-large;
-}
-
-button {
-    font-size: xx-large;
-}
-
-button[type=button] {
-    font-size: xx-large;
-}
-
-fieldset {
-    font-size: xx-large;
+.rightMenuItem {
+    float:right;
+    border-left: solid 1px darkgray;
+    margin-right: 1em;
+    margin-left: 1em;
 }
