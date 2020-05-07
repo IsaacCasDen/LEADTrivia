@@ -7,11 +7,11 @@
     var username = "{{username|safe}}";
     var errors = {{errors|safe}};
 
-    document.onreadystatechange=function() {
+    document.addEventListener('readystatechange', function() {
         if (document.readyState=="complete") {
             init();
         }
-    }
+    });
 
     function init() {
         attachGameId(data['Game']['Id']);

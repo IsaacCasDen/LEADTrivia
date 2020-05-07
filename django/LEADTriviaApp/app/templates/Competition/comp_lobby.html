@@ -265,11 +265,11 @@
 
 
 
-    document.onreadystatechange=function() {
+    document.addEventListener('readystatechange', function() {
         if (document.readyState=="complete") {
             init()
         }
-    }
+    });
 
     function init() {
         initClock(calcTimeRemaining(game['StartTime']['date'], game['StartTime']['time']));

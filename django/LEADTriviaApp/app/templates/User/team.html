@@ -174,11 +174,11 @@
 
   var startTime = game.StartTime;
 
-  document.onreadystatechange=function() {
+  document.addEventListener('readystatechange', function() {
     if (document.readyState=="complete") {
       init()
     }
-  }
+  });
 
   function calcTimeRemaining(date,time) {
       var value = new Date(date + ' ' + time);

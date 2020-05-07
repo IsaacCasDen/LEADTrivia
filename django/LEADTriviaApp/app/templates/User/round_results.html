@@ -141,11 +141,12 @@
   var teamPosition = results ['team']['rank']
   var questions = results['team']['questions']
 
-document.onreadystatechange = function(){
+document.addEventListener('readystatechange', function() {
   if (document.readyState == "complete"){
     init();
   }
-}
+});
+
 function init() {
     initTeam(teamname);
     initUsers(userId, users);

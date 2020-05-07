@@ -37,11 +37,11 @@
     var games = {{Games|safe}}
     var username = '{{username|safe}}'
 
-    document.onreadystatechange = function() {
+    document.addEventListener('readystatechange', function() {
         if (document.readyState=="complete") {
             init();
         }
-    }
+    });
 
     function init() {
         addGames();

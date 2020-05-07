@@ -153,11 +153,12 @@
   var index = undefined;
   var teamRank = results['teamRank'];
 
-document.onreadystatechange = function(){
+document.addEventListener('readystatechange', function() {
   if (document.readyState == "complete"){
     init();
   }
-}
+});
+
 function init() {
     setTimeout(checkCurrentQuestionIndex,500);
     scrollDiv_Left();

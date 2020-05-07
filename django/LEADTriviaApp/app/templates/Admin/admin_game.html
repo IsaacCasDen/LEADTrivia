@@ -20,13 +20,13 @@
     var roundsRemaining = {{roundsRemaining|safe}};
     var roundFinished = {{roundFinished | safe}};
 
-    document.onreadystatechange = function() {
+    document.addEventListener('readystatechange', function() {
         if (document.readyState=="complete") {
             init();
             updateButton();
 
         }
-    }
+    });
 
     function init() {
         var divName = document.getElementById('divName');

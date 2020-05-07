@@ -84,11 +84,11 @@ var questionId = {{questionId | safe}};
 var media = {{Media|safe}};
 var index = undefined;
 
-document.onreadystatechange = function(){
+document.addEventListener('readystatechange', function() {
   if (document.readyState == "complete"){
     init();
   }
-}
+});
 
 function init() {
     updateCurrentQuestionIndex(index)

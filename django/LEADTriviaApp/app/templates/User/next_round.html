@@ -12,13 +12,13 @@
     var username = '{{username|safe}}'
     var round = {{round|safe}};
 
-    document.onreadystatechange = function() {
+    document.addEventListener('readystatechange', function() {
         var divRound = document.getElementById('divRound');
         divRound.innerText = "Round " + round + "!";
         setTimeout(function() {
             document.location="/app/show_question/";
         },5000)
-    }
+    });
 
 </script>
 
