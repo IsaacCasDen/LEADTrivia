@@ -1,6 +1,7 @@
 #topMenu {
     position: -webkit-sticky;
     position: sticky;
+    list-style-type: none;
     display: inline-block;
     background-color: whitesmoke;
     border-bottom: solid darkgray 1px;
@@ -37,4 +38,35 @@
     border-left: solid 1px darkgray;
     margin-right: 1em;
     margin-left: 1em;
+}
+
+.modal {
+    margin-left:auto;
+    margin-right:auto;
+    position: fixed;
+    width: fit-content;
+    height:fit-content;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    padding: 1em;
+    border: 1em solid #888;
+    width:fit-content;
+    height: fit-content;
+}
+
+.close {
+    color:#aaa;
+    float:right;
+    font-size: 18em;
+    font-weight: bold;
+}
+
+.close:hover, close:focus {
+    color:black;
+    text-decoration: none;
+    cursor: pointer;
 }
