@@ -1,5 +1,5 @@
 <script>
-
+    var username = '{{username|safe}}'
     document.addEventListener('readystatechange', function() {
         if (document.readyState=="complete") {
             var change_username, modalChangeUsername, text, ok, cancel, login, logout;
