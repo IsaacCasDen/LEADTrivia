@@ -7,20 +7,39 @@
 {% csrf_token %}
 
 <style>
+
+    .container {
+        display: inline-block;
+        grid-template-rows: 100px auto; 
+        max-height: 100%;
+        max-width: 100%;
+        padding:0.5em;
+    }
+
+    /* .row1 {
+        grid-row: 1;
+    }
+
+    .row2 {
+        grid-row: 2;
+    } */
+
     #divData {
-        height: 80%;
-        width: 95%;
-        padding: 0.5em;
-        margin: 0.5em;
+        display: block;
+        /* height: 100%; */
+        width: 100%;
         border-color: black;
         border-width: 1px;
         border-style: solid;
         overflow-y: auto;
     }
-    #divRounds {
+    .rounds-container {
+        margin:0;
+        padding:0.5em;
     }
+
     #divControls {
-        height:20%;
+        /* height:20%; */
         margin: 0.5em;
         padding: 0.5em;
     }
@@ -30,9 +49,12 @@
         border-style: solid;
         border-width: 2px;
     }
-    .divRound {
-        margin-left:1em;
+    .round-container {
         clear: both;
+        padding: 0.5em;
+        border-bottom: solid 1px darkgray;
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
     }
 
     ul {
@@ -41,12 +63,6 @@
 
     .list-group-horizontal {
         overflow-x: auto;
-    }
-
-    .divQuestion {
-        margin-left:0.5em;
-        display: block;
-        clear: both;
     }
 
     .arrowContainer {
@@ -82,7 +98,6 @@
 
     .textblock {
         width:95%;
-        min-height: auto;
     }
 
     .nopadding {
@@ -94,107 +109,132 @@
     }
 
     .btn {
-        margin:.5em;
+        margin:.25em;
     }
     .btn img {
         margin: 0;
         padding: 0;
     }
 
-    .choice-container {
-        display:grid;
-        grid-template-columns: auto 2em;
-        gap: 10px;
-        padding: 10px;
-        width: 100%;
-    }
-
     .media-item {
         display: grid;
         grid-template-columns: auto 10em;
-        gap: 10px;
-        padding: 10px;
         width: 100%;
+        padding-left:0.5em;
+        padding-right:0.5em;
+        /* margin-top: 0.5em; */
+        margin-bottom: 0.5em;
+        background-color: white;
+        border: solid lightgray 1px;
     }
+
+    .media-controls-container-parent { 
+        margin:0.5em;
+        padding: 0.5em;
+        display: inline-block;
+        display: block;
+        clear:both;
+        
+    }
+
+    .media-controls-container {
+        float: left;
+        background-color: white; 
+        border: solid lightgray 1px; 
+        margin: 0.5em;
+    }
+
+    .media-control-container {
+        float:left;
+        padding-bottom:0.5em;
+        margin:.5em;
+        background-color: whitesmoke;
+        border: solid lightgray 1px;
+    }
+
+    .media-label {
+        padding: 0.5em;
+        background-color: aliceblue;
+        width: 100%;
+        justify-content: center;
+        border-bottom: solid lightgray 1px;
+        display:flex;
+        align-items:center;
+    }
+
+    /* .media-controls {
+    } */
+
+    /* .media-control {
+    } */
 
     .row {
         width: 100%;
     }
 
-    .modal {
-    margin-left:auto;
-    margin-right:auto;
-    position: fixed;
-    width: fit-content;
-    height:fit-content;
-    background-color: rgb(0,0,0);
-    background-color: rgba(0,0,0,0.4);
-    }
-    .modal-content {
-    background-color: #fefefe;
-    padding: 1em;
-    border: 1em solid #888;
-    width:fit-content;
-    height: fit-content;
-    }
-    .close {
-    color:#aaa;
-    float:right;
-    font-size: 18em;
-    font-weight: bold;
+    .groups-container {
+        list-style-type: none;
+        overflow: hidden;
+        padding:0.5em;
+        margin:0.5em;
+        clear: both;
+        border-bottom: solid 1px darkgray;
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
+    }    
+
+    .group-container {
+        float: left;
+        padding: 0.5em;
+        margin: 1em;
+        width: 20em;
+        border: solid lightgray 1px;
+        background-color: whitesmoke;
+    } 
+    .group-container label {
+        float: left;
+        clear: both;
     }
 
-    .close:hover, close:focus {
-    color:black;
-    text-decoration: none;
-    cursor: pointer;
+    .group-container button {
+        float: left;
+        clear: both;
+    }
+
+    .choice-group-container {
+        float: left;
+        clear:both;
+        width: 100%;
+        max-height: 100%;
+    }
+
+    .choice-container {
+        float: left;
+        display: grid;
+        grid-template-columns: auto 4em;
+        width: 100%;
+        max-height: 100%;
+    }
+
+    .question-container {
+        margin-left:0.5em;
+        padding:0.5em;
+        display: block;
+        clear: both;
+        border-bottom: solid 1px darkgray;
+        border-bottom-left-radius: 5px;
+        border-bottom-right-radius: 5px;
+    }
+
+    .choice {
+        margin-top: auto;
+        margin-bottom: auto;
     }
 
     .question {
     }
 
-
-    .slides {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        width: 300px;
-    }
-    .slide {
-        padding: 15px;
-        background-color: #2F2F2F;
-        margin: 0 0 15px;
-        text-align: center;
-        color: #FFF;
-        border: 2px solid #444;
-    }
-
-    .slide-placeholder {
-        background: #DADADA;
-        position: relative;
-    }
-    .slide-placeholder:after {
-        content: " ";
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 15px;
-        background-color: #FFF;
-    }
-
-    .slide2 {
-        height: 30px;
-    }
-    .slide3 {
-        height: 50px;
-    }
-    .slide4 {
-        height: 90px;
-    }
-    .slide5 {
-        height: 35px;
-    }
+    
 </style>
 
 <script>
@@ -531,11 +571,11 @@
         });
     }
 
-    document.onreadystatechange = function() {
+    document.addEventListener('readystatechange', function() {
         if (document.readyState=="complete") {
             init();
         }
-    }
+    });
     
     function init() {
         parseQuestions();
@@ -588,7 +628,7 @@
         btnUp.classList.add('arrow');
         btnUp.classList.add('btn');
         btnUp.addEventListener('click',function() {onClick_DecItemIndex(item)})
-
+        btnUp.onclick = function() { onClick_DecItemIndex(item); }
 
         var imgUp = document.createElement('img');
         imgUp.classList.add('arrow');
@@ -599,6 +639,7 @@
         btnDown.addEventListener('click',function() {onClick_IncItemIndex(item)})
         btnDown.classList.add('arrow');
         btnDown.classList.add('btn');
+        btnDown.onclick = function() { onClick_IncItemIndex(item); }
 
 
         var imgDown = document.createElement('img');
@@ -686,7 +727,7 @@
 
     function createRound(item) {
         var liRound = document.createElement('li');
-        liRound.classList.add("divRound");
+        liRound.classList.add("round-container");
         liRound.classList.add("form-group");
 
         var divRoundTitle = createDraggable(item[1],'Round ' + item[0]);
@@ -743,23 +784,27 @@
 
     function createQuestion(round,questionIndex,item) {
         var liQuestion = document.createElement('li');
-        liQuestion.classList.add('divQuestion');
+        liQuestion.classList.add('question-container');
         liQuestion.classList.add('form-group');
 
         var divTitle = createDraggable(item[1],'Question ' + item[0]);
         var divContent = document.createElement('div');
+        var divCont = document.createElement('div');
+        var divMedia = document.createElement('div');
         var ulGroups = createGroups(item[1],item[1].getItems())
 
         liQuestion.appendChild(divTitle);
         liQuestion.appendChild(divContent);
 
-        divContent.appendChild(createQuestionText(item[1],item[1].questionText));
-        divContent.appendChild(createAnswerText(item[1],item[1].answerText));
-        divContent.appendChild(createTimeAllowed(item[1],item[1].timeAllowed));
-        divContent.appendChild(createVideoList(item[1]))
-        divContent.appendChild(createImageList(item[1]))
-        divContent.appendChild(createAudioList(item[1]))
-        divContent.appendChild(createMediaControls(item[1]))
+        divCont.appendChild(createQuestionText(item[1],item[1].questionText));
+        divCont.appendChild(createAnswerText(item[1],item[1].answerText));
+        divCont.appendChild(createTimeAllowed(item[1],item[1].timeAllowed));
+        divMedia.appendChild(createVideoList(item[1]))
+        divMedia.appendChild(createImageList(item[1]))
+        divMedia.appendChild(createAudioList(item[1]))
+        divMedia.appendChild(createMediaControls(item[1]))
+        divContent.appendChild(divCont);
+        divContent.appendChild(divMedia);
         divContent.appendChild(ulGroups);
         divContent.appendChild(createQuestionControls(round,questionIndex+1));
 
@@ -784,7 +829,6 @@
         input.classList.add('item');
         input.classList.add('textblock');
         input.classList.add("form-control");
-        input.classList.add("form-control-lg");
 
         label.innerText = 'Question';
         input.innerText = text;
@@ -812,15 +856,14 @@
         label.classList.add("item");
         label.classList.add("input-group-text");
 
-        input = document.createElement('textarea');
+        input = document.createElement('input');
+        input.type = 'text';
         input.classList.add('question');
         input.classList.add('item');
-        input.classList.add('textblock');
         input.classList.add("form-control");
-        input.classList.add("form-control-lg");
 
         label.innerText = 'Time Allowed';
-        input.innerText = text;
+        input.value = text;
         input.addEventListener('change',function() {onChange_QuestionTimeAllowed(question,input)});
         div.appendChild(label);
         div.appendChild(input);
@@ -857,7 +900,6 @@
         input.classList.add('item');
         input.classList.add('textblock');
         input.classList.add("form-control");
-        input.classList.add("form-control-lg");
 
         label.innerText = 'Answer';
         input.innerText = text;
@@ -877,7 +919,8 @@
         label.classList.add('input-group-text');
 
         var ulVideos = document.createElement('ul');
-        ulVideos.style.borderBottom='solid 1px black';
+        // ulVideos.style.borderBottom='soli d 1px black';
+        ulVideos.style.marginBottom='0.25em';
 
         var items = item.videos.getItems();
         while (items.length > ulVideos.children.length) {
@@ -977,7 +1020,8 @@
         label.classList.add('input-group-text');
 
         var ulImages = document.createElement('ul');
-        ulImages.style.borderBottom='solid 1px black';
+        // ulImages.style.borderBottom='solid 1px black';
+        ulImages.style.marginBottom='0.25em';
 
         var items = item.images.getItems();
         while (items.length > ulImages.children.length) {
@@ -1073,7 +1117,8 @@
         label.classList.add('input-group-text');
 
         var ulAudios = document.createElement('ul');
-        ulAudios.style.borderBottom='solid 1px black';
+        // ulAudios.style.borderBottom='solid 1px black';
+        ulAudios.style.marginBottom='0.25em';
 
         var items = item.audios.getItems();
         while (items.length > ulAudios.children.length) {
@@ -1163,8 +1208,7 @@
 
     function createMediaControls(item) {
         var div = document.createElement('div');
-        div.style.display='inline-block';
-        div.style.clear='both';
+        div.classList.add('media-controls-container-parent');
 
         div.appendChild(createVideoControl(item));
         div.appendChild(createAudioControl(item));
@@ -1221,37 +1265,28 @@
     }
 
     function createMediaControl(labelText, uploadLabel, urlLabel) {
+        var parentDiv = document.createElement('div');
+        parentDiv.classList.add('media-controls-container');
+
         var mainDiv = document.createElement('div');
         mainDiv.classList.add('form-group');
-        mainDiv.classList.add('border');
-        mainDiv.style.float='left';
-        mainDiv.style.margin='0.25em';
-        mainDiv.style.marginRight='0.25em';
-        mainDiv.style.marginLeft='0em';
+        mainDiv.classList.add('media-controls-container');
 
         var label = document.createElement('label');
         label.innerText=labelText;
-        label.style.float='left';
-        label.style.clear='both';
-        label.style.margin='0';
-        label.style.padding='0.25em';
-        label.style.paddingLeft='0.5em';
-        label.style.paddingRight='0.5em';
-        label.style.backgroundColor='lightblue';
-        label.style.borderBottom='solid 1px lightgray'
+        label.classList.add('media-label');
 
         var controls = document.createElement('div');
-        controls.style.display='flex';
-        controls.style.justifyContent='center';
-        controls.style.alignItems='center';
+        controls.classList.add('media-controls');
 
         var buttonUpload = document.createElement('input');
         buttonUpload.type='file';
         buttonUpload.hidden=true;
+        buttonUpload.classList.add('media-control');
 
         var divUpload = document.createElement('label');
         divUpload.innerText=uploadLabel;
-        divUpload.style.float='left';
+        divUpload.classList.add('media-control');
 
         divUpload.appendChild(buttonUpload)
         divUpload.classList.add('btn');
@@ -1288,7 +1323,9 @@
         mainDiv.appendChild(label);
         mainDiv.appendChild(controls);
 
-        return [mainDiv,buttonUrl,buttonOk,textUrl,buttonUpload];
+        parentDiv.appendChild(mainDiv)
+
+        return [parentDiv,buttonUrl,buttonOk,textUrl,buttonUpload];
     }
 
     function createModal(urlLabel,textUrl) {
@@ -1550,15 +1587,12 @@
 
     function createGroups(question,items) {
         var divGroups = document.createElement('div');
-        divGroups.classList.add('border');
+        divGroups.classList.add('groups-container');
 
         var divContent = document.createElement('div');
         var divControls = document.createElement('div');
 
         var ulGroups = document.createElement('ul');
-        ulGroups.classList.add('list-group');
-        // ulGroups.classList.add('list-group-horizontal');
-        ulGroups.classList.add('border');
 
         while (items.length>ulGroups.children.length) {
             for (var i=0; i<items.length; i++) {
@@ -1576,10 +1610,10 @@
         var input = document.createElement('button');
         input.classList.add('btn');
         input.classList.add('btn-success');
-        // input.style.width = "1em";
-        // input.style.height = "1em";
 
         input.innerText="New Group"
+        input.style.float='left';
+        input.style.clear='both';
         input.addEventListener('click', function() { onClick_NewGroup(question) });
         
         divControls.appendChild(input);
@@ -1599,11 +1633,24 @@
 
     function createGroup(item) {
         var liGroup = document.createElement('li');
-        liGroup.classList.add('list-group-item');
+        liGroup.classList.add('group-container');
         
+        var div = document.createElement('div');
         var label = document.createElement('label');
         label.innerText = "Group " + item[0];
         label.classList.add("input-group-text");
+        label.addEventListener('click', function() {
+            onClick_DeleteGroup(item[1])
+        });
+
+        var img = document.createElement('img');
+        img.width=36;
+        img.height=36;
+        img.src="{% static "app/images/icon_delete.png" %}";
+        img.classList.add('nopadding');
+        img.classList.add('nomargin');
+        img.style.marginLeft = '1em';
+        label.appendChild(img);
 
         var ulContent = createChoices(item[1].getItems())
         ulContent.classList.add('list-group');
@@ -1617,9 +1664,10 @@
 
         divControls.appendChild(input);
 
-        liGroup.appendChild(label);
-        liGroup.appendChild(ulContent);
-        liGroup.appendChild(divControls);
+        div.appendChild(label);
+        div.appendChild(ulContent);
+        div.appendChild(divControls);
+        liGroup.appendChild(div);
         return liGroup
     }
     
@@ -1633,7 +1681,7 @@
 
     function createChoices(items) {
         var ulChoices = document.createElement('ul');
-        ulChoices.classList.add('list-group');
+        ulChoices.classList.add('choice-group-container');
 
         while (items.length>ulChoices.children.length) {
             for (var i=0; i<items.length; i++) {
@@ -1653,12 +1701,11 @@
         var div = document.createElement('div');
         div.classList.add('choice-container');
 
-        var input = document.createElement('textarea');
-        // input.classList.add('item');
+        var input = document.createElement('input');
+        input.type='text'
+        input.classList.add('choice');
         // input.classList.add('textblock');
         input.classList.add("form-control");
-        input.classList.add("form-control-lg");
-        input.classList.add('grid-item')        ;
 
         input.value = item[1].value;
 
@@ -1667,13 +1714,11 @@
 
         var btn = document.createElement('button');
         btn.classList.add('btn');
-        btn.classList.add('grid-item');
-        btn.classList.add('nopadding');
         btn.addEventListener('click', function() {onClick_DeleteChoice(item[1])});
 
         var img = document.createElement('img');
-        img.width=48;
-        img.height=48;
+        img.width=36;
+        img.height=36;
         img.src="{% static "app/images/icon_delete.png" %}";
         img.classList.add('nopadding');
         img.classList.add('nomargin');
@@ -1686,6 +1731,13 @@
         liChoice.classList.add('list-group-item');
 
         return liChoice;
+    }
+
+    function onClick_DeleteGroup(group) {
+        if (group.parent!=undefined) {
+            group.parent.removeItem(group);
+            refreshGame();
+        }
     }
 
     function onChange_ChoiceText(choice,source) {
@@ -1757,16 +1809,19 @@
 
 <body>
     {% include "../Components/top_menu.html" %}
-    <div id="divData">
-        <ul id="ulRounds">
-
-        </ul>
+    <div class="container">
+        <div id="divData" class='row1'>
+            <ul id="ulRounds" class="rounds-container">
+    
+            </ul>
+        </div>
+        <div id="divControls" class='row2'>
+            <input type="button" class="btn btn-primary" value="Save" onclick="onClick_Save()">
+            <input type="button" class="btn btn-danger" value="Cancel" onclick="onClick_Cancel()">
+            <input type="button" class="btn btn-secondary" value="Close" onclick="onClick_Close()">
+        </div>
     </div>
-    <div id="divControls">
-        <input type="button" class="btn btn-primary" value="Save" onclick="onClick_Save()">
-        <input type="button" class="btn btn-danger" value="Cancel" onclick="onClick_Cancel()">
-        <input type="button" class="btn btn-secondary" value="Close" onclick="onClick_Close()">
-    </div>
+    
 </body>
 
 {% endblock %}
