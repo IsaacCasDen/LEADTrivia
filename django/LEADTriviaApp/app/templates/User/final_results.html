@@ -11,6 +11,7 @@
       clear: both;
       width: 100%;
     }
+    
     #TeamRank {
       display: inline-block;
       vertical-align: top;
@@ -143,6 +144,153 @@
     .clockTimeWarning {
         color: red;
     }  
+
+        @media (max-width: 1000px){
+
+      #PlayerRank {
+      display: inline-block;
+      vertical-align: top;
+      font-size: 90px;
+      color:white;
+
+      font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    }
+
+    #PlayerResults{
+      font-size: 90px;
+      color:white;
+
+      font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    }
+
+    #TopDiv{
+      text-align: center;
+        display: block;
+        width: 100%;
+        clear: both;
+        
+    }
+
+    #teamInfo{
+      color:white;
+
+      padding-top: 2em;
+      font-size: 90px;
+      text-shadow: -.015em 0 black, 0 .015em black, .015em 0 black, 0 -.015em black;
+      font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    }
+
+    .text{
+      float: left;
+      margin-left: .5em;
+
+    }
+
+    #questions{
+      overflow-x:hidden;
+      overflow-y:hidden;
+      height:fit-content;
+      text-align: center;
+    }
+
+    .questionContain{
+      width: fit-content;
+      clear: both;
+      display: inline-block;
+    }
+
+    #BottomDiv{
+        display: block;
+        width: 100%;
+        clear: both;
+    }
+
+    #LeftDiv{
+        border-color: transparent;
+        float: left;
+        text-align: center;
+        width: auto;
+        padding: .5em;
+        height: fit-content;
+        
+   
+    }
+
+    #paragraph{
+            font-size: 60px;
+        }
+
+    body{
+      background-image: url("{% static "app/images/lobbyimage.jpg" %}");
+        background-size: 100% 120%;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        }
+
+    #RightDiv{
+        float: left;
+        padding: .5em;
+        width: 100%;
+        text-align: center;
+        height: fit-content;
+
+
+    }
+
+    #Accuracy{
+        float: left;
+        width: 100%;
+        text-align: center;
+        font-size: 70px;
+    }
+
+    #RoundResult{
+        float: left;
+        text-align: center;
+        width: 100%;
+        font-size: 90px;
+        font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        color:white;
+
+        
+    }
+    #TeamResults{
+      float: left;
+      padding: .5em;
+        text-align: center;
+        width: 100%;
+        font-size: 90px;
+        font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        color:white;
+
+
+    }
+    #BestPlayer{
+      font-size: 70px;
+        font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        color:white;
+
+    }
+
+
+    #Font{
+      font-size: 50px;
+      font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+      width: fit-content;
+      color:white;
+
+
+    }
+    #TotalPositions{
+      font-size: 60px;
+
+    }
+
+
+
+  }
+
+    
 </style>
   
 <!-- <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script> -->
@@ -183,33 +331,6 @@ function init() {
   }
 
 
-  // function updateCurrentQuestionIndex() {
-  //   var query = $.getJSON('current_question_index');
-  //   query.done(function(data) {
-  //     index = data.index
-  //     if (index==undefined) {
-  //       document.location.href = 'app/';
-  //     }
-  //   });
-  // }
-
-  // function checkCurrentQuestionIndex() {
-  //   var query = $.getJSON('/app/current_question_index/');
-  //   query.done(function(data) {
-  //     if (data.index!=index) {
-  //       document.location.reload();
-  //     }
-  //     else if (data.round_finished == False){
-  //       document.location.replace('/app/show_question/');
-  //     }
-  //     // else if (data.game_finished == true){
-  //     //   document.location.replace('/app/game_results/')
-  //     // }
-  //     else {
-  //       setTimeout(checkCurrentQuestionIndex,500)
-  //     }
-  //   });
-  // }
 
 
   function updateUserDisplay(users){
@@ -227,8 +348,12 @@ function init() {
       _points.textContent = user[1]['points'];
      
       _PlayerName.classList.add("spacingLeft");
+      _PlayerName.id = "Font";
       _PlayerRank.classList.add("spacingLeft");
+      _PlayerRank.id = "Font";
+
       _points.classList.add("spacingRight");
+      _points.id = "Font";
 
       _host.appendChild(_PlayerName);
       _host.appendChild(_PlayerRank);
@@ -250,12 +375,11 @@ function init() {
       var _host = document.createElement("li");
 
       _teamName.textContent = team['teamName'] + " rank: ";
+      _teamName.id = "Font";
       _teamRank.textContent = team['rank'] + " points: ";
+      _teamRank.id = "Font";
       _points.textContent = team['points'];
-
-    //   _teamName.textContent = "Team Matrix" + " rank: ";
-    //   _teamRank.textContent = "1" + " points: ";
-    //   _points.textContent = "0";
+      _points.id = "Font";
 
       _teamName.classList.add("spacingLeft");
       _teamRank.classList.add("spacingLeft");
@@ -289,7 +413,7 @@ function init() {
         </div>
         <div id = "BottomDiv">
             <div id = "LeftDiv">
-                <div id = "RoundResult"> <u>Final Team Rankings</u>
+                <div id = "RoundResult"> <u>Match Ranking</u>
                   <div id = "Rank">
                   <ul id = "TeamRank"></ul> 
                   </div>
