@@ -564,6 +564,12 @@ def edit_game(request):
     if gameId == '':
         gameId = request.session.get('gameId','')
     
+    if gameId == '':
+        return redirect(admin_manager)
+    
+    request.session[GAMEID] = context[GAMEID]
+    
+
     context['id'] = "undefined"
     context['name'] = "undefined"
     context['state'] = "undefined"
@@ -691,26 +697,16 @@ def edit_questions(request):
     elif not session.user.is_admin:
         return HttpResponse('Unauthorized', status=401)
 
-    game_id = request.POST.get('gameId','')
-    if game_id == '':
-        game_id == request.session.get('gameId','')
-    
-    if game_id == '':
+    if not session.has_game:
         return redirect(admin_manager)
     
-    game_id = int(game_id)
-
-    game = get_game(game_id)
-    if game == None:
-        return redirect(admin_game)
-    
-    questions = get_questions(game_id)
+    questions = get_questions(session.game.id)
     # if len(questions[1].keys())==0:
     #     create_questions(game_id)
     #     questions = get_questions(game_id)
 
     
-    context['game'] = json.dumps(game.get_info())
+    context['game'] = json.dumps(session.game.get_info())
     context['questions'] = json.dumps(questions)
 
     return render(request,'Admin/edit_questions.html',context)
