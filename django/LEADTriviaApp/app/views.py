@@ -138,12 +138,12 @@ def validate_session(request)->SessionState:
 def get_context(session_state:SessionState):
     context = {}
 
-    context['gameId'] = json.dumps(None)
-    context['gamename'] = ''
-    context['userId'] = json.dumps(None)
-    context['username'] = ''
-    context['teamId'] = json.dumps(None)
-    context['teamname'] = ''
+    context[GAMEID] = json.dumps(None)
+    context[GAMENAME] = ''
+    context[USERID] = json.dumps(None)
+    context[USERNAME] = ''
+    context[TEAMID] = json.dumps(None)
+    context[TEAMNAME] = ''
 
     if session_state.has_user:
         context[USERID] = session_state.user.id
@@ -563,7 +563,6 @@ def edit_game(request):
         context['start_time']='undefined'
         context['is_cancelled']='undefined'
     else:
-        context['name'] = json.dumps(session.game.name)
         context['state'] = json.dumps(session.game.state)
         context['current_round'] = json.dumps(session.game.current_round)
         context['current_question_index'] = json.dumps(session.game.current_question_index)
