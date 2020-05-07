@@ -80,15 +80,14 @@
   </style>
 
 <script>
-    var id = {{id|safe}};
-    var name = {{name|safe}};
+    var name = '{{gamename|safe}}';
     var state = {{state|safe}};
     var currentRound = {{current_round|safe}};
     var currentQuestionIndex = {{current_question_index|safe}};
     var startDate = {{start_date|safe}};
     var startTime = {{start_time|safe}};
     var isCancelled = {{is_cancelled|safe}};
-    var username = '{{username|safe}}'
+    
 
     document.addEventListener('readystatechange', function() {
         if (document.readyState=="complete") {
@@ -110,7 +109,6 @@
         }
     }
     function initItems() {
-        if (id!=undefined) setValue("inputId","value",id)
         if (name!="undefined") setValue("inputName","value",name);
         if (state!=undefined) {
             switch (state) {

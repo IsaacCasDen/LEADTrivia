@@ -496,19 +496,12 @@ def admin_game(request):
     elif not session.user.is_admin:
         return HttpResponse('Unauthorized', status=401)
 
-    game_id = request.POST.get(GAMEID,'')
-    if game_id == '':
-        game_id = request.session.get(GAMEID,'')
     
-    if game_id == '':
+    if not session.has_game:
         redirect(admin_game)
     
-    game_id = int(game_id)
-    request.session[GAMEID] = game_id
-
-    game = get_game(game_id)
-    questions = get_questions(game.id)
-    r = __current_question_index__(game.id)
+    questions = get_questions(session.game.id)
+    r = __current_question_index__(session.game.id)
 
     round_finished = r['round_finished']
     
@@ -518,15 +511,15 @@ def admin_game(request):
     rounds_remaining = 0
     
     item = {'question':'','answer':'','time_allowed':'','time_started':''}
-    if game.current_round in questions[0]:
-        rounds_remaining = (len(questions[0])-1)-questions[0].index(game.current_round)
+    if session.game.current_round in questions[0]:
+        rounds_remaining = (len(questions[0])-1)-questions[0].index(session.game.current_round)
         is_last_round = rounds_remaining == 0
         
-        for i, question in enumerate(questions[1][game.current_round]):
-            if question['round_index'] == game.current_round and question['index'] == game.current_question_index:
+        for i, question in enumerate(questions[1][session.game.current_round]):
+            if question['round_index'] == session.game.current_round and question['index'] == session.game.current_question_index:
                 item = question
-                count_remaining = (len(questions[1][game.current_round])-1)-i
-                if i==len(questions[1][game.current_round])-1:
+                count_remaining = (len(questions[1][session.game.current_round])-1)-i
+                if i==len(questions[1][session.game.current_round])-1:
                     is_last_question = True
                     break
 
@@ -535,9 +528,9 @@ def admin_game(request):
     context["lastQuestion"] = json.dumps(is_last_question)
     context['lastRound'] = json.dumps(is_last_round)
     context['roundsRemaining'] = rounds_remaining
-    context['name'] = json.dumps(game.name)
-    context['currentQuestionIndex'] = json.dumps(game.current_question_index)
-    context['currentRound'] = json.dumps(game.current_round)
+    context['name'] = json.dumps(session.game.name)
+    context['currentQuestionIndex'] = json.dumps(session.game.current_question_index)
+    context['currentRound'] = json.dumps(session.game.current_round)
     context['currentQuestion'] = json.dumps(item['question'])
     context['currentAnswer'] = json.dumps(item['answer'])
     context['timeAllowed'] = ""
@@ -560,45 +553,28 @@ def edit_game(request):
     elif not session.user.is_admin:
         return HttpResponse('Unauthorized', status=401)
 
-    gameId = request.POST.get('gameId','')
-    if gameId == '':
-        gameId = request.session.get('gameId','')
-    
-    if gameId == '':
-        return redirect(admin_manager)
-    
-    request.session[GAMEID] = context[GAMEID]
-    
+    if not session.has_game:
+        context[GAMENAME]='undefined'
+        context['state']='undefined'
+        context['current_round']='undefined'
+        context['start_date']='undefined'
+        context['current_question_index']='undefined'
+        context['start_date']='undefined'
+        context['start_time']='undefined'
+        context['is_cancelled']='undefined'
+    else:
+        context['name'] = json.dumps(session.game.name)
+        context['state'] = json.dumps(session.game.state)
+        context['current_round'] = json.dumps(session.game.current_round)
+        context['current_question_index'] = json.dumps(session.game.current_question_index)
 
-    context['id'] = "undefined"
-    context['name'] = "undefined"
-    context['state'] = "undefined"
-    context['current_round'] = "undefined"
-    context['current_question_index'] = "undefined"
-    context['start_date'] = "undefined"
-    context['start_time'] = "undefined"
-    context['is_cancelled'] = "undefined"
+        date_obj = session.game.start_time
+        date_date = date_obj.date()
+        date_time = date_obj.time()
 
-    if gameId != '':
-        gameId = int(gameId)
-        game = get_game(gameId)
-        if game!=None:
-            request.session[GAMEID] = gameId
-            context['id'] = json.dumps(gameId)
-            context['name'] = json.dumps(game.name)
-            context['state'] = json.dumps(game.state)
-            context['current_round'] = json.dumps(game.current_round)
-            context['current_question_index'] = json.dumps(game.current_question_index)
-
-            date_obj = game.start_time
-            date_date = date_obj.date()
-            date_time = date_obj.time()
-
-            context['start_date'] = json.dumps(date_date.strftime("%Y-%m-%d"))
-            context['start_time'] = json.dumps(date_time.strftime("%H:%M:%S"))
-            context['is_cancelled'] = json.dumps(game.is_cancelled)
-
-
+        context['start_date'] = json.dumps(date_date.strftime("%Y-%m-%d"))
+        context['start_time'] = json.dumps(date_time.strftime("%H:%M:%S"))
+        context['is_cancelled'] = json.dumps(session.game.is_cancelled)
     
     return render(request,'Admin/edit_game.html',context)
 
