@@ -5,6 +5,8 @@
 <!-- <img src= alt="Lobby"> -->
 
 <link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
+<meta name=”viewport” content=”width=device-width, initial-scale=1″>
+
 
 <style>
 
@@ -188,6 +190,188 @@
     .clockGameStarted {
         background-color: blue;
     }
+
+    @media (max-width: 1000px){
+      body {
+        background-image: url("{% static "app/images/lobbyimage.jpg" %}");
+        background-size: 100% 120%;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+      }
+
+      #TextUrl{
+          font-size: 50;
+      }
+      #btnNewTeam {
+        float:left;
+        flex:1;
+
+        width: 260px;
+        height: 100%;
+
+        border-top-right-radius: 1em;
+        border-bottom-right-radius: 1em;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+
+        font-size: 50px;
+        }
+
+        #userInfo {
+        display: flexbox;
+        justify-content: center;
+        align-items: center;
+
+        float:left;
+        flex:1;
+        padding:.25em;
+        background-color: whitesmoke;
+        width: fit-content;
+        text-align: center;
+        border-top-left-radius: 1em;
+        border-bottom-left-radius: 1em;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+        font-size: 50px;
+        
+        }
+
+        .h1 {
+        /* background-color: whitesmoke; */
+        width: 100%;
+        display: inline-block;
+        padding-top: 1em;
+        }
+
+        .divTeam {
+        
+        float:center;
+        background-color: whitesmoke;
+        
+        background-image: linear-gradient(white, orange , tomato);
+
+        border-radius: 5%;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+        width: 500px;
+        text-align: center;
+
+        font-size: 2.2em;
+        }
+        #divTeams {
+            padding-left: 4.8em;
+        }
+
+        #divTitle {
+        position: relative;
+        float:left;
+        padding:0.1em;
+        padding-left: 1em;
+        background-color: firebrick;
+        color: whitesmoke;
+        font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        font-variant: small-caps;
+        font-size: 60px;
+        width: 80%;
+        min-height:1.2em;
+        height: fit-content;
+        
+        flex: 1;
+        flex-direction: column;
+
+        text-align: center;
+        border-top-left-radius: 5em;
+        border-bottom-left-radius: 5em;
+        border-color: black;
+        border-width: 0.5;
+        border-style: solid;
+    }
+
+    .modal {
+        margin-left:auto;
+        margin-right:auto;
+        position: center;
+        width: 100%;
+        height:100%;
+        background-color: rgb(0,0,0);
+        background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+        background-color: #fefefe;
+        padding: 1em;
+        border: 1em solid #888;
+        width:100%;
+        height: 33%;
+        
+    }
+
+    #ButtonID{
+        font-size: 70px;
+    }
+
+    #label{
+        font-size: 70px;
+
+    }
+
+}
+</style>
+
+<style>
+    ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    #topMenu {
+        position: -webkit-sticky;
+        position: sticky;
+        display: inline-block;
+        background-color: whitesmoke;
+        border-bottom: solid darkgray 1px;
+        top: 0;
+        margin-bottom: 1em;    
+        width: 100%;
+        clear: both;
+    }
+
+    .menuItem {
+        padding: 0.5em;
+        border-left: solid 1px darkgray;
+        border-right: solid 1px darkgray;
+        cursor: pointer;
+    }
+
+    .firstMenuItem {
+        padding-left: 1em;
+        border-left: none;
+    }
+
+    .leftMenuItem {
+        float: left ;
+        margin-right: 1em;
+    }
+
+    .lastMenuItem {
+        padding-right: 1em;
+        border-right: none
+    }
+
+    .rightMenuItem {
+        float:right;
+        margin-left: 1em;
+    }
+
+    #title {
+        float:left;
+    }
+
+
+    
 </style>
 
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
@@ -217,7 +401,52 @@
         
     }
 
-   
+    function username_modal(){
+        var userText = document.getElementById('divUser');
+        userText.innerText = username;
+        userText.style.color= "blue"
+        var textUrl = document.createElement('input');
+        textUrl.id = "TextUrl";
+        textUrl.type='text';
+        let modal, buttonOk;
+
+        [modal,buttonOk] = createModal('Enter Username!',textUrl);
+        userText.addEventListener('click', function(event) {
+            modal.style.display = 'block';
+        });
+        buttonOk.addEventListener('click',function() {
+            update_username(textUrl);
+            textUrl.value='';
+        });
+        document.body.appendChild(modal);
+    }
+
+    function update_username(source) {
+        if (source!=undefined) {
+            var data = new FormData();
+            var div = document.createElement('div');
+            div.innerHTML='{% csrf_token %}'
+            var input = div.firstChild;
+            data.append("csrfmiddlewaretoken", input.value);
+            data.append('new_username',source.value);
+            var request = new XMLHttpRequest();
+            request.open('post','/app/update_username/');
+            request.onreadystatechange = function() {
+                if (request.readyState===4) {
+                    value = JSON.parse(request.response);
+                    if (value['status'] === 'okay'){
+                        var userText = document.getElementById('divUser');
+                        userText.innerText = value['username'];                        
+
+                    }else{
+                        alert(value['status']);
+                    }                    
+                        
+                }
+            }
+            request.send(data);
+        }
+    }
 
 
     function initTitlesAndSizes() {
@@ -349,6 +578,7 @@
         divContainer.classList.add('modal-content');
 
         var label = document.createElement('label');
+        label.id = "label";
         label.innerText = urlLabel;
 
         var div1 = document.createElement('div');
@@ -357,6 +587,7 @@
         div1.appendChild(textUrl);
 
         var buttonOk = document.createElement('button');
+        buttonOk.id = "ButtonID";
         buttonOk.classList.add('btn');
         buttonOk.classList.add('btn-primary');
         buttonOk.classList.add('form-control');
@@ -366,6 +597,8 @@
         })
 
         var btnCancel = document.createElement('button')
+        btnCancel.id = "ButtonID";
+
         btnCancel.classList.add('btn');
         btnCancel.classList.add('btn-secondary');
         btnCancel.classList.add('form-control');
@@ -375,6 +608,7 @@
         });
 
         var div2=document.createElement('div');
+        div2.id = "div2"
         div2.classList.add('form-group');
 
         div2.appendChild(buttonOk);

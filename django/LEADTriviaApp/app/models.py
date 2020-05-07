@@ -1070,6 +1070,7 @@ def get_question(game_id:int=None, round_index:int = None, index:int = None, que
     value['round_index']=question.round_index
     value['index']=question.index
     value['time_allowed']=question.question.time_allowed
+    value['time_started']=question.time_started
     value['groups'] = []
     
     groups = TriviaQuestionChoiceGroup.objects.filter(question__id=question.question.id)

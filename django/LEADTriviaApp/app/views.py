@@ -510,7 +510,7 @@ def admin_game(request):
     count_remaining = 0
     rounds_remaining = 0
     
-    item = {'question':'','answer':''}
+    item = {'question':'','answer':'','time_allowed':'','time_started':''}
     if game.current_round in questions[0]:
         rounds_remaining = (len(questions[0])-1)-questions[0].index(game.current_round)
         is_last_round = rounds_remaining == 0
@@ -533,6 +533,12 @@ def admin_game(request):
     context['currentRound'] = json.dumps(game.current_round)
     context['currentQuestion'] = json.dumps(item['question'])
     context['currentAnswer'] = json.dumps(item['answer'])
+    context['timeAllowed'] = ""
+    context['timeStarted'] = ""
+    if item['time_allowed'] != None:
+        context['timeAllowed'] = json.dumps(item['time_allowed'])
+    if item['time_started'] != None:
+        context['timeStarted'] = json.dumps(item['time_started'].strftime("%Y-%m-%d %H:%M:%S"))
 
     return render(request,'Admin/admin_game.html',context)
 
@@ -577,7 +583,6 @@ def edit_game(request):
 
             context['start_date'] = json.dumps(date_date.strftime("%Y-%m-%d"))
             context['start_time'] = json.dumps(date_time.strftime("%H:%M:%S"))
-
             context['is_cancelled'] = json.dumps(game.is_cancelled)
 
 

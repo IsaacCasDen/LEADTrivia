@@ -3,54 +3,144 @@
 {% block content %}
 
 <link rel="stylesheet" type="text/css" href="{% static "app/styles/digitalclock.css" %}">
+<meta name=”viewport” content=”width=device-width, initial-scale=1″>
+
 
 <style>
+  
 
     #Choices{
       display: block;
       clear: both;
       float: left;
-    }
-   
-    .isChoice{
 
     }
+ 
+    .questionText{
+      padding-bottom: 1em;
+      font-size: 35px;
+      text-shadow: -.015em 0 black, 0 .015em black, .015em 0 black, 0 -.015em black;
+      font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 
+    }
 
     #Submit{
       display: block;
       clear: both;
-      float: right;
+      float: bottom;
+      
+    }
+
+    #ChildDiv{
+      height: auto;
+    }
+
+    #Question{
+      padding-top: 5em;
     }
 
     #Answer{
       display: block;
       clear: both;
-      float: left;
+      color:#007bff;
+      padding-top: .5em;
     }
     #divFIB {
       display: inline-block;
       clear: both;
     }
 
-    .text{
-      /* float:left; */
-      /* margin-right: 0.5em; */
-      /* margin-top: 0.5em; */
-      /* padding:0.15em; */
-    }
+
     select {
       background-color: beige;
+      
     }
+
+    body{
+    }
+
 
     .consensus {
       background-color: lightgreen;
     }
 
     .container {
-      float:left;
+      float:center;
       clear: both;
-      width:25em;
+      width: 600px;
+      background-color: transparent;
+    }
+
+
+    .label {
+      position:relative;
+      float:left;
+      margin-left: .5em;
+      width:auto;
+      
+
+    }
+
+    .choice {
+      position:relative;
+      float:center;
+      margin-left: .1em;
+      width:auto;
+     
+      
+    }
+
+    #clock {
+    justify-content: center;
+    align-items: center;
+    float:right;
+    padding:0.02em;
+    padding-top: 3.6em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
+    /* padding-top:0.5em; */
+    margin-top: 0.01em;
+    text-shadow: -.015em 0 black, 0 .015em black, .015em 0 black, 0 -.015em black;
+    font-family:Impact ,Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    /* font-weight: bold; */
+    font-size: 50px;
+    text-align: center;
+    flex:content;
+    flex-direction: column;
+
+  }
+
+
+    .clockTimeWarning {
+        color: red;
+    }
+
+    @media (max-width: 1000px){
+
+      .container {
+      float:center;
+      clear: both;
+      width: auto;
+      background-color: transparent;
+    }
+
+
+      #Question{
+      font-size: 60px;
+      font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    }
+   
+      #clock{
+         justify-content: center;
+         align-items: center;
+         padding-top: 6em;
+      }
+   
+
+
+    #idInput{
+      font-size: 80px;
+      float:right;
     }
 
     .label {
@@ -58,18 +148,103 @@
       float:left;
       margin-left: .5em;
       width:auto;
+      font-size: 70px;
+      
     }
 
-    .choice {
-      position:relative;
+    #buttonDiv{
+      padding-left: 20%;
+      padding-top: 2em;
+
+    }
+
+    #btnSubmit{
+      width:400px;
+      height:125px;
+      font-size: 55px;
+      border-radius: 50%;
+      background-color: steelblue;
+      border-color: steelblue;
+
+    }
+
+    #Answer{
+      display: block;
+      clear: both;
+      color:white;
+      padding-top: .5em;
+      font-size: 60px;
+      text-align: center;
+      font-family:Impact ,Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    }
+
+    #containerId{
+      border: none;
+    }
+
+    #updateClock{
+      font-size: 70px;
+    }
+
+      body{
+      background-color: cyan;
+      background-image: linear-gradient(white, lightblue, steelblue );
+    }
+
+
+  } 
+</style>
+
+<style>
+  ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+  }
+
+  #topMenu {
+      position: -webkit-sticky;
+      position: sticky;
+      display: inline-block;
+      background-color: whitesmoke;
+      border-bottom: solid darkgray 1px;
+      top: 0;
+      margin-bottom: 1em;    
+      width: 100%;
+      clear: both;
+  }
+
+  .menuItem {
+      padding: 0.5em;
+      border-left: solid 1px darkgray;
+      border-right: solid 1px darkgray;
+      cursor: pointer;
+  }
+
+  .firstMenuItem {
+      padding-left: 1em;
+      border-left: none;
+  }
+
+  .leftMenuItem {
+      float: left ;
+      margin-right: 1em;
+  }
+
+  .lastMenuItem {
+      padding-right: 1em;
+      border-right: none
+  }
+
+  .rightMenuItem {
+      float:right;
+      margin-left: 1em;
+  }
+
+  #title {
       float:left;
-      margin-left: .1em;
-      width:auto;
-    }
-
-    .clockTimeWarning {
-        color: red;
-    }
+  }
+  
 </style>
   
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
@@ -92,7 +267,7 @@ document.addEventListener('readystatechange', function() {
 
 function init() {
     updateCurrentQuestionIndex(index)
-    initClock(90);
+    initClock(100);
     initQuestion();
     parseImages();
     parseAudio();
@@ -147,7 +322,7 @@ function init() {
     var divMinutes = document.getElementsByClassName("minutes")[0];
     var divSeconds = document.getElementsByClassName("seconds")[0];
     initLocalClock(time,[10,showTimeWarning],divHours,divMinutes,divSeconds);
-    setAction(timeup);//incriment question action
+    setAction(timeup);
   }
 
   function parseImages(){
@@ -186,7 +361,6 @@ function init() {
   }
 
   function parseVideo(){
-    // Parse youtube path and load it in.
     if (media["videos"].length == 0) return;
     var _media = media["videos"][0];
     var path;
@@ -231,20 +405,22 @@ function initMultipleChoice(group){
   var group = groups[0]
   var choices = group.choices;
   questionDiv.innerText = question;
+  questionDiv.classList.add("questionText")
   answerDiv.innerText = "";
 
   for (var i=0; i<choices.length; i++){
-    // var div = document.createElement('div');
     element = choices[i];
     keys = Object.keys(element);
     container = document.createElement('label');
     container.classList.add('list-group-item');
+    container.id = "containerId";
     container.classList.add('container');
 
     var label = document.createElement('div');
     label.classList.add('form-check-label');
     label.classList.add('label');
     label.innerText = element['value'];
+    label.id = "idLabel";
     
     input=document.createElement('input');
     input.classList.add("choice")
@@ -253,13 +429,11 @@ function initMultipleChoice(group){
     input.value = element['id'];
     input.type = "radio";
     input.name = "option_" + group.id;
-    input.id="idInput" + input.value;
+    input.id="idInput";
     
     container.appendChild(input);
     container.appendChild(label);
 
-    // div.appendChild(input)  
-    // div.appendChild(label)
     choicesDiv.appendChild(container);
  }
 }
@@ -271,7 +445,7 @@ function initFillInBlank(){
 function createQuestionDiv(text){
   var questionDiv=document.getElementById("Question");
   var answerDiv=document.getElementById("Answer");
-  questionDiv.innerText = "Fill in the Blank Question"; // Hard coded for now!
+  questionDiv.innerText = "Fill in the Blank Question";
   var divChoices = document.getElementById('Choices');
   var parentElement = divChoices.parentElement;
   questionDiv.innerText = "Please fill in the blanks!";
@@ -294,9 +468,6 @@ function createQuestionDiv(text){
 function createChoices(group){
   var optionSelect = document.createElement("select"); 
   optionSelect.name = "option_" + group.id;
-  // optionSelect.classList.add("form-control");
-  optionSelect.classList.add("text");
-  optionSelect.classList.add("isChoice");
     for (c in group.choices){
       var _choices = document.createElement('option');
       _choices.innerText = group.choices[c].value;
@@ -305,16 +476,12 @@ function createChoices(group){
 
       }
       return optionSelect
-      // choiceDiv.appendChild(optionSelect);
-      // return choiceDiv;
 
   }
 
   function submitAnswer() {
-    //action=""
     var form = $('#formAnswer');
     var data = form.serializeArray();
-    // var submit = $.getJSON("submit_answer/");
     $.ajax({
       type:"POST",
       url:"submit_answer/",
@@ -334,28 +501,33 @@ function createChoices(group){
   }
 
   function onBtnSubmitClicked() {
-    submitAnswer()
+      submitAnswer()
+      alert('Answer Submitted');
+
+
   }
   
 </script>
 
-<!-- This needs to fix the border to wrap correctly and then move the submit button -->
 <body >
   {% include "../Components/top_menu.html" %}
   <div class="container">
     <div>
-      <div>
-      <form id="formAnswer"> <!-- use the action tag to tell the form on submit to either refresh the page or to redirect -->
-        {% csrf_token %}
-        <article id="clock" class="clock">
-          <div class="minutes"></div>
-          <div class="timesep">:</div>
-          <div class="seconds"></div>
-        </article>
-        <div>
-          <div id="Question">PlaceHolder Question</div>
-          <input type="hidden" id = "inputQuestionId" name="questionId" />
+      <div id = "ParentDiv">
+        <div ID = "ChildDiv">
+          <div id="clock" class="clock">
+            <div >
+              <div class="minutes" id = "updateClock"></div>
+              <div class="timesep" id = "updateClock">:</div>
+              <div class="seconds" id = "updateClock"></div>
+            </div>
+           </div>
+            <div id="Question">PlaceHolder Question</div>
+            <input type="hidden" id = "inputQuestionId" name="questionId" />
         </div>
+      <form id="formAnswer"> 
+        {% csrf_token %}
+
         <div>
           
           <div id = "Media" style="width: auto;">
@@ -378,9 +550,12 @@ function createChoices(group){
         </div>
         <div id = "Choices" class ="list-group col-lg-auto"></div>
         <div style="clear: both;" ></div>
-      </form>
-      <div id = "Answer">PlaceHolder Answer</div>
+      </form> 
+      <div id="buttonDiv">    
       <button id="btnSubmit" class="btn btn-primary" onclick="onBtnSubmitClicked()">Submit</button>
+    </div>  
+      <div id = "Answer">PlaceHolder Answer</div>
+
       </div>
     </div>
   </div>

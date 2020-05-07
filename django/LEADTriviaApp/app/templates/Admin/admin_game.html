@@ -4,8 +4,56 @@
 {% block content%}
 
 <style>
-
-</style>
+    ul {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+  
+    #topMenu {
+        position: -webkit-sticky;
+        position: sticky;
+        display: inline-block;
+        background-color: whitesmoke;
+        border-bottom: solid darkgray 1px;
+        top: 0;
+        margin-bottom: 1em;    
+        width: 100%;
+        clear: both;
+    }
+  
+    .menuItem {
+        padding: 0.5em;
+        border-left: solid 1px darkgray;
+        border-right: solid 1px darkgray;
+        cursor: pointer;
+    }
+  
+    .firstMenuItem {
+        padding-left: 1em;
+        border-left: none;
+    }
+  
+    .leftMenuItem {
+        float: left ;
+        margin-right: 1em;
+    }
+  
+    .lastMenuItem {
+        padding-right: 1em;
+        border-right: none
+    }
+  
+    .rightMenuItem {
+        float:right;
+        margin-left: 1em;
+    }
+  
+    #title {
+        float:left;
+    }
+    
+  </style>
 
 <script>
     var username = '{{username|safe}}'
@@ -19,6 +67,9 @@
     var countRemaining = {{countRemaining|safe}};
     var roundsRemaining = {{roundsRemaining|safe}};
     var roundFinished = {{roundFinished | safe}};
+    var timeAllowed = {{timeAllowed | safe}};
+    var timeStarted = {{timeStarted | safe}};
+
 
     document.addEventListener('readystatechange', function() {
         if (document.readyState=="complete") {
@@ -35,13 +86,27 @@
         var divCurrentIndex = document.getElementById('divCurrentQuestion');
         var divQuestion = document.getElementById('divCurrentQuestionText');
         var divAnswer = document.getElementById('divCurrentAnswerText');
-
+        setTimeout(lockButton,500)
         divName.innerText = name;
         divRemaining.innerText = countRemaining;
         divRound.innerText = currentRound
         divCurrentIndex.innerText = currentQuestionIndex
         divQuestion.innerText = currentQuestion;
         divAnswer.innerText = currentAnswer;
+        lockButton()
+
+    }
+
+    function lockButton(){
+        var div = document.getElementById("move_forward");
+        div.disabled = true;
+        var currentTime = date.now()
+        //Lock button
+
+
+
+
+        setTimeout(lockButton,500)
     }
 
     function updateButton(){

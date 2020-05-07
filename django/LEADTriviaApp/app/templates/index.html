@@ -1,6 +1,77 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
+<meta name=”viewport” content=”width=device-width, initial-scale=1″>
+
+<style>
+
+    #title{
+            padding-top: 1em;
+            padding-bottom: 1em;
+            padding-left: 1.5em;
+            font-size: 35px;
+            text-shadow: -.015em 0 black, 0 .015em black, .015em 0 black, 0 -.015em black;
+            font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    }
+
+    #divLi{
+            display:block;
+            clear: both;
+            width: auto;
+
+        }
+
+    @media (max-width: 1000px){
+        #title{
+            padding-bottom: 1em;
+            padding-right: 3.2em;
+            font-size: 55px;
+            text-shadow: -.015em 0 black, 0 .015em black, .015em 0 black, 0 -.015em black;
+            font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+        }
+
+        #divLi{
+            display:block;
+            clear: both;
+            width: 600px; 
+            padding-left: 4.9em; 
+            
+        }
+
+        #idList{
+            display:block;
+            clear: both;
+            float: center;
+            width: 600px; 
+
+        }
+
+        body{
+            background-color: cyan;
+            background-image: linear-gradient(white, lightblue, steelblue );
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+
+
+        #labelID{
+            text-align: center;
+            font-size: 50px;
+        }
+
+        #divLableId{
+            font-size: 50px;
+        }
+
+        #buttonClass{
+            width:210px;
+            height:100px;
+            font-size:35px;
+        }
+    }
+
+</style>
 
 <style>
     
@@ -27,6 +98,7 @@
         var divGames = document.getElementById('divGames');
         
         var list = document.createElement('ul');
+        list.id = "divLi";
         list.style.listStyleType='none';
         list.classList.add('list');
 
@@ -50,27 +122,29 @@
 
     function createGame(game) {
         var li = document.createElement('li');
+        li.id = "idList";
         // li.style.clear='both';
-        li.classList.add('border');
+        // li.classList.add('border');
         li.classList.add('list');
         li.style.float='left';
         li.style.margin='0.5em';
 
         if (game['state']==2) {
-            li.style.backgroundColor='lightgray';
+            li.style.backgroundColor='silver';
         }
 
         var divContent = document.createElement('div');
         var label = document.createElement('label');
+        label.id = "labelID";
         label.style.cursor='pointer';
         label.style.padding='0.25em';
         label.innerText = game['name'];
-        label.style.backgroundColor='lightblue';
+        label.style.backgroundColor='silver';
         label.style.width='100%';
-        label.style.borderBottom = 'solid lightgray 1px';
+        label.style.borderBottom = 'solid silver 5px';
 
         var ul = document.createElement('ul');
-
+        
         ul.appendChild(createField('Status:',parseGameState(game['state'])));
         ul.appendChild(createField('Current Round:',game['current_round']));
         ul.appendChild(createField('Current Question:',game['current_question_index']+1));
@@ -88,6 +162,7 @@
         controls.style.display='flex';
 
         var btnJoin = document.createElement('button');
+        btnJoin.id = "buttonClass";
         btnJoin.classList.add('btn');
         btnJoin.classList.add('btn-primary');
         btnJoin.style.margin='0.5em';
@@ -97,6 +172,7 @@
         });
         
         var btnCompetition = document.createElement('button');
+        btnCompetition.id = "buttonClass";
         btnCompetition.classList.add('btn');
         btnCompetition.classList.add('btn-success');
         btnCompetition.style.margin='0.5em';
@@ -159,10 +235,12 @@
         divContent.style.padding='0.1em';
 
         var divLabel = document.createElement('label');
+        divLabel.id = "divLableId";
         divLabel.style.float='left';
         divLabel.innerText=label;
 
         var divValue = document.createElement('div');
+        divValue.id = "divLableId";
         divValue.style.float='left';
         divValue.style.marginLeft = '0.5em';
         divValue.innerText = value;
