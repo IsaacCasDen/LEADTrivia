@@ -89,6 +89,8 @@ def validate_session(request)->SessionState:
     else:
         request.session['mode'] = int(mode)
 
+    user = None
+
     if userId!='':
         userId = int(userId)
         user = User.objects.filter(id=userId)
@@ -108,7 +110,7 @@ def validate_session(request)->SessionState:
         session_state.has_game=True
         session_state.game=game
 
-    if user != '':
+    if userId != '':
         u = TeamMember.objects.filter(user__id=userId,game__id=gameId)
         if len(u) == 0:
             session_state.is_orphan = True
