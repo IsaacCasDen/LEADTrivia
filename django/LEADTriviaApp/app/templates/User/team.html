@@ -539,14 +539,23 @@
     
 
 </script>
-<body>
-  <div>
-    <div id ="Parent Div" >
-      <div id="team">
-        <div id="team_header">
-          <div id="team_info">
-            <div id="team_name" ></div>
-            <input type="image" id="btnEditTeamName" src="{% static "app/images/edit.png" %}" alt="Suggest new name">
+
+<div>
+  <div style="width: fit-content; height: fit-content; margin-left: auto; margin-right: auto;">
+    {% include "../Components/top_menu.html" %}
+    <div id="team">
+      <div id="team_header">
+        <div id="team_info">
+          <div id="team_name" class="title"></div>
+          <input type="image" id="btnEditTeamName" src="{% static "app/images/edit.png" %}" alt="Suggest new name">
+        </div>
+        <div id="clock" class="clock">
+          <div>
+            <!-- <div class="hours"></div>
+            <div class="timesep">:</div> -->
+            <div class="minutes"></div>
+            <div class="timesep">:</div>
+            <div class="seconds"></div>
           </div>
           <div id="clock" class="clock">
             <div>

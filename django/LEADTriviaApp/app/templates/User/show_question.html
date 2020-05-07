@@ -198,7 +198,7 @@
 <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script>
 
 <script>
-
+var username = '{{username|safe}}'
 var question = '{{Question | safe}}';
 var answer = "{{Answer | safe}}";
 var actualAnswer = "{{ActualAnswer | safe}}";
@@ -458,6 +458,7 @@ function createChoices(group){
 </script>
 
 <body >
+  {% include "../Components/top_menu.html" %}
   <div class="container">
     <div>
       <div id = "ParentDiv">

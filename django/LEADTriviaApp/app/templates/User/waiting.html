@@ -9,7 +9,7 @@
 </style>
 
 <script>
-
+    var username = '{{username|safe}}'
     document.onreadystatechange = function(){
         if (document.readyState == "complete"){
             init();
@@ -21,22 +21,23 @@
 
     function checkCurrentQuestionIndex() {
     var query = $.getJSON('/app/current_question_index/');
-    query.done(function(data) {
-      if (!data.round_finished){
-        document.location.replace('/app/show_question/')
-      }
-      else if (data.game_finished == true){
-        document.location.replace('/app/final_results/')
-      }
-      else {
-        setTimeout(checkCurrentQuestionIndex,500)
-      }
+  query.done(function(data) {
+    if (!data.round_finished){
+      document.location.replace('/app/show_question/')
+    }
+    else if (data.game_finished == true){
+      document.location.replace('/app/final_results/')
+    }
+    else {
+      setTimeout(checkCurrentQuestionIndex,500)
+    }
     });
   }
 </script>
 
 <body>
     <div>
+        {% include "Components/top_menu.html" %}
         <h1>No results to display for your team this round</h1>
         <h2>Waiting for next round to start</h2>
     </div>

@@ -296,7 +296,7 @@
 <!-- <script type="text/javascript" src="{% static "app/scripts/digitalclock.js" %}"></script> -->
 
 <script>
-
+  var username = '{{username|safe}}'
   var game = {{game|safe}};
   var results = {{results|safe}};
   var teams = results['teams'];
@@ -397,7 +397,8 @@ function init() {
 
 
 </script>
-<body >
+<body>
+    {% include "../Components/top_menu.html" %}
     <div class="container">
         <div id = "TopDiv">
             {% csrf_token %}

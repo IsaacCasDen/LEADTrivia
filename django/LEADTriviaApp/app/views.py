@@ -36,6 +36,9 @@ class SessionState():
         self.has_team=False
         self.team = None
 
+        self.has_mode = False
+        self.mode = None
+
     def game_state(self):
         if self.game==None:
             return None
@@ -64,21 +67,35 @@ def validate_session(request)->SessionState:
     gameId = request.POST.get('gameId','')
     userId = request.POST.get('userId','')
     teamId = request.POST.get('teamId','')
+    mode = request.POST.get('mode','')
 
     if gameId == '':
         gameId = request.session.get('gameId','')
     else:
-        request.session['gameId'] = gameId
+        request.session['gameId'] = int(gameId)
 
     if userId == '':
         userId = request.session.get('userId','')
     else:
-        request.session['userId'] = userId
+        request.session['userId'] = int(userId)
 
     if teamId == '':
         teamId = request.session.get('teamId','')
     else:
-        request.session['teamId'] = teamId
+        request.session['teamId'] = int(teamId)
+
+    if mode == '':
+        mode = request.session.get('mode','')
+    else:
+        request.session['mode'] = int(mode)
+
+    if userId!='':
+        userId = int(userId)
+        user = User.objects.filter(id=userId)
+        if len(user)>0:
+            user = user[0]
+            session_state.has_user=True
+            session_state.user = user
 
     if gameId == '':
         return session_state
@@ -91,27 +108,13 @@ def validate_session(request)->SessionState:
         session_state.has_game=True
         session_state.game=game
 
-    if userId != '':
-        userId = int(userId)
-        user = TeamMember.objects.filter(user__id=userId,game__id=gameId)
-        if len(user)>0:
-            session_state.has_user = True
-            session_state.user=user[0].user
-        else:
-            user = OrphanUser.objects.filter(user__id=userId,game__id=gameId)
-            if len(user)>0:
-                session_state.has_user = True
-                session_state.is_orphan = True
-                session_state.user=user[0].user
-            else:
-                user = User.objects.filter(id=userId)
-                if len(user)>0:
-                    user = add_orphan(gameId,userId)
-                    if user!=None:
-                        session_state.has_user=True
-                        session_state.is_orphan=True
-                        session_state.user=user.user
-
+    if user != '':
+        u = TeamMember.objects.filter(user__id=userId,game__id=gameId)
+        if len(u) == 0:
+            session_state.is_orphan = True
+            u = OrphanUser.objects.filter(user__id=userId,game__id=gameId)
+            if len(u)==0:
+                u = add_orphan(gameId,userId)
 
     if teamId != '':
         teamId = int(teamId)
@@ -120,19 +123,13 @@ def validate_session(request)->SessionState:
             session_state.has_team = True
             session_state.team=team[0]
     
+    if mode != '':
+        session_state.has_mode = True
+
     return session_state
     
-
-
-def index(request):
-    init_session_vars(request)
-    session = validate_session(request)
-
+def get_context(session_state:SessionState):
     context = {}
-    
-    games = [game.get_info() for game in get_games()]
-
-    context['games'] = json.dumps(games)
 
     context['gameId'] = json.dumps(None)
     context['gamename'] = ''
@@ -141,7 +138,25 @@ def index(request):
     context['teamId'] = json.dumps(None)
     context['teamname'] = ''
 
+    if session_state.has_user:
+        context[USERID] = session_state.user.id
+        context[USERNAME] = session_state.user.user_name
+    if session_state.has_team:
+        context[TEAMID] = session_state.team.id
+        context[TEAMNAME] = session_state.team.team_name
+    if session_state.has_game:
+        context[GAMEID] = session_state.game.id
+        context[GAMENAME] = session_state.game.name
+        
+    return context
 
+def index(request):
+    init_session_vars(request)
+    session = validate_session(request)
+    context = get_context(session)
+    
+    games = [game.get_info() for game in get_games()]
+    context['games'] = json.dumps(games)
 
     if session.has_game:
         context['gameId'] = session.game.id
@@ -163,8 +178,7 @@ def index(request):
 def lobby(request):
     init_session_vars(request)
     session = validate_session(request)
-
-    context = {}
+    context = get_context(session)
 
     if session.has_game:
         context['gameId'] = session.game.id
@@ -172,14 +186,8 @@ def lobby(request):
     else: 
         return redirect(index)
 
-    mode = request.POST.get('mode','')
-    if mode == '':
-        mode = request.session.get('mode','')
-    if mode == '':
+    if not session.has_mode:
         return redirect(index)
-    else:
-        mode = int(mode)
-        request.session['mode'] = mode
 
     if session.has_user and not session.has_team:
         user = get_user(session.game.id,session.user.id)
@@ -222,7 +230,7 @@ def lobby(request):
     context['game']= json.dumps(state['Game'])
     context['errors'] = request.session['errors'] 
 
-    if mode == 0:
+    if session.mode == 0:
         return render(request, 'User/lobby.html',context)
     else:
         return render(request, 'Competition/comp_lobby.html',context)
@@ -230,16 +238,13 @@ def lobby(request):
 def team(request):
     init_session_vars(request)
     session = validate_session(request)
+    context = get_context(session)
 
     if not session.has_game:
         return redirect(index)
-    
-    mode = request.session['mode']
-    
-    if mode == 1 or (mode == 0 and not session.has_user):
+        
+    if session.has_mode and (session.mode == 1 or (session.mode == 0 and not session.has_user)):
         return redirect(lobby)
-
-    context = {}
 
     if not session.has_team:
         name1 = 'Team '
@@ -281,6 +286,7 @@ def team(request):
 def leave_team(request):
     init_session_vars(request)
     session = validate_session(request)
+    context = get_context(session)
 
     if not session.has_game:
         return redirect(index)
@@ -297,6 +303,7 @@ def leave_team(request):
 def update_teamname(request):
     init_session_vars(request)
     session = validate_session(request)
+    context = get_context(session)
 
     value = {'status':'', 'teamname':''}
 
@@ -321,7 +328,10 @@ def update_teamname(request):
     return JsonResponse(value)
 
 def update_username(request):
+    init_session_vars(request)
     session = validate_session(request)
+    context = get_context(session)
+
     new_username = request.POST.get('new_username','')
     response = {'status':'', 'username':''}
     
@@ -339,8 +349,12 @@ def update_username(request):
     return JsonResponse(response)
 
 def next_round(request):
-    mode = request.session['mode']
-    context = {}
+    init_session_vars(request)
+    session = validate_session(request)
+    context = get_context(session)
+     
+    if not session.has_mode:
+        return redirect(index)
 
     gameId = request.session.get(GAMEID,'')
     if gameId == '':
@@ -352,15 +366,19 @@ def next_round(request):
         
     context['round'] = game.current_round
     
-    if mode == 0:
+    if session.mode == 0:
         return render(request,'User/next_round.html',context)
     else:
         return render(request, 'Competition/comp_next_round.html', context)
 
 def show_question(request):
-    mode = request.session['mode']
-
     init_session_vars(request)
+    session = validate_session(request)
+    context = get_context(session)
+
+    if not session.has_mode:
+        return redirect(index)
+    
     gameId = request.POST.get('gameId', request.session.get('gameId', ''))
 
 
@@ -381,7 +399,6 @@ def show_question(request):
     ind = game.current_question_index
     round_index = game.current_round
     question = get_question(game_id=gameId, index=ind, round_index = round_index)
-    context= {}
     
     context["Question"] = question["question"].replace("'",'"')
     context["Media"] = json.dumps({'videos': question['videos'], 'images': question['images'],'audios': question['audios']})
@@ -390,7 +407,7 @@ def show_question(request):
     context["groups"] = question["groups"]
     context["questionId"] = question["id"]
     
-    if mode == 0:
+    if session.mode == 0:
         return render(request, 'User/show_question.html',context)
     else:
         return render(request, "Competition/comp_show_question.html",context)
@@ -408,32 +425,32 @@ def admin_prev_question(request):
     return redirect(admin_game)
 
 def admin_next_question(request):
-    
-    gameId = request.session.get('gameId','')
-    if gameId == '':
+    init_session_vars(request)
+    session = validate_session(request)
+    context = get_context(session)
+
+    if not session.has_game:
         return redirect(admin_manager)
 
-    gameId = int(gameId)
-
-    game = get_game(gameId)
-    game.next_question()
+    session.game.next_question()
     return redirect(admin_game)
 
 def submit_answer(request):
-    value = {}
     init_session_vars(request)
+    session = validate_session(request)
+    context = get_context(session)
 
-    gameId = request.session.get(GAMEID,'')
-    userId = request.session.get(USERID,'')
-    teamId = request.session.get(TEAMID,'')
+    value = {}
+    
+    if not session.has_game or not session.has_team or not session.has_user:
+        return redirect(index)
     
     questionId = request.POST.get('questionId','')
     if questionId == '':
         questionId = request.session.get('questionId','')
 
-    if gameId == '' or userId == '' or teamId == '' or questionId == '':
+    if questionId == '':
         return redirect(index)
-    
     questionId = int(questionId)
 
     options = []
@@ -456,9 +473,16 @@ def submit_answer(request):
     return JsonResponse(value)
 
 def admin_manager(request):
-    context = {}
+    init_session_vars(request)
+    session = validate_session(request)
+    context = get_context(session)
 
-    request.session[GAMEID] = ''
+    if not session.has_user:
+        request.session['next_page'] = 'admin_manager'
+        return redirect(login)
+    elif not session.user.is_admin:
+        return HttpResponse('Unauthorized', status=401)
+
     show_activeonly = request.POST.get('show_activeonly','')
     if show_activeonly == '':
         show_activeonly = False
@@ -473,6 +497,15 @@ def admin_manager(request):
     return render(request,'Admin/admin_manager.html',context)
 
 def admin_game(request):
+    init_session_vars(request)
+    session = validate_session(request)
+    context = get_context(session)
+
+    if not session.has_user:
+        request.session['next_page'] = 'admin_manager'
+        return redirect(login)
+    elif not session.user.is_admin:
+        return HttpResponse('Unauthorized', status=401)
 
     game_id = request.POST.get(GAMEID,'')
     if game_id == '':
@@ -508,9 +541,6 @@ def admin_game(request):
                     is_last_question = True
                     break
 
-
-
-    context = {}
     context['roundFinished'] = json.dumps(round_finished)
     context['countRemaining'] = json.dumps(count_remaining)
     context["lastQuestion"] = json.dumps(is_last_question)
@@ -531,7 +561,15 @@ def admin_game(request):
     return render(request,'Admin/admin_game.html',context)
 
 def edit_game(request):
-    context = {}
+    init_session_vars(request)
+    session = validate_session(request)
+    context = get_context(session)
+
+    if not session.has_user:
+        request.session['next_page'] = 'edit_game'
+        return redirect(login)
+    elif not session.user.is_admin:
+        return HttpResponse('Unauthorized', status=401)
 
     gameId = request.POST.get('gameId','')
     if gameId == '':
@@ -570,11 +608,29 @@ def edit_game(request):
     return render(request,'Admin/edit_game.html',context)
 
 def create_game(request):
-    context = {}
+    init_session_vars(request)
+    session = validate_session(request)
+    context = get_context(session)
+
+    if not session.has_user:
+        request.session['next_page'] = 'create_game'
+        return redirect(login)
+    elif not session.user.is_admin:
+        return HttpResponse('Unauthorized', status=401)
+
     request.session[GAMEID] = ''
     return redirect(edit_game)
 
 def save_game(request):
+    init_session_vars(request)
+    session = validate_session(request)
+    context = get_context(session)
+
+    if not session.has_user:
+        request.session['next_page'] = 'create_game'
+        return redirect(login)
+    elif not session.user.is_admin:
+        return HttpResponse('Unauthorized', status=401)
     
     game_id = request.POST.get('gameId','')
     name = request.POST.get('name','')
@@ -630,6 +686,15 @@ def save_game(request):
         return redirect(edit_game)
     
 def edit_questions(request):
+    init_session_vars(request)
+    session = validate_session(request)
+    context = get_context(session)
+
+    if not session.has_user:
+        request.session['next_page'] = 'edit_questions'
+        return redirect(login)
+    elif not session.user.is_admin:
+        return HttpResponse('Unauthorized', status=401)
 
     game_id = request.POST.get('gameId','')
     if game_id == '':
@@ -649,7 +714,7 @@ def edit_questions(request):
     #     create_questions(game_id)
     #     questions = get_questions(game_id)
 
-    context = {}
+    
     context['game'] = json.dumps(game.get_info())
     context['questions'] = json.dumps(questions)
 
@@ -658,11 +723,9 @@ def edit_questions(request):
 def round_results(request):
     init_session_vars(request)
     session = validate_session(request)
-    mode = request.session['mode']
+    context = get_context(session)
 
-    context = {}
-    
-    if not session.has_game:
+    if not session.has_game or not session.has_mode:
         return redirect(index)
 
     round_results = get_round_results(session.game.id,session.game.current_round)
@@ -678,7 +741,7 @@ def round_results(request):
     context['game'] = json.dumps(data['Game'])
     context['errors'] = request.session['errors']
 
-    if mode == 0:
+    if session.mode == 0:
         if not session.has_user:
             return redirect(index)
 
@@ -712,11 +775,9 @@ def round_results(request):
 def final_results(request):
     init_session_vars(request)
     session = validate_session(request)
-    mode = request.session['mode']
-    context = {}
+    context = get_context(session)
 
-    if not session.has_game:
-        return redirect(index)
+    if not session.has_game or not session.has_mode:
         return redirect(index)
 
 
@@ -736,7 +797,7 @@ def final_results(request):
     context['game'] = json.dumps(data['Game'])
     context['errors'] = request.session['errors']
 
-    if mode == 0 and session.has_user and session.has_team and session.team.id in game_results['teams']:
+    if session.mode == 0 and session.has_user and session.has_team and session.team.id in game_results['teams']:
         results['users'] = game_results['users']
         results['teamRank'] = game_results['teamRank'] 
         results['teams'] = game_results['teams']
@@ -784,6 +845,16 @@ def current_question_index(request):
     return JsonResponse(value)
 
 def admin_save_questions(request):
+    init_session_vars(request)
+    session = validate_session(request)
+    context = get_context(session)
+
+    if not session.has_user:
+        request.session['next_page'] = 'edit_questions'
+        return redirect(login)
+    elif not session.user.is_admin:
+        return HttpResponse('Unauthorized', status=401)
+        
     value = {}
     value['result'] = False
 
@@ -889,4 +960,87 @@ def get_temp_location(root,folder,filename)->str:
 
     return (path,rel_path)
 
+def login(request):
+    init_session_vars(request)
+    session = validate_session(request)
+    context = get_context(session)
+
+    if session.has_user:
+        return perform_redirects(request)
+
+    context['username'] = request.session.get('last_username','')
+    return render(request,'login.html',context)
+
+def logout(request):
+    request.session['mode'] = ''
+    request.session['gameId'] = ''
+    request.session['errors'] = []
+    request.session['userId'] = ''
+    request.session['username'] = ''
+    request.session['teamId'] = ''
+    return redirect(index)
     
+
+def login_user(request):
+    init_session_vars(request)
+
+    user_name = request.POST.get('username','')
+    password = request.POST.get('password')
+
+    if user_name == '' or password == '':
+        request.session['last_username'] = user_name
+        return redirect(login)
+    
+    user = authenticate_user(user_name,password)
+    if user == None:
+        request.session['last_username'] = user_name
+        return redirect(login)
+
+    request.session[USERID] = user.id
+    request.session[USERNAME] = user.user_name
+    request.session['next_page'] = 'admin_manager'
+
+    if user.is_temp_pwd:
+        return redirect(user_change_password)
+
+    return perform_redirects(request)
+
+def perform_redirects(request):
+    next_page = request.session.get('next_page','')
+    if next_page != '':
+        request.session['next_page'] = ''
+        if next_page == 'admin_manager':
+            return redirect(admin_manager)
+        elif next_page == 'edit_questions':
+            return redirect(edit_questions)
+        elif next_page == 'create_game':
+            return redirect(create_game)
+        elif next_page == 'edit_game':
+            return redirect(edit_game)
+        
+    return redirect(index)
+
+def user_change_password(request):
+    init_session_vars(request)
+    return render(request,'user_change_password.html')
+
+
+def change_password(request):
+    init_session_vars(request)
+
+    user_id = request.session.get(USERID,'')
+
+    if user_id == '':
+        return redirect(login_user)
+
+    old_password = request.POST.get('oldPassword', '')
+    new_password = request.POST.get('password', '')
+    conf_password = request.POST.get('passwordConfirm', '')
+
+    if old_password == '' or new_password == '' or conf_password == '':
+        return redirect(user_change_password)
+    
+    if not change_user_password(user_id,old_password,new_password,conf_password):
+        return redirect(user_change_password)
+    
+    return perform_redirects(request)

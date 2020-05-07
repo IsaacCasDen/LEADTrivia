@@ -13,7 +13,7 @@
 </style>
 
 <script>
-
+    var username = '{{username|safe}}'
     var round = {{round|safe}};
 
     document.onreadystatechange = function() {
@@ -27,7 +27,7 @@
 </script>
 
 <body>
-
+    {% include "../Components/top_menu.html" %}
     <div id="divRound"></div>
 
 </body>

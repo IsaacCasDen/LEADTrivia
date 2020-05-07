@@ -344,7 +344,6 @@
         initClock(timeremaining);
         initTeams();
         initTitlesAndSizes();
-        username_modal();
         
     }
 
@@ -571,6 +570,7 @@
 
 </script>
 <body>
+    {% include "../Components/top_menu.html" %}
     <form id="formTeams" method="POST" action="/app/team/">
         {% csrf_token %}
         <div id="header">

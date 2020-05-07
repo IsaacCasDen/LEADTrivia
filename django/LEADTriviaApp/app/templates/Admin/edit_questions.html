@@ -483,7 +483,7 @@
             }
         }
     }
-
+    var username = '{{username|safe}}'
     var game = {{game|safe}};
     var game;
     var questions = {{questions|safe}};
@@ -1756,6 +1756,7 @@
 </script>
 
 <body>
+    {% include "../Components/top_menu.html" %}
     <div id="divData">
         <ul id="ulRounds">
 

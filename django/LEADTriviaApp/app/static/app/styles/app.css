@@ -1,0 +1,40 @@
+#topMenu {
+    position: -webkit-sticky;
+    position: sticky;
+    display: inline-block;
+    background-color: whitesmoke;
+    border-bottom: solid darkgray 1px;
+    top: 0;
+    margin-bottom: 1em;    
+    width: 100%;
+    clear: both;
+}
+
+.menuItem {
+    padding: 0.5em;
+    cursor: pointer;
+}
+
+.firstMenuItem {
+    /* padding-left: 1em; */
+    border-left: none;
+}
+
+.leftMenuItem {
+    float: left ;
+    border-right: solid 1px darkgray;
+    margin-right: 1em;
+    margin-left: 1em;
+}
+
+.lastMenuItem {
+    /* padding-right: 1em; */
+    border-right: none
+}
+
+.rightMenuItem {
+    float:right;
+    border-left: solid 1px darkgray;
+    margin-right: 1em;
+    margin-left: 1em;
+}

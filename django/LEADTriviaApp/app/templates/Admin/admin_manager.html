@@ -35,6 +35,7 @@
 
 <script>
     var games = {{Games|safe}}
+    var username = '{{username|safe}}'
 
     document.onreadystatechange = function() {
         if (document.readyState=="complete") {
@@ -156,6 +157,7 @@
 </script>
 
 <body>
+    {% include "../Components/top_menu.html" %}
     <div style="float: left; margin: 0.25em;" class="border">
     <label for="chkShowOpenOnly" style="display: inline-block;">Show Open Games Only</label>
     <input style="display: inline-block; margin-left: 0.3em; margin-top: 0.3em;" type="checkbox" id="chkShowOpenOnly" name="showOpenOnly" value="Show Open Games Only" onchange="onchangeShowOpenOnly()" />
