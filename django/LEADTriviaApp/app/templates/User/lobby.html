@@ -394,6 +394,7 @@
     var timeremaining = 0;
     var timerEvents = [[40,showTimeWarning]];
     var username = "{{username|safe}}";
+    var time_start = undefined;
 
 
 
@@ -404,11 +405,18 @@
     });
 
     function init() {
-        timeremaining = calcTimeRemaining(game['StartTime']['date'], game['StartTime']['time']);
+        time_start = new Date(game['StartTime']['date'] + 'T' + game['StartTime']['time'] + '.000Z');
+
+        timeremaining = calcTimeRemaining();
         initClock(timeremaining);
         initTeams();
         initTitlesAndSizes();
         
+    }
+
+    function calcTimeRemaining() {
+        var diff = (time_start - Date.now())/1000; 
+        return diff;
     }
 
     function username_modal(){
@@ -471,12 +479,6 @@
         var btnNewTeam = document.getElementById('btnNewTeam');
 
         btnNewTeam.style.height = userInfo.clientHeight;
-    }
-
-    function calcTimeRemaining(date,time) {
-        var value = new Date(date + ' ' + time);
-        var diff = (value - Date.now())/1000; 
-        return diff;
     }
 
     function timeup() {

@@ -305,8 +305,7 @@
   var users = {{users|safe}};
   var username ="{{username|safe}}";
   var game = {{game|safe}};
-
-  var startTime = game.StartTime;
+  var time_start = undefined;
 
   document.onreadystatechange=function() {
     if (document.readyState=="complete") {
@@ -314,17 +313,16 @@
     }
   }
 
-  function calcTimeRemaining(date,time) {
-      var value = new Date(date + ' ' + time);
-      var diff = (value - Date.now())/1000; 
-      return diff;
-  }
+  function calcTimeRemaining() {
+        var diff = (time_start - Date.now())/1000; 
+        return diff;
+    }
 
   function init() {
-    initClock(calcTimeRemaining(game['start_time']['date'],game['start_time']['time']));
+    time_start = new Date(game['start_time']['date'] + 'T' + game['start_time']['time'] + '.000Z');
+    initClock(calcTimeRemaining());
     initTeam(teamname);
     initUsers(users);
-    
   }
 
   function timeup() {

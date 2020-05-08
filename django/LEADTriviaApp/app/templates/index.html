@@ -80,7 +80,7 @@
 <script>
     var games = {{games|safe}};
     var lastGameId={{gameId|safe}};
-    var lastGameName = "{{gamename|safe}}";
+    var lastGameName = "{{gameName|safe}}";
     var username = "{{username|safe}}";
     var errors = {{errors|safe}};
 
@@ -148,8 +148,15 @@
         ul.appendChild(createField('Status:',parseGameState(game['state'])));
         ul.appendChild(createField('Current Round:',game['current_round']));
         ul.appendChild(createField('Current Question:',game['current_question_index']+1));
-        ul.appendChild(createField('Start Date:',game['start_time']['date']));
-        ul.appendChild(createField('Start Time:',game['start_time']['time']));
+        // ul.appendChild(createField('Start Date:',game['start_time']['date']));
+        // ul.appendChild(createField('Start Time:',game['start_time']['time']));
+        if (game['start_time']!=undefined && game['start_time']['date']!=undefined && game['start_time']['time']!=undefined) {
+            var val = game['start_time']['date'] + 'T' + game['start_time']['time'] + '.000Z';
+            var value = Date.parse(val);
+            var dtm = new Date(value);
+            ul.appendChild(createField("Start Date:", dtm.toLocaleDateString()));
+            ul.appendChild(createField("Start Time:",dtm.toLocaleTimeString()));
+        };
         ul.appendChild(createField('Is Cancelled:',game['is_cancelled']));
         ul.appendChild(createField('Teams:',game['team_count']));
         ul.appendChild(createField('Players:',game['user_count']));
