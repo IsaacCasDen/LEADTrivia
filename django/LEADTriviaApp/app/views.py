@@ -108,11 +108,20 @@ def validate_session(request)->SessionState:
 
     gameId = int(gameId)
     game = get_game(gameId)
-    if game == None:
-        return session_state
-    else:
+    if game != None:
         session_state.has_game=True
         session_state.game=game
+
+        if session_state.has_user:
+            tms = TeamMember.objects.filter(game__id=game.id,user__id=session_state.user.id)
+            if len(tms)==0:
+                pass
+            elif len(tms)==1:
+                if session_state.game.start_time>datetime.utcnow():
+                    session.has_team=True
+                    session.team=tms.team
+                    request.session[TEAMID]=tms.team.id
+                    request.session[TEAMNAME]=tms.team.team.team_name
 
     if userId != '':
         u = TeamMember.objects.filter(user__id=userId,game__id=gameId)
@@ -122,13 +131,30 @@ def validate_session(request)->SessionState:
             if len(u)==0:
                 u = add_orphan(gameId,userId)
 
-    if teamId != '':
-        teamId = int(teamId)
-        team = TriviaGameTeam.objects.filter(game__id=gameId,team__id=teamId)
-        if len(team)>0:
-            session_state.has_team = True
-            session_state.team=team[0]
-    
+
+
+    if session_state.has_user and not session_state.has_team and teamId != '':
+        tms = TeamMember.objects.filter(game__id=game.id,user__id=session_state.user.id)
+        if len(tms)==0:
+            teamId = int(teamId)
+            team = TriviaGameTeam.objects.filter(game__id=session_state.game.id,team__id=teamId)
+            if len(team)>0:
+                session_state.has_team = True
+                session_state.team = team[0]
+                request.session[TEAMID] = team[0]
+                request.session[TEAMNAME] = team[0].team.team_name
+                add_teammember(session_state.game.id,teamId,session_state.user.id)
+        elif len(tms)>1:
+            while len(tms)>1:
+                for tm in tms:
+                    if tm.team.id!=teamId:
+                        tm.delete()
+                        del tms[tm]
+                        break
+
+            if len(tms)==0:
+                add_teammember(session_state.game.id,teamId,session_state.user.id)
+                        
     if mode != '':
         session_state.has_mode = True
         session_state.mode=mode
@@ -252,6 +278,15 @@ def team(request):
         
     if session.has_mode and (session.mode == 1 or (session.mode == 0 and not session.has_user)):
         return redirect(lobby)
+
+    teams = TriviaGameTeam.objects.filter(game__id=session.game.id,user__id=session.user.id)
+    if len(teams)==0:
+        pass
+    elif len(teams)==1:
+        if teams[0].id=
+        pass
+    else:
+        pass
 
     if not session.has_team:
         name1 = 'Team '
