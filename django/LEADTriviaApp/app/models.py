@@ -227,12 +227,9 @@ class TriviaGame(models.Model):
         self.save()
 
     def is_ready(self) -> bool:
-        return True
-        # current_time = datetime.now(timezone.utc)
-        # s_time = self.start_time
-        # diff=current_time-s_time
-        # minutes = divmod(diff.seconds,60)
-        # return minutes[0]<self.pre_game_minutes
+        diff=self.start_time-datetime.now(timezone.utc)
+        minutes = divmod(diff.seconds,60)
+        return minutes[0]<self.pre_game_minutes
 
 
     def next_question(self):
@@ -250,7 +247,7 @@ class TriviaGame(models.Model):
                             q = TriviaGameQuestion.objects.filter(game__id=self.id,round_index=self.current_round,index=self.current_question_index)
                             if len(q)>0:
                                 q=q[0]
-                                q.time_started = datetime.now()
+                                q.time_started = datetime.now(timezone.utc)
                                 q.save()
                             return True
                         else:
@@ -264,7 +261,7 @@ class TriviaGame(models.Model):
                                     self.save()
                                     q = TriviaGameQuestion.objects.filter(game__id=self.id,round_index=self.current_round,index=self.current_question_index)
                                     if len(q)>0:
-                                        q[0].time_started = datetime.now()
+                                        q[0].time_started = datetime.now(timezone.utc)
                                         q[0].save()
                                 else:
                                     compile_round_stats(self.id)
