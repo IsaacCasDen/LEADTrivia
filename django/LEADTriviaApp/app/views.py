@@ -117,11 +117,11 @@ def validate_session(request)->SessionState:
             if len(tms)==0:
                 pass
             elif len(tms)==1:
-                if session_state.game.start_time>datetime.utcnow():
-                    session.has_team=True
-                    session.team=tms.team
-                    request.session[TEAMID]=tms.team.id
-                    request.session[TEAMNAME]=tms.team.team.team_name
+                if session_state.game.start_time > datetime.now(timezone.utc):
+                    session_state.has_team=True
+                    session_state.team=tms[0].team
+                    request.session[TEAMID]=tms[0].team.id
+                    request.session[TEAMNAME]=tms[0].team.team.team_name
 
     if userId != '':
         u = TeamMember.objects.filter(user__id=userId,game__id=gameId)
@@ -141,7 +141,7 @@ def validate_session(request)->SessionState:
             if len(team)>0:
                 session_state.has_team = True
                 session_state.team = team[0]
-                request.session[TEAMID] = team[0]
+                request.session[TEAMID] = team[0].id
                 request.session[TEAMNAME] = team[0].team.team_name
                 add_teammember(session_state.game.id,teamId,session_state.user.id)
         elif len(tms)>1:
@@ -279,15 +279,6 @@ def team(request):
     if session.has_mode and (session.mode == 1 or (session.mode == 0 and not session.has_user)):
         return redirect(lobby)
 
-    teams = TriviaGameTeam.objects.filter(game__id=session.game.id,user__id=session.user.id)
-    if len(teams)==0:
-        pass
-    elif len(teams)==1:
-        if teams[0].id=
-        pass
-    else:
-        pass
-
     if not session.has_team:
         name1 = 'Team '
         name2 = len(Team.objects.all())
@@ -304,14 +295,6 @@ def team(request):
         session.has_team = True
         request.session['teamId']=team.id
         request.session['teamname']=team.team.team_name
-    else:
-        team = get_team(session.game.id,session.team.id)
-        add_teammember(session.game.id,team.id,session.user.id)
-        session.team = team
-        session.has_team = True
-        request.session['teamId']=team.id
-        request.session['teamname']=team.team.team_name
-
 
     users = [{'isUser':user.id==session.user.id,'username':user.user_name} for user in get_users(session.game.id,session.team.id)]
 
@@ -322,8 +305,8 @@ def team(request):
     context['username']= session.user.user_name
     context['errors'] = request.session['errors']
     context['game'] = json.dumps(session.game.get_info())
-    
-    return render(request,'User/team.html',context)
+    print(request.POST)
+    return render(request,'User/team.html', context)
     
 def leave_team(request):
     init_session_vars(request)
