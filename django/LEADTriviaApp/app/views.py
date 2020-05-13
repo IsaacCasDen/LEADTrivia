@@ -208,6 +208,9 @@ def index(request):
 
     return render(request,'index.html', context=context)
 
+def info(request):
+    return render(request,'info.html')
+
 def lobby(request):
     init_session_vars(request)
     session = validate_session(request)
