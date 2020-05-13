@@ -4,56 +4,27 @@
 {% block content%}
 
 <style>
-    ul {
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
+    .container {
+
     }
-  
-    #topMenu {
-        position: -webkit-sticky;
-        position: sticky;
-        display: inline-block;
-        background-color: whitesmoke;
-        border-bottom: solid darkgray 1px;
-        top: 0;
-        margin-bottom: 1em;    
-        width: 100%;
-        clear: both;
+
+    .input-group-text {
+        min-width: 12em;
+        justify-content: right;
     }
-  
-    .menuItem {
+
+    .form-control {
+        min-width: 30em !important; 
+        width: 30em !important; 
+        max-width: 30em !important; 
+    }
+
+    input[type='text'] {
+        border: lightgray solid 1px;
+        border-radius: .5em;
         padding: 0.5em;
-        border-left: solid 1px darkgray;
-        border-right: solid 1px darkgray;
-        cursor: pointer;
     }
-  
-    .firstMenuItem {
-        padding-left: 1em;
-        border-left: none;
-    }
-  
-    .leftMenuItem {
-        float: left ;
-        margin-right: 1em;
-    }
-  
-    .lastMenuItem {
-        padding-right: 1em;
-        border-right: none
-    }
-  
-    .rightMenuItem {
-        float:right;
-        margin-left: 1em;
-    }
-  
-    #title {
-        float:left;
-    }
-    
-  </style>
+</style>
 
 <script>
     var username = '{{username|safe}}'
@@ -68,7 +39,7 @@
     var roundsRemaining = {{roundsRemaining|safe}};
     var roundFinished = {{roundFinished | safe}};
     var timeAllowed = {{timeAllowed | safe}};
-    var timeStarted = {{timeStarted | safe}};
+    var timeStarted = '{{timeStarted | safe}}';
 
 
     document.addEventListener('readystatechange', function() {
@@ -80,34 +51,31 @@
     });
 
     function init() {
-        var divName = document.getElementById('divName');
-        var divRemaining = document.getElementById('divQuestionsRemaining');
-        var divRound = document.getElementById('divCurrentRound');
+        var divName = document.getElementById('inputName');
+        var divRemaining = document.getElementById('divQuestRemain');
+        var divRound = document.getElementById('divCurrRound');
         var divCurrentIndex = document.getElementById('divCurrentQuestion');
-        var divQuestion = document.getElementById('divCurrentQuestionText');
-        var divAnswer = document.getElementById('divCurrentAnswerText');
-        setTimeout(lockButton,500)
-        divName.innerText = name;
+        var divQuestion = document.getElementById('inputQuestion');
+        var divAnswer = document.getElementById('inputAnswer');
+        // setTimeout(lockButton,500);
+        divName.value = name;
         divRemaining.innerText = countRemaining;
         divRound.innerText = currentRound
         divCurrentIndex.innerText = currentQuestionIndex
-        divQuestion.innerText = currentQuestion;
-        divAnswer.innerText = currentAnswer;
-        lockButton()
+        divQuestion.value = currentQuestion;
+        divAnswer.value = currentAnswer;
+        // lockButton()
 
     }
 
-    function lockButton(){
-        var div = document.getElementById("move_forward");
-        div.disabled = true;
-        var currentTime = date.now()
-        //Lock button
+    // function lockButton(){
+    //     var div = document.getElementById("move_forward");
+    //     div.disabled = true;
+    //     var currentTime = Date.now()
+    //     //Lock button
 
-
-
-
-        setTimeout(lockButton,500)
-    }
+        // setTimeout(lockButton,500)
+    // }
 
     function updateButton(){
         var lquestion = lastQuestion;
@@ -152,30 +120,30 @@
 
 <body>
     {% include "../Components/top_menu.html" %}
-    <form id="formAdminGame" method="POST">
-        {% csrf_token %}
-        <div id="divInfo">
-            <div id="divName">Placeholder Name</div>
-            <div>
-                <div style="float: left;">Questions Remaining:&nbsp;</div>
-                <div id="divQuestionsRemaining">10</div>
-            </div>
-            <div>
-                <div style="float: left;">Current Round:&nbsp;</div>
-                <div id="divCurrentRound">1</div>
-            </div>
-            <div>
-                <div style="float: left;">Current Question:&nbsp;</div>
-                <div id="divCurrentQuestion">1</div>
-            </div>
-            <div>
-                <div style="float: left;">Current Question:&nbsp;</div>
-                <div id="divCurrentQuestionText">What is the airspeed of a swallow?</div>
-            </div>
-            <div>
-                <div style="float: left;">Current Answer:&nbsp;</div>
-                <div id="divCurrentAnswerText">African or European?</div>
-            </div>
+    <div class="container">
+        <div class="input-group">
+            <label for="inputName" class="input-group-text">Game:</label>
+            <input id='inputName' type="text" class="form-control"/>
+        </div>
+        <div class="input-group">
+            <label for="divCurrRound" class="input-group-text">Current Round:</label>
+            <div id='divCurrRound' type="text" class="form-control"></div>
+        </div>
+        <div class="input-group">
+            <label for="divRoundRemain" class="input-group-text">Rounds Remaining:</label>
+            <div id='divRoundRemain' type="text" class="form-control"></div>
+        </div>
+        <div class="input-group">
+            <label for="divQuestRemain" class="input-group-text">Questions Remaining:</label>
+            <div id='divQuestRemain' type="text" class="form-control"></div>
+        </div>
+        <div class="input-group">
+            <label for="inputAnswer" class="input-group-text">Answer:</label>
+            <input id='inputAnswer' type="text" class="form-control"/>
+        </div>
+        <div class="input-group">
+            <label for="inputQuestion" class="input-group-text">Question:</label>
+            <input id='inputQuestion' type="text" class="form-control"/>
         </div>
         <div id="divControls">
             <div id="divGameOptions" style="margin:.5em">
@@ -188,7 +156,7 @@
                 <input type="submit" type="button" value="Next Question" formaction="admin_next_question/" class="btn btn-primary" id = "move_forward">
             </div>
         </div>
-    </form>
+    </div>
 </body>
 
 {% endblock %}
