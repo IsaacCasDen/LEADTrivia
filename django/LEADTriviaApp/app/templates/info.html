@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+
+    #ulInfo {
+        list-style: none;
+    }
+
+    .label {
+        clear: both;
+        float: left;
+        margin-right: .25rem;
+    }
+
+    .value {
+        float:left;
+    }
+
+</style>
+<script>
+
+    document.addEventListener('readystatechange', function() {
+        if (document.readyState=="complete") {
+            createItems();
+        }
+    });
+
+    function createItems() {
+        // width, height
+        var parent = document.getElementById('ulInfo');
+        parent.appendChild(createItem('Width:',window.innerWidth));
+        parent.appendChild(createItem('Height:',window.innerHeight));
+        parent.appendChild(createItem('Pixel Ratio',window.devicePixelRatio));
+    }
+    function createItem(label, value) {
+        var li = document.createElement('li');
+        var div = document.createElement('div');
+        var lbl = document.createElement('div');
+        var val = document.createElement('div');
+
+        lbl.innerText=label;
+        lbl.classList.add('label');
+
+        val.innerText=value
+        val.classList.add('value');
+
+        div.appendChild(lbl);
+        div.appendChild(val);
+        li.appendChild(div);
+        return li;
+    }
+
+</script>
+
+<body>
+    <ul id='ulInfo'></div>
+</body>
+
+{% endblock %}
