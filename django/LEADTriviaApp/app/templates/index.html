@@ -1,75 +1,89 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
-<meta name=”viewport” content=”width=device-width, initial-scale=1″>
 
 <style>
 
-    #title{
-            padding-top: 1em;
-            padding-bottom: 1em;
-            padding-left: 1.5em;
-            font-size: 35px;
-            text-shadow: -.015em 0 black, 0 .015em black, .015em 0 black, 0 -.015em black;
-            font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-    }
-
-    #divLi{
-            display:block;
-            clear: both;
-            width: auto;
-
-        }
-
-    @media (max-width: 1000px){
-        #title{
-            padding-bottom: 1em;
-            padding-left: 4.0em;
-            font-size: 55px;
-            text-shadow: -.015em 0 black, 0 .015em black, .015em 0 black, 0 -.015em black;
-            font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-        }
-
-        #divLi{
-            display:block;
-            clear: both;
-            width: 600px; 
-            padding-left: 13em; 
-            
-        }
-
-        #idList{
-            display:block;
-            clear: both;
-            float: center;
-            width: 600px; 
-
-        }
-
-        body{
+    body{
             background-color: cyan;
             background-image: linear-gradient(white, lightblue, steelblue );
             background-repeat: no-repeat;
             background-attachment: fixed;
         }
 
-
-
-        #labelID{
-            text-align: center;
-            font-size: 50px;
-        }
-
-        #divLableId{
-            font-size: 50px;
-        }
-
-        #buttonClass{
-            width:210px;
-            height:100px;
-            font-size:35px;
-        }
+    #title{
+        display: block;
+        width: 100%;
+        text-align: center;
+        color: slategrey;
+        margin-left: auto;
+        margin-right: auto;
+        font-size: 2vw;
+        text-shadow: -.015rem 0 black, 0 .015rem black, .015rem 0 black, 0 -.015rem black;
+        font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
     }
+
+    #divGames {
+        display: block;
+        float:left;
+        clear:both;
+    }
+
+    .container {
+        display: grid;
+        grid-template-rows: auto auto;
+        max-width: 95% !important;
+        width: 95% !important;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .gameItem {
+        float:left;
+        margin:0.25rem;
+        padding: 0;
+        width: 25rem;
+        border: black solid 1px;
+        /* background-color: rgba(255, 255, 255, 0.4); */
+        background-color: white;
+    }
+
+    .label{
+        text-align: center;
+        font-size: 1rem;
+        padding:0.25rem;
+        margin:0;
+        background-color:silver;
+        border-bottom: black solid 1px;
+        width:100%;
+    }
+
+    .itemLabel{
+        font-size: 1rem;
+        float:left;
+    }
+
+    .btn-container {
+        display: grid;
+        grid-template-columns: 50% 50%;
+        width:90%;
+        column-gap: .75rem;
+
+        /* controls.style.clear='both';
+        controls.style.width='100%';
+        controls.style.alignItems='center';
+        controls.style.justifyContent='center';
+        controls.style.display='flex'; */
+    }
+
+    .btn-container .btn {
+        width: 100%;
+    }
+
+    .btn{
+        font-size:1rem;
+    }
+
 
 </style>
 
@@ -97,14 +111,12 @@
     function showGames() {
         var divGames = document.getElementById('divGames');
         
-        var list = document.createElement('ul');
-        list.id = "divLi";
-        list.style.listStyleType='none';
-        list.classList.add('list');
-
-        for (var i=0; i<games.length; i++) list.append(createGame(games[i]));
+        var items = document.createElement('div');
         
-        divGames.appendChild(list);
+        // for (var i=0; i<games.length; i++) list.append(createGame(games[i]));
+        for (var i=0; i<5; i++) items.append(createGame(games[0]));
+        
+        divGames.appendChild(items);
     }
 
     function parseGameState(state) {
@@ -121,28 +133,14 @@
         }
 
     function createGame(game) {
-        var li = document.createElement('li');
-        li.id = "idList";
-        // li.style.clear='both';
-        // li.classList.add('border');
-        li.classList.add('list');
-        li.style.float='left';
-        li.style.margin='0.5em';
-
-        if (game['state']==2) {
-            li.style.backgroundColor='silver';
-        }
+        var gameItem = document.createElement('div');
+        gameItem.classList.add('gameItem');
 
         var divContent = document.createElement('div');
         var label = document.createElement('label');
-        label.id = "labelID";
-        label.style.cursor='pointer';
-        label.style.padding='0.25em';
+        label.classList.add('label');
         label.innerText = game['name'];
-        label.style.backgroundColor='silver';
-        label.style.width='100%';
-        label.style.borderBottom = 'solid silver 5px';
-
+    
         var ul = document.createElement('ul');
         
         ul.appendChild(createField('Status:',parseGameState(game['state'])));
@@ -162,27 +160,29 @@
         ul.appendChild(createField('Players:',game['user_count']));
 
         var controls = document.createElement('div');
-        controls.style.clear='both';
-        controls.style.width='100%';
-        controls.style.alignItems='center';
-        controls.style.justifyContent='center';
-        controls.style.display='flex';
-
+        controls.classList.add('btn-container');
+        
         var btnJoin = document.createElement('button');
-        btnJoin.id = "buttonClass";
         btnJoin.classList.add('btn');
-        btnJoin.classList.add('btn-primary');
-        btnJoin.style.margin='0.5em';
+        btnJoin.style.margin='0.5rem';
         btnJoin.innerText = 'Join Game';
-        btnJoin.addEventListener('click',function() {
-            joinGame(game,true);
-        });
+
+        if (game['state']!=2) {
+            btnJoin.classList.add('btn-primary');
+            btnJoin.addEventListener('click',function() {
+                joinGame(game,true);
+            });    
+        } else {
+            btnJoin.classList.add('btn-danger');
+            btnJoin.disabled=true;
+            btnJoin.alt = 'Game is Finished';
+        }
+        
         
         var btnCompetition = document.createElement('button');
-        btnCompetition.id = "buttonClass";
         btnCompetition.classList.add('btn');
         btnCompetition.classList.add('btn-success');
-        btnCompetition.style.margin='0.5em';
+        btnCompetition.style.margin='0.5rem';
         btnCompetition.innerText = 'View Game';
         btnCompetition.addEventListener('click',function() {
             joinGame(game,false);
@@ -195,9 +195,9 @@
         divContent.appendChild(ul);
         divContent.appendChild(controls);
         
-        li.appendChild(divContent);
+        gameItem.appendChild(divContent);
 
-        return li
+        return gameItem
     }
 
     function joinGame(game,is_player) {
@@ -239,17 +239,15 @@
         var divContent = document.createElement('div');
         divContent.style.clear='both';
         divContent.style.width='auto';
-        divContent.style.padding='0.1em';
+        divContent.style.padding='0.1rem';
 
         var divLabel = document.createElement('label');
-        divLabel.id = "divLableId";
-        divLabel.style.float='left';
+        divLabel.classList.add('itemLabel')
+        divLabel.style.marginRight = '0.5rem';
         divLabel.innerText=label;
 
         var divValue = document.createElement('div');
-        divValue.id = "divLableId";
-        divValue.style.float='left';
-        divValue.style.marginLeft = '0.5em';
+        divValue.classList.add('itemLabel')
         divValue.innerText = value;
 
         divContent.appendChild(divLabel);
@@ -261,13 +259,12 @@
 
 </script>
 <body>
-    <div>
-        {% include "Components/top_menu.html" %}
+    {% include "Components/top_menu.html" %}
+    <div class="container">
         <div id='title'>Welcome to LEAD Trivia!</div>
         <div id='divGames'>
         </div>
         <ul id="ulErrors"></ul>
-
     </div>
 </body>
 {% endblock %}
