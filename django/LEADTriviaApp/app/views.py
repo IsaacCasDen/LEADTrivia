@@ -517,32 +517,36 @@ def admin_game(request):
     elif not session.user.is_admin:
         return HttpResponse('Unauthorized', status=401)
 
-    
     if not session.has_game:
         redirect(admin_game)
     
-    questions = get_questions(session.game.id)
-    r = __current_question_index__(session.game.id)
+    current_round = None
+    _current_round = session.game.get_round()
+    if _current_round!=None:
+        current_round = get_round(_current_round.id)
 
-    round_finished = r['round_finished']
+    if current_round == None:
+        return redirect(admin_manager)
     
-    is_last_question = False
-    is_last_round = False
-    count_remaining = 0
-    rounds_remaining = 0
     
-    item = {'question':'','answer':'','time_allowed':'','time_started':''}
-    if session.game.current_round in questions[0]:
-        rounds_remaining = (len(questions[0])-1)-questions[0].index(session.game.current_round)
-        is_last_round = rounds_remaining == 0
+    is_last_question = current_round['questions'][session.game.current_question_index]['is_last_question']
+    is_last_round = current_round['is_last_round']
+    count_remaining = current_round['questions'][session.game.current_question_index]['remaining_questions']
+    rounds_remaining = current_round['remaining_rounds']
+    round_finished = current_round['is_finished']
+
+    # item = {'question':'','answer':'','time_allowed':'','time_started':''}
+    # if session.game.current_round in questions[0]:
+    #     rounds_remaining = (len(questions[0])-1)-questions[0].index(session.game.current_round)
+    #     is_last_round = rounds_remaining == 0
         
-        for i, question in enumerate(questions[1][session.game.current_round]):
-            if question['round_index'] == session.game.current_round and question['index'] == session.game.current_question_index:
-                item = question
-                count_remaining = (len(questions[1][session.game.current_round])-1)-i
-                if i==len(questions[1][session.game.current_round])-1:
-                    is_last_question = True
-                    break
+    #     for i, question in enumerate(questions[1][session.game.current_round]):
+    #         if question['round_index'] == session.game.current_round and question['index'] == session.game.current_question_index:
+    #             item = question
+    #             count_remaining = (len(questions[1][session.game.current_round])-1)-i
+    #             if i==len(questions[1][session.game.current_round])-1:
+    #                 is_last_question = True
+    #                 break
 
     context['roundFinished'] = json.dumps(round_finished)
     context['countRemaining'] = json.dumps(count_remaining)
@@ -552,14 +556,12 @@ def admin_game(request):
     context['name'] = json.dumps(session.game.name)
     context['currentQuestionIndex'] = json.dumps(session.game.current_question_index)
     context['currentRound'] = json.dumps(session.game.current_round)
-    context['currentQuestion'] = json.dumps(item['question'])
-    context['currentAnswer'] = json.dumps(item['answer'])
-    context['timeAllowed'] = ""
+    context['currentQuestion'] = json.dumps(current_round['questions'][session.game.current_question_index]['question'])
+    context['currentAnswer'] = json.dumps(current_round['questions'][session.game.current_question_index]['answer'])
+    context['timeAllowed'] = json.dumps(current_round['questions'][session.game.current_question_index]['time_allowed'])
     context['timeStarted'] = ""
-    if item['time_allowed'] != None:
-        context['timeAllowed'] = json.dumps(item['time_allowed'])
-    if item['time_started'] != None:
-        context['timeStarted'] = json.dumps(item['time_started'].strftime("%Y-%m-%d %H:%M:%S"))
+    if current_round['questions'][session.game.current_question_index]['time_started'] != None:
+        context['timeStarted'] = json.dumps(current_round['questions'][session.game.current_question_index]['time_started'].strftime("%Y-%m-%d %H:%M:%S"))
 
     return render(request,'Admin/admin_game.html',context)
 

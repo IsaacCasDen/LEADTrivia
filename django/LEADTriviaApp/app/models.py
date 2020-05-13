@@ -291,6 +291,25 @@ class TriviaGame(models.Model):
                         self.save()
                     break
 
+    def get_round(self):
+        items = TriviaGameRound.objects.filter(game__id=self.id, index=self.current_round)
+        if len(items)>0:
+            return items[0]
+    
+    def next_round(self):
+        items = TriviaGameRound.objects.filter(game__id=self.id)
+        for item in items:
+            if item.index==self.current_round-1:
+                self.current_round=item.index
+                break
+
+    def next_round(self):
+        items = TriviaGameRound.objects.filter(game__id=self.id)
+        for item in items:
+            if item.index==self.current_round+1:
+                self.current_round=item.index
+                break
+
 class TriviaGameTeam(models.Model):
     team = models.ForeignKey(Team,on_delete=models.CASCADE)
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)
@@ -347,11 +366,16 @@ class TriviaQuestionAudio(models.Model):
     file_path = models.CharField(max_length=1024)
     is_local = models.BooleanField(default=True)
 
+class TriviaGameRound(models.Model):
+    game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
+    index = models.IntegerField()
+    is_finished = models.BooleanField(default=False)
+
 class TriviaGameQuestion(models.Model):
+    trivia_round = models.ForeignKey(TriviaGameRound,on_delete=models.CASCADE)
     question = models.ForeignKey(TriviaQuestion,on_delete=models.CASCADE)
     game = models.ForeignKey(TriviaGame,on_delete=models.CASCADE)  
     index = models.IntegerField()
-    round_index = models.IntegerField(default=1)
     time_started = models.DateTimeField(null=True)
 
     @classmethod
@@ -398,11 +422,6 @@ class TriviaGameTeamAnswer(models.Model):
 
     def is_correct(self):
         return self.question.question.answer == self.answer
-
-class TriviaGameRound(models.Model):
-    game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
-    round_index = models.IntegerField()
-    is_finished = models.BooleanField(default=False)
 
 class TriviaGameRoundResultTeam(models.Model):
     game = models.ForeignKey(TriviaGame,on_delete=CASCADE)
@@ -1017,61 +1036,54 @@ def update_team_choice(game_id:int, team_id:int, question_id: int, group_id:int)
     update_team_answer(game_id,question_id,team.id)
     return team_choice!=None
 
-def get_questions(game_id:int,round_index:int=None):
-
-    rounds = {}
-    q = None
-    if round_index == None:
-        q = TriviaGameQuestion.objects.filter(game__id=game_id)
-    else:
-        q=TriviaGameQuestion.objects.filter(game__id=game_id,round_index=round_index)
+def get_rounds(game_id):
+    rounds = TriviaGameRound.objects.all()
+    value = {'rounds':{}}
+    for r in rounds:
+        item = get_round(r.id)
+        value['rounds'][r.index] = item
     
-    for item in q:
-        value = get_question(question_id=item.id)
-        if value['round_index'] in rounds:
-            rounds[value['round_index']].append(value)
-        else:
-            rounds[value['round_index']] = [value]
+    return value
 
-    round_list = list(rounds.keys())
-    round_list.sort()
-
-    for _round in rounds.keys():
-        rounds[_round].sort(key=lambda x: (x['round_index'],x['index']))
-
-    return (round_list,rounds)
-
-def get_question(game_id:int=None, round_index:int = None, index:int = None, question_id:int=None):
-    if game_id==None and index==None and question_id == None:
+def get_round(round_id:int):
+    item = TriviaGameRound.objects.get(id=round_id)
+    if item == None:
         return None
-    
-    question = None
 
-    if game_id!=None and index!=None:
-        if round_index == None:
-            game = get_game(game_id)
-            round_index = game.current_round
-        question = TriviaGameQuestion.objects.filter(game__id=game_id, round_index = round_index, index=index)
-        if len(question)==1:
-            question=question[0]
-        else:
-            return None
-    elif question_id!=None:
-        question = TriviaGameQuestion.objects.get(id=question_id)
+    rem_rounds = TriviaGameRound.objects.filter(game__id=item.game.id,index__gte=item.index)
+    result = {'id':item.id, 'index':item.index, 'is_finished':item.is_finished}
+    result['remaining_rounds'] = len(rem_rounds)
+    result['is_last_round'] = len(rem_rounds)==0
+    result['questions'] = get_questions(item.id)
+
+    return result
+
+def get_questions(round_id:int):
+    items = {}
+    for q in TriviaGameQuestion.objects.filter(trivia_round__id=round_id):
+        items[q.index]=get_question(q.id)
+
+    return items
+
+def get_question(question_id:int):
     
+    question = TriviaGameQuestion.objects.get(id=question_id)
     if question == None:
         return None
+
+    rem_questions = TriviaGameRound.objects.filter(game__id=question.game.id,index__gte=question.index)
 
     value = {}
     value['id']=question.id
     value['question']=question.question.question
     value['answer']=question.question.answer
-    value['round_index']=question.round_index
     value['index']=question.index
     value['time_allowed']=question.question.time_allowed
     value['time_started']=question.time_started
+    value['is_last_question'] = len(rem_questions)==0
+    value['remaining_questions'] = len(rem_questions)
     value['groups'] = []
-    
+
     groups = TriviaQuestionChoiceGroup.objects.filter(question__id=question.question.id)
     for i,group in enumerate(groups):
         _group = {}
@@ -1108,71 +1120,6 @@ def get_question(game_id:int=None, round_index:int = None, index:int = None, que
         value['audios'].append(_media)
 
     return value
-
-def create_questions(game_id:int):
-    game = get_game(game_id)
-
-    create_question(game.id,0,"My mama always said life was like {}. You never know what you're gonna get.","My mama always said life was like a box of chocolates. You never know what you're gonna get.",[["a box of chocolates","peanut brittle","confused elves"]],2,[('<iframe src="https://www.youtube.com/embed/CJh59vZ8ccc?controls=0&start=30;end=40" frameborder="0" allow="ac',False)])
-    create_question(game.id,0,"If you got rid of every {} with {}, then you'd have three {} left.","If you got rid of every cop with some sort of drink problem, then you'd have three cops left.",[['cop','moose','priest'],['some sort of drink problem','a pineapple on their head','a car in their garage'],['cops','moose','priests']],1,[('ants.mp4',True)],[('ShruggingTom.png',True)],[('30 Second Timer With Jeopardy Thinking Music.mp3',True)])
-    create_question(game.id,1,"Which of these is a type of computer?","Apple",[['Apple', 'Nectarine','Orange']],2,[('ants.mp4',True)],[('ShruggingTom.png',True)],[('30 Second Timer With Jeopardy Thinking Music.mp3',True)])
-    create_question(game.id,1,"What was the name of the first satellite sent to space?","Sputnik 1",[["Sputnik 1","Gallileo 1","Neo 3"]],1,[('ants.mp4',True)],[('ShruggingTom.png',True)],[('30 Second Timer With Jeopardy Thinking Music.mp3',True)])
-    create_question(game.id,2,"In which U.S. state was Tennessee Williams born?","Mississippi",[["Mississippi","Tenessee", "Alabama"]],1,[('ants.mp4',True)],[('ShruggingTom.png',True)],[('30 Second Timer With Jeopardy Thinking Music.mp3',True)])
-
-
-def create_question(game_id:int, index:int, question:str, answer:str, choices:list, round_index:int=1,videos:list=[],images:list=[],audios:list=[]):
-    game = TriviaGame.objects.get(id=game_id)
-    if game == None:
-        return False
-
-    q = TriviaQuestion()
-    q.question = question
-    q.answer = answer
-    q.save()
-    
-    for i,choice_list in enumerate(choices):
-        group = TriviaQuestionChoiceGroup()
-        group.index=i
-        group.question = q
-        group.save()
-        for _choice in choice_list:
-            choice = TriviaQuestionChoice()
-            choice.choice=_choice
-            choice.group = group
-            choice.save()
-
-    for i,value in enumerate(videos):
-        tv = TriviaQuestionVideo()
-        tv.question=q
-        tv.index=i
-        tv.file_path=value[0]
-        tv.is_local=value[1]
-        tv.save()
-    
-    for i,value in enumerate(images):
-        ti = TriviaQuestionImage()
-        ti.question=q
-        ti.index=i
-        ti.file_path=value[0]
-        ti.is_local=value[1]
-        ti.save()
-    
-    for i,value in enumerate(audios):
-        ta = TriviaQuestionAudio()
-        ta.question=q
-        ta.index=i
-        ta.file_path=value[0]
-        ta.is_local=value[1]
-        ta.save()
-    
-
-    tq = TriviaGameQuestion()
-    tq.game=game
-    tq.index = index
-    tq.question = q
-    tq.round_index = round_index
-    tq.save()
-
-    return True    
 
 createuser_lock = Lock()
 def create_user(game_id:int, username:str):
