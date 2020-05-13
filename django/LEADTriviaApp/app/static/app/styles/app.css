@@ -1,18 +1,25 @@
+:root {
+    font-size: 1em;
+}
+
 #topMenu {
     position: -webkit-sticky;
     position: sticky;
+    /* overflow: hidden; */
     list-style-type: none;
     display: inline-block;
     background-color: whitesmoke;
     border-bottom: solid darkgray 1px;
     top: 0;
-    margin-bottom: 1em;    
+    margin-bottom: 1rem;    
     width: 100%;
     clear: both;
 }
 
+
+
 .menuItem {
-    padding: 0.5em;
+    padding: 0.5rem;
     cursor: pointer;
 }
 
@@ -24,8 +31,8 @@
 .leftMenuItem {
     float: left ;
     border-right: solid 1px darkgray;
-    margin-right: 1em;
-    margin-left: 1em;
+    margin-right: 1rem;
+    margin-left: 1rem;
 }
 
 .lastMenuItem {
@@ -36,8 +43,8 @@
 .rightMenuItem {
     float:right;
     border-left: solid 1px darkgray;
-    margin-right: 1em;
-    margin-left: 1em;
+    margin-right: 1rem;
+    margin-left: 1rem;
 }
 
 .modal {
@@ -52,8 +59,8 @@
 
 .modal-content {
     background-color: #fefefe;
-    padding: 1em;
-    border: 1em solid #888;
+    padding: 1rem;
+    border: 1rem solid #888;
     width:fit-content;
     height: fit-content;
 }
@@ -61,7 +68,7 @@
 .close {
     color:#aaa;
     float:right;
-    font-size: 18em;
+    font-size: 18rem;
     font-weight: bold;
 }
 
